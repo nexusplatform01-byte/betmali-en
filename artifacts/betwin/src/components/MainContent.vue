@@ -36,12 +36,8 @@
     <!-- NORMAL CONTENT (hidden when detail is open) -->
     <div v-else class="content-scroll">
 
-      <!-- First match section -->
-      <MatchSection
-        :league="{ flag: '🇹🇷', sport: 'Soccer', name: 'Turkiye Kupasi' }"
-        :matches="matchesGroup1"
-        @match-click="openMatchDetail"
-      />
+      <!-- TOP MATCHES — live from API -->
+      <TopMatchesSection @match-click="openMatchDetail" />
 
       <!-- Popular Leagues -->
       <div class="popular-leagues-section">
@@ -189,6 +185,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import MatchSection from './MatchSection.vue'
+import TopMatchesSection from './TopMatchesSection.vue'
 import MatchDetail from './MatchDetail.vue'
 
 interface Match {

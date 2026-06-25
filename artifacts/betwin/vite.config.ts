@@ -65,6 +65,18 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: {
+      "/betmaster-api": {
+        target: "https://betmaster.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/betmaster-api/, "/api"),
+        secure: true,
+        headers: {
+          "Origin": "https://betmaster.com",
+          "Referer": "https://betmaster.com/",
+        },
+      },
+    },
   },
   preview: {
     port,

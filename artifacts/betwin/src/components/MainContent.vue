@@ -46,11 +46,28 @@
         <!-- Section title -->
         <div class="section-title">
           <div class="play-now-label">PLAY NOW</div>
-          <div class="popular-label">Popular Leagues</div>
+          <div class="popular-label-row">
+            <div class="popular-label">Popular Leagues</div>
+            <div class="ai-badge">
+              <span class="ai-spark">✦</span> AI Picks
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div v-if="leagueLoading" class="lm-loading">
+          <div class="lm-spinner"></div>
+          <span>AI is picking the best matches…</span>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="leagueError" class="lm-error-row">
+          <span>⚠ {{ leagueError }}</span>
+          <button class="lm-retry-btn" @click="leagueRefresh">Retry</button>
         </div>
 
         <!-- Match league cards row -->
-        <div class="league-match-scroll-wrap">
+        <div v-else class="league-match-scroll-wrap">
           <div class="league-match-scroll">
             <div
               v-for="(lm, idx) in leagueMatchCards"
@@ -184,10 +201,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import MatchSection from './MatchSection.vue'
 import TopMatchesSection from './TopMatchesSection.vue'
 import MatchDetail from './MatchDetail.vue'
+import { usePopularLeagueMatches } from '@/composables/usePopularLeagueMatches'
 
 interface Match {
   id: number
@@ -243,38 +261,7 @@ const matchesGroup1 = makeMatches()
 const matchesGroup2 = makeMatches()
 const matchesGroup3 = makeMatches()
 
-const leagueMatchCards = reactive([
-  {
-    flag: '🇫🇷', leagueName: 'Liga France 1',
-    team1: 'Marsel', team1Abbr: 'OM', team1Color: 'linear-gradient(135deg,#0080cc,#00aaff)',
-    team2: 'PSG', team2Abbr: 'PSG', team2Color: 'linear-gradient(135deg,#003087,#0047ba)',
-    time: '01:30', odds: ['21.00', '8.20', '1.13'], activeOdd: 0,
-  },
-  {
-    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', leagueName: 'Premier League',
-    team1: 'Marsel', team1Abbr: 'ARS', team1Color: 'linear-gradient(135deg,#EF0107,#9C1721)',
-    team2: 'PSG', team2Abbr: 'CHE', team2Color: 'linear-gradient(135deg,#034694,#0057a8)',
-    time: '01:30', odds: ['21.00', '8.20', '1.13'], activeOdd: 0,
-  },
-  {
-    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', leagueName: 'Premier League',
-    team1: 'Marsel', team1Abbr: 'MUN', team1Color: 'linear-gradient(135deg,#DA291C,#a61a10)',
-    team2: 'PSG', team2Abbr: 'LIV', team2Color: 'linear-gradient(135deg,#C8102E,#8b001f)',
-    time: '01:30', odds: ['21.00', '8.20', '1.13'], activeOdd: 1,
-  },
-  {
-    flag: '🇫🇷', leagueName: 'Liga France 1',
-    team1: 'Marsel', team1Abbr: 'OM', team1Color: 'linear-gradient(135deg,#0080cc,#00aaff)',
-    team2: 'PSG', team2Abbr: 'PSG', team2Color: 'linear-gradient(135deg,#003087,#0047ba)',
-    time: '01:30', odds: ['21.00', '8.20', '1.13'], activeOdd: 0,
-  },
-  {
-    flag: '🇪🇸', leagueName: 'LaLiga',
-    team1: 'Marsel', team1Abbr: 'RMA', team1Color: 'linear-gradient(135deg,#FEBE10,#c99a00)',
-    team2: 'PSG', team2Abbr: 'FCB', team2Color: 'linear-gradient(135deg,#004D98,#a50044)',
-    time: '01:30', odds: ['21.00', '8.20', '1.13'], activeOdd: 0,
-  },
-])
+const { cards: leagueMatchCards, loading: leagueLoading, error: leagueError, refresh: leagueRefresh } = usePopularLeagueMatches()
 
 const leagueImageCards = [
   {
@@ -401,8 +388,53 @@ const leagueImageCards = [
   text-transform: uppercase; letter-spacing: 0.5px;
   margin-bottom: 2px;
 }
+.popular-label-row {
+  display: flex; align-items: center; gap: 10px;
+}
 .popular-label {
   font-size: 16px; font-weight: 800; color: #fff;
+}
+.ai-badge {
+  display: flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 6px rgba(124,58,237,0.5);
+}
+.ai-spark {
+  font-size: 9px;
+  color: #ffd700;
+}
+
+.lm-loading {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  padding: 28px 12px;
+  font-size: 12px; color: #9ba3b8;
+}
+.lm-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid #7c3aed44;
+  border-top-color: #a855f7;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.lm-error-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  padding: 20px 12px;
+  font-size: 12px; color: #e84c6b;
+}
+.lm-retry-btn {
+  background: #7c3aed; border: none; color: #fff;
+  padding: 3px 10px; border-radius: 4px;
+  font-size: 11px; cursor: pointer;
 }
 
 /* League match cards */

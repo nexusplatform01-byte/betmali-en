@@ -16,45 +16,44 @@
 
     <!-- Selections count -->
     <div class="selections-row">
-      <span class="selections-label">SELECTIONS ({{ selections.length }})</span>
-      <button class="clear-all-btn" v-if="selections.length">✕</button>
+      <span class="selections-label">SELECTIONS ({{ slipItems.length }})</span>
+      <button class="clear-all-btn" v-if="slipItems.length" @click="clearAll()">✕ Clear</button>
     </div>
 
     <!-- Selection items -->
     <div class="selections-list">
-      <div v-for="sel in selections" :key="sel.id" class="selection-item">
+      <div v-if="slipItems.length === 0" class="slip-empty">
+        <div class="slip-empty-icon">🎯</div>
+        <div class="slip-empty-text">No selections yet.<br>Click odds to add them here.</div>
+      </div>
+      <div v-for="sel in slipItems" :key="sel.key" class="selection-item">
         <div class="sel-header">
           <div class="sel-team">
-            <span class="sel-flag">{{ sel.flag }}</span>
-            <span class="sel-name">{{ sel.name }} (NT)</span>
+            <span class="sel-name">{{ sel.label }}</span>
           </div>
           <div class="sel-right">
             <span class="sel-odds">{{ sel.odds }}</span>
-            <button class="sel-close">✕</button>
+            <button class="sel-close" @click="removeBet(sel.key)">✕</button>
           </div>
         </div>
         <div class="sel-match">
-          <span class="sel-result">{{ sel.result }}</span>
+          <span class="sel-result">{{ sel.market }}</span>
         </div>
-        <div class="sel-meta">{{ sel.meta }}</div>
+        <div class="sel-meta">{{ sel.matchName }}</div>
         <div class="sel-row">
-          <span class="sel-status">{{ sel.status }}</span>
+          <span class="sel-status">Match Odds</span>
           <div class="sel-returns">
             <span class="ret-label">Potential</span>
             <span class="ret-value">$ 0.00</span>
           </div>
         </div>
-        <div class="sel-bottom">
-          <div class="pot-return">
-            <span class="bet-icon">+</span>
-            <span>0.00</span>
-          </div>
-          <div class="pot-amount">
-            <span class="ret-label">Potential<br>Returns</span>
-            <span class="ret-value">$ 0.00</span>
-          </div>
-        </div>
       </div>
+    </div>
+
+    <!-- Total odds row when there are selections -->
+    <div v-if="slipItems.length > 0" class="total-odds-row">
+      <span class="to-label">Total Odds</span>
+      <span class="to-val">{{ totalOdds }}</span>
     </div>
 
     <!-- Stake per bet -->
@@ -92,39 +91,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useBetSlip } from '@/composables/useBetSlip'
 
 const activeSlipTab = ref('SINGLE')
 const slipTabs = ['SINGLE', 'MULTI', 'SYSTEM']
 
-const selections = ref([
-  {
-    id: 1,
-    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    name: 'Mauritana',
-    odds: '5.30',
-    result: 'Result (NT)',
-    meta: 'Turkey - Namibia',
-    status: 'Tue, 14th January • 19:00',
-  },
-  {
-    id: 2,
-    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    name: 'Mauritana',
-    odds: '5.30',
-    result: 'Result (NT)',
-    meta: 'Turkey - Namibia',
-    status: 'Tue, 14th January • 19:00',
-  },
-  {
-    id: 3,
-    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    name: 'Mauritana',
-    odds: '5.30',
-    result: 'Result (NT)',
-    meta: 'Turkey - Namibia',
-    status: 'Tue, 14th January • 19:00',
-  },
-])
+const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
 </script>
 
 <style scoped>
@@ -195,7 +167,34 @@ const selections = ref([
 }
 .selections-list {
   flex: 1;
+  overflow-y: auto;
 }
+.slip-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  gap: 8px;
+}
+.slip-empty-icon { font-size: 28px; }
+.slip-empty-text {
+  font-size: 10px;
+  color: #5a6080;
+  text-align: center;
+  line-height: 1.6;
+}
+.total-odds-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: #141624;
+  border-top: 1px solid #252840;
+  border-bottom: 1px solid #252840;
+}
+.to-label { font-size: 10px; color: #9ba3b8; font-weight: 700; }
+.to-val { font-size: 14px; font-weight: 900; color: #e84c6b; }
 .selection-item {
   background: #141624;
   border-bottom: 1px solid #252840;

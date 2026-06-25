@@ -248,7 +248,7 @@
               v-for="outcome in market.outcomes"
               :key="outcome.label"
               class="outcome-btn"
-              :class="{ selected: outcome.selected }"
+              :class="{ selected: hasBet(`${market.id}-${outcome.label}`) }"
               @click="toggleOutcome(market, outcome)"
             >
               <span class="outcome-label">{{ outcome.label }}</span>
@@ -263,30 +263,18 @@
 
       </div>
 
-      <!-- Right col: betslip summary -->
+      <!-- Right col: market movers only -->
       <div class="detail-right">
-        <div class="betslip-card">
-          <div class="betslip-title">🛒 Bet Slip</div>
-          <div v-if="selectedBets.length === 0" class="betslip-empty">Select odds to add to your slip</div>
-          <div v-else>
-            <div v-for="b in selectedBets" :key="b.key" class="slip-item">
-              <div class="slip-market">{{ b.market }}</div>
-              <div class="slip-outcome">{{ b.label }}</div>
-              <div class="slip-odds">{{ b.odds }}</div>
-            </div>
-            <div class="slip-total">
-              <span>Total odds</span>
-              <span class="slip-total-val">{{ totalOdds }}</span>
-            </div>
-            <button class="slip-place-btn">PLACE BET</button>
-          </div>
-        </div>
         <div class="market-stats-card">
           <div class="ms-title">Market Movers</div>
           <div v-for="m in marketMovers" :key="m.label" class="ms-row">
             <span class="ms-label">{{ m.label }}</span>
             <span class="ms-change" :class="m.dir">{{ m.dir === 'up' ? '▲' : '▼' }} {{ m.change }}</span>
           </div>
+        </div>
+        <div class="slip-hint-card">
+          <div class="slip-hint-icon">🛒</div>
+          <div class="slip-hint-text">Selected odds appear in the bet slip on the right</div>
         </div>
       </div>
     </div>
@@ -494,6 +482,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useBetSlip } from '@/composables/useBetSlip'
+
+const { toggleBet, hasBet } = useBetSlip()
 
 interface Match {
   id: number; date: string; time: string
@@ -668,24 +659,14 @@ const allMarkets = ref<Market[]>([
 ])
 
 function toggleOutcome(market: Market, outcome: Outcome) {
-  outcome.selected = !outcome.selected
-}
-
-const selectedBets = computed(() => {
-  const bets: { key: string; market: string; label: string; odds: string }[] = []
-  allMarkets.value.forEach(m => {
-    m.outcomes.forEach(o => {
-      if (o.selected) bets.push({ key: `${m.id}-${o.label}`, market: m.name, label: o.label, odds: o.odds })
-    })
+  toggleBet({
+    key: `${market.id}-${outcome.label}`,
+    market: market.name,
+    label: outcome.label,
+    odds: outcome.odds,
+    matchName: `${props.match.team1} vs ${props.match.team2}`,
   })
-  return bets
-})
-
-const totalOdds = computed(() => {
-  if (selectedBets.value.length === 0) return '0.00'
-  const total = selectedBets.value.reduce((acc, b) => acc * parseFloat(b.odds), 1)
-  return total.toFixed(2)
-})
+}
 
 const marketMovers = [
   { label: `${props.match.team1} Win`, dir: 'down', change: '0.12' },
@@ -1064,9 +1045,13 @@ const valueBets = [
 .outcome-btn.selected .outcome-odds { color: #e84c6b; }
 .odds-up .trend-arrow { color: #4caf50; font-size: 8px; }
 .odds-down .trend-arrow { color: #e84c6b; font-size: 8px; }
-.betslip-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; }
-.betslip-title { padding: 8px 12px; font-size: 11px; font-weight: 800; color: #fff; background: #0e1628; border-bottom: 1px solid #1e2a42; }
-.betslip-empty { padding: 12px; font-size: 10px; color: #5a6a88; text-align: center; line-height: 1.5; }
+.slip-hint-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px;
+  padding: 12px; text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+}
+.slip-hint-icon { font-size: 22px; }
+.slip-hint-text { font-size: 10px; color: #5a6a88; line-height: 1.5; }
 .slip-item { padding: 8px 12px; border-bottom: 1px solid #1e2a42; }
 .slip-market { font-size: 8px; color: #5a6a88; text-transform: uppercase; }
 .slip-outcome { font-size: 10px; font-weight: 700; color: #e2e8f0; }

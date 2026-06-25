@@ -76,6 +76,17 @@ export default defineConfig({
           "Referer": "https://betmaster.com/",
         },
       },
+      "/sofascore-api": {
+        target: "https://api.sofascore.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sofascore-api/, "/api/v1"),
+        secure: true,
+        headers: {
+          "Origin": "https://www.sofascore.com",
+          "Referer": "https://www.sofascore.com/",
+          "User-Agent": "Mozilla/5.0 (compatible; BetWin/1.0)",
+        },
+      },
     },
   },
   preview: {

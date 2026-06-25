@@ -1,247 +1,259 @@
 <template>
   <div class="match-detail">
 
+    <!-- Loading overlay -->
+    <div v-if="loading" class="md-loading">
+      <div class="md-spinner"></div>
+      <span>Loading match details…</span>
+    </div>
+
     <!-- Top bar: back + breadcrumb + tabs -->
     <div class="detail-topbar">
-      <button class="back-btn" @click="emit('close')">
-        <span class="back-arrow">‹</span> Back
-      </button>
+      <button class="back-btn" @click="emit('close')">‹ Back</button>
       <div class="breadcrumb">
-        <span class="bc-flag">{{ league.flag }}</span>
-        <span class="bc-sport">{{ league.sport }}</span>
+        <img v-if="tournamentLogo" :src="tournamentLogo" class="bc-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+        <span class="bc-sport">{{ sportName }}</span>
         <span class="bc-sep">›</span>
-        <span class="bc-name">{{ league.name }}</span>
+        <span class="bc-name">{{ tournamentName }}</span>
         <span class="bc-sep">›</span>
-        <span class="bc-match">{{ match.team1 }} vs {{ match.team2 }}</span>
+        <span class="bc-match">{{ homeName }} vs {{ awayName }}</span>
       </div>
       <div class="detail-tabs">
-        <button
-          v-for="tab in detailTabs"
-          :key="tab.id"
-          class="dtab"
-          :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
-        >
-          <span class="dtab-icon">{{ tab.icon }}</span>
-          {{ tab.label }}
+        <button v-for="tab in TABS" :key="tab.id" class="dtab" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">
+          <span class="dtab-icon">{{ tab.icon }}</span>{{ tab.label }}
         </button>
       </div>
     </div>
 
-    <!-- STATISTICS TAB -->
-    <div v-if="activeTab === 'statistics'" class="detail-body">
+    <!-- ═══════════════ OVERVIEW TAB ═══════════════ -->
+    <div v-if="activeTab === 'overview'" class="detail-body">
       <div class="detail-main">
 
-        <!-- HEAD TO HEAD card -->
-        <div class="h2h-card">
-          <div class="h2h-title"><span class="h2h-icon">⚔</span> HEAD TO HEAD</div>
-          <div class="h2h-content">
-            <div class="h2h-team">
-              <div class="h2h-logo t1-bg"><span class="h2h-abbr">{{ team1Abbr }}</span></div>
-              <div class="h2h-club">FC {{ match.team1.split(' ')[0] }}</div>
-              <div class="h2h-name">{{ match.team1 }}</div>
-              <div class="h2h-badge win">Win</div>
-              <div class="h2h-stats">
-                <div class="hstat"><span class="hstat-label">Avg. goals/match</span><span class="hstat-val">1.47</span></div>
-                <div class="hstat"><span class="hstat-label">Best score</span><span class="hstat-val">5 : 0</span></div>
-                <div class="hstat"><span class="hstat-label">Wins (last 10)</span><span class="hstat-val">6</span></div>
-                <div class="hstat"><span class="hstat-label">Clean sheets</span><span class="hstat-val">4</span></div>
-              </div>
+        <!-- Match Hero -->
+        <div class="match-hero-card">
+          <div class="hero-meta">
+            <img v-if="categoryLogo" :src="categoryLogo" class="hero-cat-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+            <span class="hero-tourn">{{ tournamentName }}</span>
+            <span class="hero-bull">•</span>
+            <span class="hero-round">{{ roundName }}</span>
+            <span class="hero-bull">•</span>
+            <span class="hero-date">{{ matchDateStr }}</span>
+            <span class="hero-status" :class="statusCls">{{ statusText }}</span>
+          </div>
+
+          <div class="hero-teams-area">
+            <div class="hero-team">
+              <img v-if="homeLogo" :src="homeLogo" class="hero-team-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+              <div class="hero-team-name">{{ homeName }}</div>
             </div>
-            <div class="h2h-chart-area">
-              <div class="h2h-vs-badge">
-                <span class="vs-t1">{{ team1Abbr }}</span>
-                <span class="vs-mid">VS</span>
-                <span class="vs-t2">{{ team2Abbr }}</span>
-              </div>
-              <svg class="h2h-chart" viewBox="0 0 240 80" preserveAspectRatio="none">
-                <line x1="0" y1="40" x2="240" y2="40" stroke="#252840" stroke-width="1"/>
-                <polyline points="0,60 30,45 60,30 90,50 120,25 150,40 180,20 210,35 240,15" fill="none" stroke="#e84c6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M0,60 30,45 60,30 90,50 120,25 150,40 180,20 210,35 240,15 L240,80 L0,80 Z" fill="url(#grad1)" opacity="0.25"/>
-                <polyline points="0,20 30,35 60,55 90,30 120,55 150,38 180,60 210,45 240,50" fill="none" stroke="#4a90e2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M0,20 30,35 60,55 90,30 120,55 150,38 180,60 210,45 240,50 L240,80 L0,80 Z" fill="url(#grad2)" opacity="0.2"/>
-                <defs>
-                  <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#e84c6b"/><stop offset="100%" stop-color="#e84c6b" stop-opacity="0"/>
-                  </linearGradient>
-                  <linearGradient id="grad2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#4a90e2"/><stop offset="100%" stop-color="#4a90e2" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="chart-legend">
-                <span class="leg-item t1">● {{ match.team1 }}</span>
-                <span class="leg-item t2">● {{ match.team2 }}</span>
-              </div>
-              <!-- H2H results row -->
-              <div class="h2h-results">
-                <div v-for="r in h2hResults" :key="r.id" class="h2h-result-item" :class="r.outcome">
-                  {{ r.score }}
+
+            <div class="hero-score-center">
+              <template v-if="isLive || isFinished">
+                <div class="hero-live-score">
+                  <span class="hls-num">{{ liveScore.home }}</span>
+                  <span class="hls-sep">:</span>
+                  <span class="hls-num">{{ liveScore.away }}</span>
                 </div>
-              </div>
-            </div>
-            <div class="h2h-team right">
-              <div class="h2h-logo t2-bg"><span class="h2h-abbr">{{ team2Abbr }}</span></div>
-              <div class="h2h-club">FC {{ match.team2.split(' ')[0] }}</div>
-              <div class="h2h-name">{{ match.team2 }}</div>
-              <div class="h2h-badge win-t2">Win</div>
-              <div class="h2h-stats">
-                <div class="hstat"><span class="hstat-label">Avg. goals/match</span><span class="hstat-val">1.20</span></div>
-                <div class="hstat"><span class="hstat-label">Best score</span><span class="hstat-val">3 : 1</span></div>
-                <div class="hstat"><span class="hstat-label">Wins (last 10)</span><span class="hstat-val">3</span></div>
-                <div class="hstat"><span class="hstat-label">Clean sheets</span><span class="hstat-val">2</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Live match card -->
-        <div class="live-card">
-          <div class="live-card-header">
-            <div class="live-league-info">
-              <span class="live-flag">{{ league.flag }}</span>
-              <span class="live-league-name">{{ league.name }}</span>
-              <span class="live-date">{{ match.date }}</span>
-            </div>
-            <span class="live-badge">● LIVE</span>
-          </div>
-          <div class="live-teams-area">
-            <div class="live-team-side">
-              <div class="live-player-avatar t1-avatar"><span class="lpa-text">{{ team1Abbr }}</span></div>
-              <div class="live-team-info"><div class="lti-name">{{ match.team1 }}</div></div>
-            </div>
-            <div class="live-score-block">
-              <div class="score-boxes">
-                <div class="score-box"><span class="score-num">{{ liveScore[0] }}</span><span class="score-lbl">HOME</span></div>
-                <div class="score-divider"><div class="timer-display">{{ liveTimer }}</div></div>
-                <div class="score-box"><span class="score-num">{{ liveScore[1] }}</span><span class="score-lbl">AWAY</span></div>
-              </div>
-            </div>
-            <div class="live-team-side right-side">
-              <div class="live-player-avatar t2-avatar"><span class="lpa-text">{{ team2Abbr }}</span></div>
-              <div class="live-team-info right"><div class="lti-name">{{ match.team2 }}</div></div>
-            </div>
-          </div>
-          <div class="live-stats-bars">
-            <div v-for="s in liveStats" :key="s.label" class="stat-bar-group">
-              <span class="sb-pct t1-pct">{{ s.t1 }}</span>
-              <div class="sb-track"><div class="sb-fill t1-fill" :style="{ width: s.t1 }"></div></div>
-              <span class="sb-label">{{ s.label }}</span>
-              <div class="sb-track right"><div class="sb-fill t2-fill" :style="{ width: s.t2 }"></div></div>
-              <span class="sb-pct t2-pct">{{ s.t2 }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Betting statistics radar -->
-        <div class="stats-card">
-          <div class="stats-title">BETTING STATISTICS</div>
-          <div class="stats-body">
-            <div class="radar-wrap">
-              <svg viewBox="0 0 120 120" class="radar-svg">
-                <polygon points="60,10 104,35 104,85 60,110 16,85 16,35" fill="none" stroke="#252840" stroke-width="1"/>
-                <polygon points="60,25 91,43 91,77 60,95 29,77 29,43" fill="none" stroke="#252840" stroke-width="1"/>
-                <polygon points="60,40 78,51 78,69 60,80 42,69 42,51" fill="none" stroke="#252840" stroke-width="1"/>
-                <polygon points="60,20 95,50 85,88 35,88 25,50" fill="#e84c6b" fill-opacity="0.3" stroke="#e84c6b" stroke-width="1.5"/>
-                <polygon points="60,32 88,55 78,82 42,82 32,55" fill="#4a90e2" fill-opacity="0.25" stroke="#4a90e2" stroke-width="1.5"/>
-                <circle cx="60" cy="60" r="3" fill="#e84c6b"/>
-              </svg>
-            </div>
-            <div class="stat-details">
-              <div class="stats-table">
-                <div class="st-header">
-                  <span class="st-team t1-col">{{ team1Abbr }}</span>
-                  <span class="st-cat">Stat</span>
-                  <span class="st-team t2-col">{{ team2Abbr }}</span>
+                <div v-if="isLive" class="hero-clock">{{ matchClock }}'</div>
+                <div v-else class="hero-ft">FT</div>
+                <div v-if="periodScores.length" class="hero-ht">
+                  ({{ periodScores.map(p => `${p.home}-${p.away}`).join(' / ') }})
                 </div>
-                <div v-for="s in bettingStats" :key="s.label" class="st-row">
-                  <span class="st-val t1-col">{{ s.t1 }}</span>
-                  <span class="st-lbl">{{ s.label }}</span>
-                  <span class="st-val t2-col">{{ s.t2 }}</span>
-                </div>
+              </template>
+              <template v-else>
+                <div class="hero-time">{{ matchTimeStr }}</div>
+                <div class="hero-vs">VS</div>
+                <div v-if="countdown" class="hero-countdown">{{ countdown }}</div>
+              </template>
+            </div>
+
+            <div class="hero-team">
+              <img v-if="awayLogo" :src="awayLogo" class="hero-team-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+              <div class="hero-team-name">{{ awayName }}</div>
+            </div>
+          </div>
+
+          <!-- Quick 1X2 odds in hero -->
+          <div class="hero-odds-strip" v-if="mainMarketOutcomes.length">
+            <button v-for="out in mainMarketOutcomes" :key="out.id"
+              class="hero-odds-btn" :class="{ selected: selectedBets.has(`1-_-${out.id}`) }"
+              @click="toggleBet('1', '_', out.id, 'Match Result', out.label, out.odds)">
+              <span class="hob-lbl">{{ out.label }}</span>
+              <span class="hob-odds">{{ out.odds }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Pitch Tracker -->
+        <div class="tracker-card">
+          <div class="tracker-head">
+            <span class="tracker-title">⚽ LIVE TRACKER</span>
+            <span class="tracker-status-badge" :class="statusCls">{{ statusText }}</span>
+          </div>
+
+          <div class="pitch-wrap">
+            <svg class="pitch-svg" viewBox="0 0 500 320" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="pitchGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#2d6a2d"/>
+                  <stop offset="50%" stop-color="#35783a"/>
+                  <stop offset="100%" stop-color="#2d6a2d"/>
+                </linearGradient>
+              </defs>
+              <!-- Grass stripes -->
+              <rect width="500" height="320" rx="6" fill="url(#pitchGrad)"/>
+              <rect x="0" y="0" width="500" height="53" rx="0" fill="rgba(0,0,0,0.06)"/>
+              <rect x="0" y="106" width="500" height="53" rx="0" fill="rgba(0,0,0,0.06)"/>
+              <rect x="0" y="213" width="500" height="53" rx="0" fill="rgba(0,0,0,0.06)"/>
+              <!-- Boundary -->
+              <rect x="10" y="10" width="480" height="300" rx="3" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Centre line -->
+              <line x1="250" y1="10" x2="250" y2="310" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Centre circle -->
+              <circle cx="250" cy="160" r="52" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <circle cx="250" cy="160" r="3" fill="rgba(255,255,255,0.7)"/>
+              <!-- Left penalty area -->
+              <rect x="10" y="88" width="90" height="144" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Left goal area -->
+              <rect x="10" y="123" width="35" height="74" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Left penalty spot -->
+              <circle cx="83" cy="160" r="3" fill="rgba(255,255,255,0.6)"/>
+              <!-- Left penalty arc -->
+              <path d="M100 128 A52 52 0 0 1 100 192" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Right penalty area -->
+              <rect x="400" y="88" width="90" height="144" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Right goal area -->
+              <rect x="455" y="123" width="35" height="74" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Right penalty spot -->
+              <circle cx="417" cy="160" r="3" fill="rgba(255,255,255,0.6)"/>
+              <!-- Right penalty arc -->
+              <path d="M400 128 A52 52 0 0 0 400 192" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <!-- Goals -->
+              <rect x="5" y="138" width="8" height="44" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+              <rect x="487" y="138" width="8" height="44" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+              <!-- Corner arcs -->
+              <path d="M10,30 Q22,10 30,10" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+              <path d="M490,30 Q478,10 470,10" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+              <path d="M10,290 Q22,310 30,310" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+              <path d="M490,290 Q478,310 470,310" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+
+              <!-- Goal incident dots on pitch -->
+              <g v-for="inc in goalIncidents" :key="'g'+inc.id">
+                <circle :cx="incidentX(inc)" :cy="inc.isHome ? 110 : 210" r="10"
+                  :fill="inc.isHome ? '#e84c6b' : '#4a90e2'" opacity="0.95"/>
+                <text :x="incidentX(inc)" :y="inc.isHome ? 115 : 215"
+                  text-anchor="middle" font-size="10" fill="white" font-weight="bold">⚽</text>
+              </g>
+
+              <!-- Team logos (pre-match) -->
+              <image v-if="!isLive && !isFinished && homeLogo" :href="homeLogo" x="60" y="125" width="70" height="70" preserveAspectRatio="xMidYMid meet" opacity="0.75"/>
+              <image v-if="!isLive && !isFinished && awayLogo" :href="awayLogo" x="370" y="125" width="70" height="70" preserveAspectRatio="xMidYMid meet" opacity="0.75"/>
+            </svg>
+
+            <!-- Pre-match overlay -->
+            <div v-if="!isLive && !isFinished" class="pitch-prematch-overlay">
+              <div class="ppo-label">KICK OFF</div>
+              <div class="ppo-time">{{ matchTimeStr }}</div>
+              <div v-if="countdown" class="ppo-countdown">{{ countdown }}</div>
+            </div>
+          </div>
+
+          <!-- Incidents timeline -->
+          <div v-if="incidents.length" class="incident-timeline">
+            <div v-for="inc in incidents" :key="inc.id" class="incident-row" :class="{ 'inc-home': inc.isHome, 'inc-away': !inc.isHome }">
+              <div v-if="inc.isHome" class="inc-home-side">
+                <span class="inc-player">{{ inc.player }}</span>
+                <span class="inc-icon">{{ incidentIcon(inc.type) }}</span>
+                <span class="inc-time">{{ inc.time }}'</span>
               </div>
+              <div v-else class="inc-away-side">
+                <span class="inc-time">{{ inc.time }}'</span>
+                <span class="inc-icon">{{ incidentIcon(inc.type) }}</span>
+                <span class="inc-player">{{ inc.player }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="tracker-empty">
+            <span v-if="isLive">Tracking live events…</span>
+            <span v-else>Match events will appear here once the game begins</span>
+          </div>
+        </div>
+
+        <!-- Win Probability -->
+        <div class="prob-card" v-if="homeWinPct > 0 || drawPct > 0 || awayWinPct > 0">
+          <div class="prob-title">WIN PROBABILITY (from market odds)</div>
+          <div class="prob-body">
+            <div class="prob-item">
+              <div class="prob-team">
+                <img v-if="homeLogo" :src="homeLogo" class="prob-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span>{{ homeName }}</span>
+              </div>
+              <div class="prob-bar-wrap">
+                <div class="prob-bar"><div class="prob-fill home-pfill" :style="{ width: homeWinPct + '%' }"></div></div>
+              </div>
+              <span class="prob-pct home-pct">{{ homeWinPct }}%</span>
+            </div>
+            <div class="prob-item">
+              <div class="prob-team"><span class="prob-draw-icon">═</span><span>Draw</span></div>
+              <div class="prob-bar-wrap">
+                <div class="prob-bar"><div class="prob-fill draw-pfill" :style="{ width: drawPct + '%' }"></div></div>
+              </div>
+              <span class="prob-pct draw-pct">{{ drawPct }}%</span>
+            </div>
+            <div class="prob-item">
+              <div class="prob-team">
+                <img v-if="awayLogo" :src="awayLogo" class="prob-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span>{{ awayName }}</span>
+              </div>
+              <div class="prob-bar-wrap">
+                <div class="prob-bar"><div class="prob-fill away-pfill" :style="{ width: awayWinPct + '%' }"></div></div>
+              </div>
+              <span class="prob-pct away-pct">{{ awayWinPct }}%</span>
             </div>
           </div>
         </div>
 
-        <!-- Form guide -->
-        <div class="form-card">
-          <div class="form-title">RECENT FORM</div>
-          <div class="form-body">
-            <div class="form-row">
-              <span class="form-team-name">{{ match.team1 }}</span>
-              <div class="form-badges">
-                <span v-for="(r, i) in team1Form" :key="i" class="form-badge" :class="r">{{ r }}</span>
-              </div>
-            </div>
-            <div class="form-row">
-              <span class="form-team-name">{{ match.team2 }}</span>
-              <div class="form-badges">
-                <span v-for="(r, i) in team2Form" :key="i" class="form-badge" :class="r">{{ r }}</span>
-              </div>
-            </div>
+        <!-- Match Info -->
+        <div class="match-info-card">
+          <div class="mic-title">MATCH INFO</div>
+          <div class="mic-grid">
+            <div class="mic-row"><span class="mic-lbl">Tournament</span><span class="mic-val">{{ tournamentName }}</span></div>
+            <div class="mic-row"><span class="mic-lbl">Season</span><span class="mic-val">{{ seasonName }}</span></div>
+            <div class="mic-row"><span class="mic-lbl">Round</span><span class="mic-val">{{ roundName }}</span></div>
+            <div class="mic-row"><span class="mic-lbl">Status</span><span class="mic-val">{{ statusText }}</span></div>
+            <div class="mic-row"><span class="mic-lbl">Neutral Ground</span><span class="mic-val">{{ isNeutralGround ? '✓ Yes' : '✗ No' }}</span></div>
+            <div class="mic-row"><span class="mic-lbl">Active Markets</span><span class="mic-val">{{ marketCount }}</span></div>
+            <div class="mic-row" v-if="isNeutralGround !== null"><span class="mic-lbl">Coverage</span><span class="mic-val">{{ coverageSource }}</span></div>
           </div>
         </div>
 
-        <!-- League table -->
-        <div class="league-table-card">
-          <div class="lt-header">
-            <span class="lt-flag">{{ league.flag }}</span>
-            <span class="lt-title">{{ league.name }} — Standings</span>
-          </div>
-          <div class="lt-table">
-            <div class="lt-row lt-head">
-              <span class="lt-pos">#</span>
-              <span class="lt-team-col">Team</span>
-              <span class="lt-num">P</span>
-              <span class="lt-num">W</span>
-              <span class="lt-num">D</span>
-              <span class="lt-num">L</span>
-              <span class="lt-num">GF</span>
-              <span class="lt-num">GA</span>
-              <span class="lt-num">GD</span>
-              <span class="lt-num lt-pts">Pts</span>
+        <!-- Lineups (SofaScore) -->
+        <div v-if="lineups.home.length || lineups.away.length" class="lineups-card">
+          <div class="lu-title">LINEUPS</div>
+          <div class="lu-body">
+            <div class="lu-col">
+              <div class="lu-team-header">
+                <img v-if="homeLogo" :src="homeLogo" class="lu-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span>{{ homeName }}</span>
+              </div>
+              <div v-for="p in lineups.home" :key="p.id" class="lu-player">
+                <span class="lu-num">{{ p.jerseyNumber }}</span>
+                <span class="lu-name">{{ p.name }}</span>
+                <span class="lu-pos">{{ p.position }}</span>
+              </div>
             </div>
-            <div
-              v-for="row in leagueTable"
-              :key="row.team"
-              class="lt-row"
-              :class="{
-                'lt-highlight-t1': row.team === match.team1,
-                'lt-highlight-t2': row.team === match.team2,
-                'lt-zone-cl': row.pos <= 4,
-                'lt-zone-el': row.pos === 5,
-                'lt-zone-rel': row.pos >= leagueTable.length - 2,
-              }"
-            >
-              <span class="lt-pos">
-                <span class="lt-pos-dot" :class="{
-                  'dot-cl': row.pos <= 4,
-                  'dot-el': row.pos === 5,
-                  'dot-rel': row.pos >= leagueTable.length - 2,
-                }"></span>
-                {{ row.pos }}
-              </span>
-              <span class="lt-team-col">
-                <span class="lt-badge" :style="{ background: row.color }">{{ row.abbr }}</span>
-                {{ row.team }}
-              </span>
-              <span class="lt-num">{{ row.p }}</span>
-              <span class="lt-num">{{ row.w }}</span>
-              <span class="lt-num">{{ row.d }}</span>
-              <span class="lt-num">{{ row.l }}</span>
-              <span class="lt-num">{{ row.gf }}</span>
-              <span class="lt-num">{{ row.ga }}</span>
-              <span class="lt-num" :class="{ 'lt-gd-pos': row.gf - row.ga > 0, 'lt-gd-neg': row.gf - row.ga < 0 }">
-                {{ row.gf - row.ga > 0 ? '+' : '' }}{{ row.gf - row.ga }}
-              </span>
-              <span class="lt-num lt-pts lt-pts-val">{{ row.pts }}</span>
+            <div class="lu-divider"></div>
+            <div class="lu-col">
+              <div class="lu-team-header">
+                <img v-if="awayLogo" :src="awayLogo" class="lu-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span>{{ awayName }}</span>
+              </div>
+              <div v-for="p in lineups.away" :key="p.id" class="lu-player">
+                <span class="lu-num">{{ p.jerseyNumber }}</span>
+                <span class="lu-name">{{ p.name }}</span>
+                <span class="lu-pos">{{ p.position }}</span>
+              </div>
             </div>
-          </div>
-          <div class="lt-legend">
-            <span class="lt-leg-item"><span class="lt-leg-dot dot-cl"></span> Champions League</span>
-            <span class="lt-leg-item"><span class="lt-leg-dot dot-el"></span> Europa League</span>
-            <span class="lt-leg-item"><span class="lt-leg-dot dot-rel"></span> Relegation</span>
           </div>
         </div>
 
@@ -249,130 +261,126 @@
 
       <!-- Right column -->
       <div class="detail-right">
-        <div class="related-card">
-          <div class="related-title">Related Matches</div>
-          <div v-for="rm in relatedMatches" :key="rm.id" class="rm-row">
-            <div class="rm-team-block">
-              <div class="rm-logo" :style="{ background: rm.t1color }">{{ rm.t1abbr }}</div>
-              <div class="rm-name">{{ rm.team1 }}</div>
-            </div>
-            <div class="rm-vs"><span class="rm-vs-icon">›‹</span></div>
-            <div class="rm-team-block right-block">
-              <div class="rm-logo" :style="{ background: rm.t2color }">{{ rm.t2abbr }}</div>
-              <div class="rm-name">{{ rm.team2 }}</div>
+        <!-- Market highlights -->
+        <div class="right-markets-card">
+          <div class="rmc-title">KEY MARKETS</div>
+
+          <div v-for="km in keyMarkets" :key="km.name" class="rmc-market">
+            <div class="rmc-market-name">{{ km.name }}</div>
+            <div class="rmc-outcomes">
+              <button v-for="out in km.outcomes" :key="out.id"
+                class="rmc-btn" :class="{ selected: selectedBets.has(`${km.marketId}-${km.specKey}-${out.id}`) }"
+                @click="toggleBet(km.marketId, km.specKey, out.id, km.name, out.label, out.odds)">
+                <span class="rmc-lbl">{{ out.label }}</span>
+                <span class="rmc-odds">{{ out.odds }}</span>
+              </button>
             </div>
           </div>
         </div>
-        <div class="prob-card">
-          <div class="prob-title">Win Probability</div>
-          <div class="prob-bars">
-            <div class="prob-item">
-              <span class="prob-lbl">{{ match.team1 }}</span>
-              <div class="prob-track"><div class="prob-fill t1-fill" style="width:64%"></div></div>
-              <span class="prob-pct">64%</span>
-            </div>
-            <div class="prob-item">
-              <span class="prob-lbl">Draw</span>
-              <div class="prob-track"><div class="prob-fill draw-fill" style="width:18%"></div></div>
-              <span class="prob-pct">18%</span>
-            </div>
-            <div class="prob-item">
-              <span class="prob-lbl">{{ match.team2 }}</span>
-              <div class="prob-track"><div class="prob-fill t2-fill" style="width:18%"></div></div>
-              <span class="prob-pct">18%</span>
+
+        <!-- Selected bets summary -->
+        <div v-if="selectedBetsList.length" class="slip-card">
+          <div class="slip-title">SELECTIONS ({{ selectedBetsList.length }})</div>
+          <div v-for="bet in selectedBetsList" :key="bet.key" class="slip-item">
+            <div class="slip-market">{{ bet.marketName }}</div>
+            <div class="slip-row">
+              <span class="slip-outcome">{{ bet.label }}</span>
+              <span class="slip-odds-val">{{ bet.odds }}</span>
+              <button class="slip-remove" @click="removeBet(bet.key)">×</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ODDS TAB -->
+    <!-- ═══════════════ ODDS TAB ═══════════════ -->
     <div v-else-if="activeTab === 'odds'" class="detail-body odds-body">
       <div class="detail-main">
 
-        <!-- Live score mini bar -->
-        <div class="odds-live-bar">
-          <span class="live-badge-sm">● LIVE</span>
-          <span class="olb-teams">{{ match.team1 }} <b>{{ liveScore[0] }} : {{ liveScore[1] }}</b> {{ match.team2 }}</span>
-          <span class="olb-timer">{{ liveTimer }}</span>
+        <!-- Status bar -->
+        <div class="odds-status-bar">
+          <div class="osb-teams">
+            <img v-if="homeLogo" :src="homeLogo" class="osb-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+            <span class="osb-name">{{ homeName }}</span>
+            <span class="osb-score-txt" v-if="isLive || isFinished">{{ liveScore.home }} : {{ liveScore.away }}</span>
+            <span class="osb-vs" v-else>vs</span>
+            <span class="osb-name">{{ awayName }}</span>
+            <img v-if="awayLogo" :src="awayLogo" class="osb-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+          </div>
+          <div class="osb-right">
+            <span class="osb-badge" :class="statusCls">{{ statusText }}</span>
+            <span class="osb-mkt">{{ marketCount }} markets</span>
+          </div>
         </div>
 
-        <!-- Markets -->
-        <div v-for="market in allMarkets" :key="market.id" class="market-card">
-          <div class="market-header" @click="market.open = !market.open">
-            <span class="market-icon">{{ market.icon }}</span>
-            <span class="market-name">{{ market.name }}</span>
-            <span class="market-count">{{ market.outcomes.length }} selections</span>
-            <span class="market-toggle">{{ market.open ? '▲' : '▼' }}</span>
-          </div>
-          <div v-if="market.open" class="market-outcomes">
-            <div
-              v-for="outcome in market.outcomes"
-              :key="outcome.label"
-              class="outcome-btn"
-              :class="{ selected: hasBet(`${market.id}-${outcome.label}`) }"
-              @click="toggleOutcome(market, outcome)"
-            >
-              <span class="outcome-label">{{ outcome.label }}</span>
-              <span class="outcome-odds" :class="{ 'odds-up': outcome.trend === 'up', 'odds-down': outcome.trend === 'down' }">
-                {{ outcome.odds }}
-                <span v-if="outcome.trend === 'up'" class="trend-arrow">▲</span>
-                <span v-if="outcome.trend === 'down'" class="trend-arrow">▼</span>
-              </span>
+        <!-- Category filter -->
+        <div class="mkt-category-bar">
+          <button v-for="cat in allCategories" :key="cat"
+            class="mkt-cat-btn" :class="{ active: activeCategory === cat }"
+            @click="activeCategory = cat">{{ cat }}</button>
+        </div>
+
+        <!-- Markets list -->
+        <div class="markets-list">
+          <div v-for="mkt in filteredMarkets" :key="`${mkt.marketId}-${mkt.specKey}`" class="market-card">
+            <div class="market-header" @click="mkt.open = !mkt.open">
+              <span class="market-icon">{{ mkt.icon }}</span>
+              <div class="market-hdr-info">
+                <span class="market-name">{{ mkt.name }}</span>
+                <span v-if="mkt.specLabel" class="market-spec-badge">{{ mkt.specLabel }}</span>
+              </div>
+              <span class="market-sel-count">{{ mkt.outcomes.length }} sel.</span>
+              <span class="market-toggle">{{ mkt.open ? '▲' : '▼' }}</span>
+            </div>
+            <div v-if="mkt.open" class="market-outcomes">
+              <div v-for="out in mkt.outcomes" :key="out.id"
+                class="outcome-btn"
+                :class="{ selected: selectedBets.has(`${mkt.marketId}-${mkt.specKey}-${out.id}`) }"
+                @click="toggleBet(mkt.marketId, mkt.specKey, out.id, mkt.name, out.label, out.odds)">
+                <span class="out-lbl">{{ out.label }}</span>
+                <span class="out-odds">{{ out.odds }}</span>
+              </div>
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- Right col: market movers only -->
+      <!-- Right column -->
       <div class="detail-right">
-        <div class="market-stats-card">
-          <div class="ms-title">Market Movers</div>
-          <div v-for="m in marketMovers" :key="m.label" class="ms-row">
-            <span class="ms-label">{{ m.label }}</span>
-            <span class="ms-change" :class="m.dir">{{ m.dir === 'up' ? '▲' : '▼' }} {{ m.change }}</span>
+        <div v-if="selectedBetsList.length" class="slip-card">
+          <div class="slip-title">SELECTIONS</div>
+          <div v-for="bet in selectedBetsList" :key="bet.key" class="slip-item">
+            <div class="slip-market">{{ bet.marketName }}</div>
+            <div class="slip-row">
+              <span class="slip-outcome">{{ bet.label }}</span>
+              <span class="slip-odds-val">{{ bet.odds }}</span>
+              <button class="slip-remove" @click="removeBet(bet.key)">×</button>
+            </div>
           </div>
         </div>
-        <div class="slip-hint-card">
-          <div class="slip-hint-icon">🛒</div>
-          <div class="slip-hint-text">Selected odds appear in the bet slip on the right</div>
+        <div v-else class="slip-hint-card">
+          <div>🛒</div>
+          <div class="slip-hint-text">Click any odds button to add to your selection</div>
         </div>
       </div>
     </div>
 
-    <!-- AI CHAT TAB -->
+    <!-- ═══════════════ AI TAB ═══════════════ -->
     <div v-else-if="activeTab === 'ai'" class="detail-body ai-body">
       <div class="ai-panel">
         <div class="ai-header">
           <div class="ai-logo">🤖</div>
           <div>
             <div class="ai-title">BETWIN AI Assistant</div>
-            <div class="ai-subtitle">Ask me anything about this match, odds, or betting strategy</div>
+            <div class="ai-subtitle">Ask anything about {{ homeName }} vs {{ awayName }}</div>
           </div>
-          <div class="ai-status">
-            <span class="ai-status-dot"></span> Online
-          </div>
+          <div class="ai-online"><span class="ai-dot"></span> Online</div>
         </div>
-
-        <!-- Suggested prompts -->
         <div v-if="chatMessages.length === 0" class="ai-suggestions">
-          <button
-            v-for="s in suggestions"
-            :key="s"
-            class="suggestion-chip"
-            @click="sendSuggestion(s)"
-          >{{ s }}</button>
+          <button v-for="s in suggestions" :key="s" class="suggestion-chip" @click="sendSuggestion(s)">{{ s }}</button>
         </div>
-
-        <!-- Messages -->
         <div class="chat-messages" ref="chatContainer">
-          <div
-            v-for="(msg, i) in chatMessages"
-            :key="i"
-            class="chat-msg"
-            :class="msg.role"
-          >
+          <div v-for="(msg, i) in chatMessages" :key="i" class="chat-msg" :class="msg.role">
             <div v-if="msg.role === 'assistant'" class="msg-avatar">🤖</div>
             <div class="msg-bubble">
               <span v-if="msg.typing" class="typing-dots"><span></span><span></span><span></span></span>
@@ -381,116 +389,82 @@
             <div v-if="msg.role === 'user'" class="msg-avatar user-avatar">👤</div>
           </div>
         </div>
-
-        <!-- Input -->
         <div class="chat-input-area">
-          <input
-            v-model="chatInput"
-            class="chat-input"
-            placeholder="Ask about odds, team form, betting tips..."
-            @keydown.enter="sendMessage"
-            :disabled="aiLoading"
-          />
+          <input v-model="chatInput" class="chat-input"
+            :placeholder="`Ask about ${homeName} vs ${awayName}…`"
+            @keydown.enter="sendMessage" :disabled="aiLoading" />
           <button class="chat-send" @click="sendMessage" :disabled="aiLoading || !chatInput.trim()">
-            {{ aiLoading ? '...' : '➤' }}
+            {{ aiLoading ? '…' : '➤' }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- PREDICTION TAB -->
+    <!-- ═══════════════ PREDICTION TAB ═══════════════ -->
     <div v-else-if="activeTab === 'prediction'" class="detail-body">
       <div class="detail-main">
 
-        <!-- Prediction header card -->
-        <div class="pred-header-card">
+        <div class="pred-hero-card">
           <div class="pred-badge">🔮 AI PREDICTION</div>
-          <div class="pred-match-title">{{ match.team1 }} vs {{ match.team2 }}</div>
-          <div class="pred-league">{{ league.flag }} {{ league.name }}</div>
+          <div class="pred-match-title">{{ homeName }} vs {{ awayName }}</div>
+          <div class="pred-meta">{{ tournamentName }} · {{ roundName }}</div>
           <div class="pred-verdict">
-            <div class="pred-verdict-label">Predicted Winner</div>
-            <div class="pred-verdict-value">{{ match.team1 }}</div>
-            <div class="pred-confidence">Confidence: <b>74%</b></div>
+            <div class="pred-verdict-lbl">Predicted Winner</div>
+            <div class="pred-verdict-val">{{ predictedWinner }}</div>
+            <div class="pred-confidence">Confidence: <b>{{ predictedConfidence }}%</b></div>
           </div>
         </div>
 
-        <!-- Win probability -->
-        <div class="pred-card">
-          <div class="pred-card-title">WIN PROBABILITY</div>
-          <div class="pred-prob-bars">
-            <div class="pred-prob-item">
-              <div class="pred-prob-team">
-                <div class="pred-team-dot t1-dot"></div>
-                <span>{{ match.team1 }}</span>
+        <!-- Real win probability from betmaster p values -->
+        <div class="pred-prob-card">
+          <div class="ppc-title">WIN PROBABILITY (real odds implied)</div>
+          <div class="ppc-body">
+            <div class="ppc-row">
+              <div class="ppc-team">
+                <img v-if="homeLogo" :src="homeLogo" class="ppc-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span>{{ homeName }}</span>
               </div>
-              <div class="pred-prob-track">
-                <div class="pred-prob-fill t1-pred-fill" style="width:64%">
-                  <span class="pred-prob-label">64%</span>
+              <div class="ppc-bar-track">
+                <div class="ppc-bar-fill home-pred-fill" :style="{ width: homeWinPct + '%' }">
+                  <span class="ppc-pct-label" v-if="homeWinPct > 8">{{ homeWinPct }}%</span>
                 </div>
               </div>
+              <span class="ppc-pct home-pct">{{ homeWinPct }}%</span>
             </div>
-            <div class="pred-prob-item">
-              <div class="pred-prob-team">
-                <div class="pred-team-dot draw-dot"></div>
-                <span>Draw</span>
-              </div>
-              <div class="pred-prob-track">
-                <div class="pred-prob-fill draw-pred-fill" style="width:18%">
-                  <span class="pred-prob-label">18%</span>
+            <div class="ppc-row">
+              <div class="ppc-team"><span class="draw-dash">━</span><span>Draw</span></div>
+              <div class="ppc-bar-track">
+                <div class="ppc-bar-fill draw-pred-fill" :style="{ width: drawPct + '%' }">
+                  <span class="ppc-pct-label" v-if="drawPct > 8">{{ drawPct }}%</span>
                 </div>
               </div>
+              <span class="ppc-pct draw-pct">{{ drawPct }}%</span>
             </div>
-            <div class="pred-prob-item">
-              <div class="pred-prob-team">
-                <div class="pred-team-dot t2-dot"></div>
-                <span>{{ match.team2 }}</span>
+            <div class="ppc-row">
+              <div class="ppc-team">
+                <img v-if="awayLogo" :src="awayLogo" class="ppc-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span>{{ awayName }}</span>
               </div>
-              <div class="pred-prob-track">
-                <div class="pred-prob-fill t2-pred-fill" style="width:18%">
-                  <span class="pred-prob-label">18%</span>
+              <div class="ppc-bar-track">
+                <div class="ppc-bar-fill away-pred-fill" :style="{ width: awayWinPct + '%' }">
+                  <span class="ppc-pct-label" v-if="awayWinPct > 8">{{ awayWinPct }}%</span>
                 </div>
               </div>
+              <span class="ppc-pct away-pct">{{ awayWinPct }}%</span>
             </div>
           </div>
         </div>
 
-        <!-- Score prediction -->
-        <div class="pred-card">
-          <div class="pred-card-title">SCORE PREDICTIONS</div>
-          <div class="pred-scores-grid">
-            <div v-for="s in scorePredictions" :key="s.score" class="pred-score-item" :class="{ top: s.top }">
-              <div class="ps-score">{{ s.score }}</div>
-              <div class="ps-pct">{{ s.pct }}%</div>
-              <div class="ps-bar"><div class="ps-bar-fill" :style="{ height: s.pct + '%' }"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Key factors -->
-        <div class="pred-card">
-          <div class="pred-card-title">KEY FACTORS</div>
-          <div class="pred-factors">
-            <div v-for="f in keyFactors" :key="f.label" class="pred-factor">
-              <div class="pf-icon">{{ f.icon }}</div>
-              <div class="pf-body">
-                <div class="pf-label">{{ f.label }}</div>
-                <div class="pf-desc">{{ f.desc }}</div>
-              </div>
-              <div class="pf-impact" :class="f.impact">{{ f.impact === 'positive' ? '▲' : '▼' }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Both teams to score / over under prediction -->
-        <div class="pred-card">
-          <div class="pred-card-title">MARKET PREDICTIONS</div>
-          <div class="pred-markets">
-            <div v-for="pm in predictedMarkets" :key="pm.label" class="pm-row">
+        <!-- Market predictions from real odds p values -->
+        <div class="pred-markets-card">
+          <div class="pmc-title">MARKET PREDICTIONS</div>
+          <div class="pmc-body">
+            <div v-for="pm in marketPredictions" :key="pm.label" class="pm-row">
               <span class="pm-label">{{ pm.label }}</span>
               <div class="pm-bar-wrap">
-                <div class="pm-bar"><div class="pm-bar-fill" :class="pm.color" :style="{ width: pm.pct + '%' }"></div></div>
+                <div class="pm-bar"><div class="pm-fill" :class="pm.cls" :style="{ width: pm.pct + '%' }"></div></div>
               </div>
-              <span class="pm-pct" :class="pm.color + '-text'">{{ pm.pct }}%</span>
+              <span class="pm-pct">{{ pm.pct }}%</span>
               <span class="pm-verdict" :class="pm.verdict === 'YES' ? 'pm-yes' : 'pm-no'">{{ pm.verdict }}</span>
             </div>
           </div>
@@ -498,42 +472,17 @@
 
       </div>
 
-      <!-- Right col -->
       <div class="detail-right">
         <div class="pred-tip-card">
-          <div class="tip-header">💡 BEST BET</div>
-          <div class="tip-body">
-            <div class="tip-market">Match Result</div>
-            <div class="tip-selection">{{ match.team1 }} WIN</div>
-            <div class="tip-odds-label">Recommended Odds</div>
-            <div class="tip-odds-val">{{ match.odds1 }}</div>
-            <div class="tip-confidence">
-              <div class="tc-label">AI Confidence</div>
-              <div class="tc-bar"><div class="tc-fill" style="width:74%"></div></div>
-              <div class="tc-pct">74%</div>
-            </div>
-          </div>
-        </div>
-        <div class="pred-value-card">
-          <div class="pv-title">VALUE BETS</div>
-          <div v-for="vb in valueBets" :key="vb.label" class="pv-row">
-            <div class="pv-label">{{ vb.label }}</div>
-            <div class="pv-val">{{ vb.val }}</div>
-            <div class="pv-edge" :class="{ positive: vb.edge > 0 }">+{{ vb.edge }}% edge</div>
-          </div>
-        </div>
-        <div class="related-card">
-          <div class="related-title">Related Matches</div>
-          <div v-for="rm in relatedMatches" :key="rm.id" class="rm-row">
-            <div class="rm-team-block">
-              <div class="rm-logo" :style="{ background: rm.t1color }">{{ rm.t1abbr }}</div>
-              <div class="rm-name">{{ rm.team1 }}</div>
-            </div>
-            <div class="rm-vs"><span class="rm-vs-icon">›‹</span></div>
-            <div class="rm-team-block right-block">
-              <div class="rm-logo" :style="{ background: rm.t2color }">{{ rm.t2abbr }}</div>
-              <div class="rm-name">{{ rm.team2 }}</div>
-            </div>
+          <div class="ptc-header">💡 BEST BET</div>
+          <div class="ptc-body">
+            <div class="ptc-market">Match Result</div>
+            <div class="ptc-selection">{{ predictedWinner === homeName ? '1 (Home)' : predictedWinner === awayName ? '2 (Away)' : 'X (Draw)' }}</div>
+            <div class="ptc-odds-lbl">Recommended Odds</div>
+            <div class="ptc-odds-val">{{ predictedOdds }}</div>
+            <div class="ptc-conf-lbl">AI Confidence</div>
+            <div class="ptc-bar"><div class="ptc-bar-fill" :style="{ width: predictedConfidence + '%' }"></div></div>
+            <div class="ptc-conf-pct">{{ predictedConfidence }}%</div>
           </div>
         </div>
       </div>
@@ -544,812 +493,887 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useBetSlip } from '@/composables/useBetSlip'
 
-const { toggleBet, hasBet } = useBetSlip()
-
-interface Match {
-  id: number; date: string; time: string
-  team1: string; team2: string
-  odds1: string; oddsX: string; odds2: string
-  odds1x: string; oddsX2: string; odds12: string
+interface MatchProp {
+  id: number
+  date: string
+  time: string
+  team1: string
+  team2: string
+  odds1: string
+  oddsX: string
+  odds2: string
+  odds1x: string
+  oddsX2: string
+  odds12: string
   highlighted: string
+  homeLogo?: string
+  awayLogo?: string
 }
-interface League { flag: string; sport: string; name: string }
+interface LeagueProp { flag: string; sport: string; name: string }
 
-const props = defineProps<{ match: Match; league: League }>()
+const props = defineProps<{ match: MatchProp; league: LeagueProp }>()
 const emit = defineEmits<{ close: [] }>()
 
-const activeTab = ref('statistics')
-const detailTabs = [
-  { id: 'statistics', label: 'STATISTICS', icon: '📊' },
-  { id: 'odds',       label: 'ODDS',       icon: '🎯' },
-  { id: 'ai',         label: 'AI',         icon: '🤖' },
-  { id: 'prediction', label: 'PREDICTION', icon: '🔮' },
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: '📊' },
+  { id: 'odds',     label: 'Odds',     icon: '🎲' },
+  { id: 'ai',       label: 'AI',       icon: '🤖' },
+  { id: 'prediction', label: 'Prediction', icon: '🔮' },
 ]
+const activeTab = ref('overview')
 
-const team1Abbr = computed(() => props.match.team1.slice(0, 3).toUpperCase())
-const team2Abbr = computed(() => props.match.team2.slice(0, 3).toUpperCase())
+// ─── State ───────────────────────────────────────────────────────────────────
+const loading = ref(true)
+const bmData  = ref<Record<string, unknown> | null>(null)
 
-// Live timer
-const liveScore = ref([1, 2])
-const timerSeconds = ref(1341)
-const liveTimer = computed(() => {
-  const m = Math.floor(timerSeconds.value / 60).toString().padStart(2, '0')
-  const s = (timerSeconds.value % 60).toString().padStart(2, '0')
-  return `${m}:${s}`
+interface Incident { id: number; time: number; type: string; player: string; isHome: boolean }
+interface Player    { id: number; name: string; jerseyNumber: string; position: string }
+const incidents = ref<Incident[]>([])
+const lineups   = ref<{ home: Player[]; away: Player[] }>({ home: [], away: [] })
+
+let pollTimer: ReturnType<typeof setInterval> | null = null
+let countdownTimer: ReturnType<typeof setInterval> | null = null
+const countdown = ref('')
+
+// ─── Bet slip ────────────────────────────────────────────────────────────────
+interface BetItem { key: string; marketId: string; specKey: string; outcomeId: string; marketName: string; label: string; odds: string }
+const selectedBets     = ref<Set<string>>(new Set())
+const selectedBetsMap  = ref<Map<string, BetItem>>(new Map())
+
+function toggleBet(marketId: string, specKey: string, outcomeId: string, marketName: string, label: string, odds: string) {
+  const key = `${marketId}-${specKey}-${outcomeId}`
+  if (selectedBets.value.has(key)) {
+    selectedBets.value.delete(key)
+    selectedBetsMap.value.delete(key)
+  } else {
+    selectedBets.value.add(key)
+    selectedBetsMap.value.set(key, { key, marketId, specKey, outcomeId, marketName, label, odds })
+  }
+  selectedBets.value = new Set(selectedBets.value)
+}
+function removeBet(key: string) {
+  selectedBets.value.delete(key); selectedBets.value = new Set(selectedBets.value)
+  selectedBetsMap.value.delete(key)
+}
+const selectedBetsList = computed(() => Array.from(selectedBetsMap.value.values()))
+
+// ─── Betmaster data helpers ───────────────────────────────────────────────────
+function gn(obj: unknown, ...path: string[]): unknown {
+  let cur: unknown = obj
+  for (const k of path) { if (!cur || typeof cur !== 'object') return undefined; cur = (cur as Record<string, unknown>)[k] }
+  return cur
+}
+function gs(obj: unknown, ...path: string[]): string { return (gn(obj, ...path) as string) ?? '' }
+function gn2(obj: unknown, ...path: string[]): number { return Number(gn(obj, ...path) ?? 0) }
+
+// ─── Core computed from bmData ────────────────────────────────────────────────
+const infoStatic  = computed(() => gn(bmData.value, 'info_static') as Record<string, unknown> ?? {})
+const infoDynamic = computed(() => gn(bmData.value, 'info_dynamic') as Record<string, unknown> ?? {})
+const oddsRoot    = computed(() => gn(bmData.value, 'odds', 'sr1', '3') as Record<string, unknown> ?? {})
+
+const homeName = computed(() => gs(infoStatic.value, 'competitor_home', 'name', 'en') || props.match.team1)
+const awayName = computed(() => gs(infoStatic.value, 'competitor_away', 'name', 'en') || props.match.team2)
+const homeLogo = computed(() => gs(infoStatic.value, 'competitor_home', 'logo_url') || props.match.homeLogo || '')
+const awayLogo = computed(() => gs(infoStatic.value, 'competitor_away', 'logo_url') || props.match.awayLogo || '')
+const homeId   = computed(() => gn2(infoStatic.value, 'competitor_home', 'id'))
+const awayId   = computed(() => gn2(infoStatic.value, 'competitor_away', 'id'))
+
+const tournamentName = computed(() => gs(infoStatic.value, 'tournament', 'name', 'en') || props.league.name)
+const tournamentLogo = computed(() => gs(infoStatic.value, 'tournament', 'logo_url'))
+const categoryLogo   = computed(() => gs(infoStatic.value, 'category', 'logo_url'))
+const sportName      = computed(() => gs(infoStatic.value, 'sport', 'name', 'en') || 'Soccer')
+const roundName      = computed(() => gs(infoStatic.value, 'round', 'name', 'en'))
+const seasonName     = computed(() => gs(infoStatic.value, 'season', 'name', 'en'))
+const isNeutralGround = computed(() => gn(infoStatic.value, 'extra', 'neutral_ground') as boolean ?? false)
+const coverageSource  = computed(() => gs(infoStatic.value, 'extra', 'coverage_source'))
+
+const eventStatus  = computed(() => gn2(infoDynamic.value, 'event_status'))
+const statusText   = computed(() => gs(infoDynamic.value, 'competition_status', 'name', 'en') || 'Not started')
+const isLive       = computed(() => eventStatus.value === 1)
+const isFinished   = computed(() => eventStatus.value === 2)
+const statusCls    = computed(() => isLive.value ? 'status-live' : isFinished.value ? 'status-finished' : 'status-prematch')
+
+const liveScore   = computed(() => {
+  const sc = gn(infoDynamic.value, 'score') as Record<string, unknown> | null
+  return { home: sc ? gn2(sc, 'home_score') : 0, away: sc ? gn2(sc, 'away_score') : 0 }
 })
-let timerInterval: ReturnType<typeof setInterval>
-onMounted(() => { timerInterval = setInterval(() => { timerSeconds.value++ }, 1000) })
-onUnmounted(() => clearInterval(timerInterval))
-
-// Statistics data
-const liveStats = [
-  { label: 'Possession', t1: '51%', t2: '49%' },
-  { label: 'Shots on target', t1: '12%', t2: '22%' },
-  { label: 'Passes', t1: '58%', t2: '42%' },
-  { label: 'Corners', t1: '5', t2: '3' },
-  { label: 'Fouls', t1: '8', t2: '11' },
-]
-const bettingStats = [
-  { label: 'Avg goals/game', t1: '1.47', t2: '1.20' },
-  { label: 'Wins last 10', t1: '6', t2: '3' },
-  { label: 'Goals scored', t1: '24', t2: '18' },
-  { label: 'Goals conceded', t1: '12', t2: '19' },
-  { label: 'Over 2.5 rate', t1: '70%', t2: '50%' },
-  { label: 'BTTS rate', t1: '60%', t2: '55%' },
-]
-const team1Form = ['W', 'W', 'D', 'W', 'L']
-const team2Form = ['L', 'W', 'D', 'L', 'W']
-
-const leagueTable = computed(() => {
-  const others = [
-    { team: 'FC Barcelona',     abbr: 'FCB', color: '#004D98', w: 18, d: 4, l: 2, gf: 58, ga: 22 },
-    { team: 'Atletico Madrid',  abbr: 'ATM', color: '#CB3524', w: 16, d: 5, l: 3, gf: 48, ga: 28 },
-    { team: 'FC Sevilla',       abbr: 'SEV', color: '#D4021D', w: 14, d: 6, l: 4, gf: 40, ga: 30 },
-    { team: 'FC Valencia',      abbr: 'VCF', color: '#F7D000', w: 12, d: 5, l: 7, gf: 35, ga: 33 },
-    { team: 'Real Sociedad',    abbr: 'RSO', color: '#0067B1', w: 11, d: 6, l: 7, gf: 32, ga: 31 },
-    { team: 'Athletic Club',    abbr: 'ATH', color: '#EE2523', w: 10, d: 7, l: 7, gf: 30, ga: 29 },
-    { team: 'Villarreal CF',    abbr: 'VIL', color: '#FFD700', w: 9,  d: 8, l: 7, gf: 28, ga: 27 },
-    { team: 'Betis Sevilla',    abbr: 'BET', color: '#00A650', w: 8,  d: 7, l: 9, gf: 26, ga: 32 },
-    { team: 'Celta Vigo',       abbr: 'CEL', color: '#6EBFDE', w: 7,  d: 6, l: 11,gf: 24, ga: 36 },
-    { team: 'Girona FC',        abbr: 'GIR', color: '#CC0000', w: 5,  d: 5, l: 14,gf: 20, ga: 44 },
-    { team: 'Mallorca',         abbr: 'MAL', color: '#FF0000', w: 4,  d: 6, l: 14,gf: 18, ga: 46 },
-    { team: 'Las Palmas',       abbr: 'LAS', color: '#F7DF00', w: 3,  d: 4, l: 17,gf: 15, ga: 52 },
-  ]
-  const t1 = { team: props.match.team1, abbr: team1Abbr.value, color: '#e84c6b', w: 20, d: 3, l: 1, gf: 62, ga: 18 }
-  const t2 = { team: props.match.team2, abbr: team2Abbr.value, color: '#4a90e2', w: 13, d: 4, l: 7, gf: 38, ga: 30 }
-  const all = [t1, ...others.slice(0, 4), t2, ...others.slice(4)]
-  return all.map((r, i) => ({
-    ...r,
-    pos: i + 1,
-    p: r.w + r.d + r.l,
-    pts: r.w * 3 + r.d,
-  }))
+const matchClock  = computed(() => gs(infoDynamic.value, 'clock', 'played') || '0')
+const periodScores = computed(() => {
+  const ps = gn(infoDynamic.value, 'period_scores') as unknown[]
+  if (!ps) return []
+  return ps.map((p: unknown) => ({ home: gn2(p as Record<string, unknown>, 'home_score'), away: gn2(p as Record<string, unknown>, 'away_score'), number: gn2(p as Record<string, unknown>, 'number') }))
 })
-const h2hResults = [
-  { id: 1, score: '2-0', outcome: 'win' },
-  { id: 2, score: '1-1', outcome: 'draw' },
-  { id: 3, score: '3-1', outcome: 'win' },
-  { id: 4, score: '0-1', outcome: 'loss' },
-  { id: 5, score: '2-1', outcome: 'win' },
-]
-const relatedMatches = [
-  { id: 1, team1: 'Manchester United', t1abbr: 'MUN', t1color: '#DA291C', team2: 'FC Barcelona', t2abbr: 'FCB', t2color: '#004D98' },
-  { id: 2, team1: 'Real Madrid', t1abbr: 'RMA', t1color: '#FEBE10', team2: 'Arsenal', t2abbr: 'ARS', t2color: '#EF0107' },
-  { id: 3, team1: 'Atletico Madrid', t1abbr: 'ATM', t1color: '#CB3524', team2: 'FC Valencia', t2abbr: 'VCF', t2color: '#F7D000' },
-]
 
-// ── ODDS TAB ──────────────────────────────────────────────────────────────
-interface Outcome { label: string; odds: string; selected: boolean; trend?: 'up' | 'down' | '' }
-interface Market { id: string; name: string; icon: string; open: boolean; outcomes: Outcome[] }
+const marketCount = computed(() => gn2(infoDynamic.value, 'markets_stats', 'sr1', '3', 'active_counter'))
 
-const allMarkets = ref<Market[]>([
-  {
-    id: 'match_result', name: 'Match Result (1X2)', icon: '⚽', open: true,
-    outcomes: [
-      { label: props.match.team1, odds: props.match.odds1, selected: false, trend: 'down' },
-      { label: 'Draw', odds: props.match.oddsX, selected: false, trend: '' },
-      { label: props.match.team2, odds: props.match.odds2, selected: false, trend: 'up' },
-    ]
-  },
-  {
-    id: 'double_chance', name: 'Double Chance', icon: '🔁', open: true,
-    outcomes: [
-      { label: `${props.match.team1} or Draw`, odds: '1.18', selected: false, trend: '' },
-      { label: `${props.match.team1} or ${props.match.team2}`, odds: '1.36', selected: false, trend: 'up' },
-      { label: `Draw or ${props.match.team2}`, odds: '2.10', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'over_under', name: 'Total Goals Over/Under', icon: '📈', open: true,
-    outcomes: [
-      { label: 'Over 0.5', odds: '1.06', selected: false, trend: '' },
-      { label: 'Under 0.5', odds: '8.50', selected: false, trend: '' },
-      { label: 'Over 1.5', odds: '1.24', selected: false, trend: '' },
-      { label: 'Under 1.5', odds: '3.80', selected: false, trend: '' },
-      { label: 'Over 2.5', odds: '1.65', selected: false, trend: 'down' },
-      { label: 'Under 2.5', odds: '2.15', selected: false, trend: 'up' },
-      { label: 'Over 3.5', odds: '2.55', selected: false, trend: '' },
-      { label: 'Under 3.5', odds: '1.48', selected: false, trend: '' },
-      { label: 'Over 4.5', odds: '4.20', selected: false, trend: '' },
-      { label: 'Under 4.5', odds: '1.18', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'btts', name: 'Both Teams To Score', icon: '🎯', open: true,
-    outcomes: [
-      { label: 'Yes', odds: '1.72', selected: false, trend: 'up' },
-      { label: 'No', odds: '2.00', selected: false, trend: 'down' },
-    ]
-  },
-  {
-    id: 'asian_handicap', name: 'Asian Handicap', icon: '⚖️', open: false,
-    outcomes: [
-      { label: `${props.match.team1} -1.5`, odds: '2.10', selected: false, trend: '' },
-      { label: `${props.match.team2} +1.5`, odds: '1.72', selected: false, trend: '' },
-      { label: `${props.match.team1} -0.5`, odds: '1.48', selected: false, trend: 'down' },
-      { label: `${props.match.team2} +0.5`, odds: '2.55', selected: false, trend: 'up' },
-      { label: `${props.match.team1} -1.0`, odds: '1.80', selected: false, trend: '' },
-      { label: `${props.match.team2} +1.0`, odds: '2.05', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'correct_score', name: 'Correct Score', icon: '🔢', open: false,
-    outcomes: [
-      { label: '1-0', odds: '6.50', selected: false, trend: '' },
-      { label: '2-0', odds: '8.00', selected: false, trend: '' },
-      { label: '2-1', odds: '7.00', selected: false, trend: '' },
-      { label: '3-0', odds: '14.00', selected: false, trend: '' },
-      { label: '3-1', odds: '12.00', selected: false, trend: '' },
-      { label: '0-0', odds: '11.00', selected: false, trend: '' },
-      { label: '1-1', odds: '6.00', selected: false, trend: '' },
-      { label: '2-2', odds: '15.00', selected: false, trend: '' },
-      { label: '0-1', odds: '13.00', selected: false, trend: '' },
-      { label: '0-2', odds: '19.00', selected: false, trend: '' },
-      { label: '1-2', odds: '11.00', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'first_goal', name: 'Next Goal / Anytime Scorer', icon: '🥅', open: false,
-    outcomes: [
-      { label: 'Home team scores next', odds: '1.55', selected: false, trend: '' },
-      { label: 'Away team scores next', odds: '2.30', selected: false, trend: '' },
-      { label: 'No more goals', odds: '5.50', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'halftime', name: 'Half-Time Result', icon: '⏱️', open: false,
-    outcomes: [
-      { label: `${props.match.team1} HT Win`, odds: '2.15', selected: false, trend: '' },
-      { label: 'HT Draw', odds: '2.10', selected: false, trend: '' },
-      { label: `${props.match.team2} HT Win`, odds: '4.20', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'corners', name: 'Total Corners', icon: '📐', open: false,
-    outcomes: [
-      { label: 'Over 8.5 corners', odds: '1.85', selected: false, trend: '' },
-      { label: 'Under 8.5 corners', odds: '1.95', selected: false, trend: '' },
-      { label: 'Over 10.5 corners', odds: '2.60', selected: false, trend: '' },
-      { label: 'Under 10.5 corners', odds: '1.50', selected: false, trend: '' },
-    ]
-  },
-  {
-    id: 'cards', name: 'Total Cards', icon: '🟨', open: false,
-    outcomes: [
-      { label: 'Over 3.5 cards', odds: '1.75', selected: false, trend: '' },
-      { label: 'Under 3.5 cards', odds: '2.00', selected: false, trend: '' },
-      { label: 'Home team yellow card', odds: '1.40', selected: false, trend: '' },
-      { label: 'Away team red card', odds: '9.00', selected: false, trend: '' },
-    ]
-  },
-])
+const startTimeMs = computed(() => gn2(infoStatic.value, 'start_time') || new Date(props.match.date).getTime())
+const matchDateStr = computed(() => {
+  if (!startTimeMs.value) return props.match.date
+  const d = new Date(startTimeMs.value)
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+})
+const matchTimeStr = computed(() => {
+  if (!startTimeMs.value) return props.match.time
+  const d = new Date(startTimeMs.value)
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+})
 
-function toggleOutcome(market: Market, outcome: Outcome) {
-  toggleBet({
-    key: `${market.id}-${outcome.label}`,
-    market: market.name,
-    label: outcome.label,
-    odds: outcome.odds,
-    matchName: `${props.match.team1} vs ${props.match.team2}`,
-  })
+// ─── Countdown ───────────────────────────────────────────────────────────────
+function updateCountdown() {
+  if (!startTimeMs.value || isLive.value || isFinished.value) { countdown.value = ''; return }
+  const diff = startTimeMs.value - Date.now()
+  if (diff <= 0) { countdown.value = 'Starting now'; return }
+  const h = Math.floor(diff / 3600000)
+  const m = Math.floor((diff % 3600000) / 60000)
+  const s = Math.floor((diff % 60000) / 1000)
+  countdown.value = h > 0
+    ? `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
+    : `${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
 }
 
-const marketMovers = [
-  { label: `${props.match.team1} Win`, dir: 'down', change: '0.12' },
-  { label: 'Over 2.5 Goals', dir: 'up', change: '0.08' },
-  { label: 'BTTS Yes', dir: 'up', change: '0.15' },
-  { label: 'Draw', dir: 'down', change: '0.05' },
-]
+// ─── Market parsing ──────────────────────────────────────────────────────────
+interface ParsedOutcome { id: string; label: string; odds: string; p: number }
+interface ParsedMarket  {
+  marketId: string; specKey: string; specLabel: string
+  name: string; icon: string; category: string
+  outcomes: ParsedOutcome[]
+  open: boolean
+}
 
-// ── AI TAB ────────────────────────────────────────────────────────────────
-interface ChatMessage { role: 'user' | 'assistant'; content: string; typing?: boolean }
+const MARKET_META: Record<string, { name: string; icon: string; category: string }> = {
+  '1':  { name: 'Match Result',           icon: '⚽', category: 'Main' },
+  '2':  { name: 'Home / Away',            icon: '🏆', category: 'Main' },
+  '8':  { name: 'Next Goal',              icon: '🥅', category: 'Goals' },
+  '9':  { name: 'Last Goal',              icon: '🏁', category: 'Goals' },
+  '10': { name: 'Double Chance',          icon: '🎯', category: 'Main' },
+  '11': { name: 'Draw No Bet',            icon: '🛡',  category: 'Main' },
+  '12': { name: 'Home Team To Score',     icon: '🔴', category: 'Goals' },
+  '13': { name: 'Both Teams To Score',    icon: '🔵', category: 'Goals' },
+  '14': { name: '3-Way Asian Handicap',   icon: '⚖', category: 'Handicap' },
+  '15': { name: 'Winning Margin',         icon: '📊', category: 'Special' },
+  '16': { name: 'Asian Handicap',         icon: '⚖', category: 'Handicap' },
+  '18': { name: 'Total Goals (O/U)',      icon: '🔢', category: 'Goals' },
+  '19': { name: '1st Half O/U',           icon: '1️⃣', category: 'Period' },
+  '20': { name: '2nd Half O/U',           icon: '2️⃣', category: 'Period' },
+  '21': { name: 'Odd / Even Goals',       icon: '🔄', category: 'Special' },
+  '22': { name: '1st Half Odd / Even',    icon: '1️⃣', category: 'Period' },
+  '29': { name: 'Match Result & BTTS',    icon: '⚽', category: 'Main' },
+  '37': { name: 'Anytime Goalscorer',     icon: '👟', category: 'Goals' },
+  '60': { name: '1st Half Result',        icon: '1️⃣', category: 'Period' },
+  '83': { name: '2nd Half Result',        icon: '2️⃣', category: 'Period' },
+}
 
-const chatMessages = ref<ChatMessage[]>([])
-const chatInput = ref('')
-const aiLoading = ref(false)
+function outcomeLabel(marketId: string, outcomeId: string): string {
+  const map: Record<string, string> = {
+    '1':'1','2':'X','3':'2',
+    '4':'1','5':'2',
+    '6': homeName.value || 'Home',
+    '7':'No Goal',
+    '8': awayName.value || 'Away',
+    '9':'1X','10':'X2','11':'12',
+    '12':'Over','13':'Under',
+    '74':'1X','76':'X2',
+    '776':'Yes','778':'No',
+    '780':'Yes','782':'No',
+    '1711':'1','1712':'X','1713':'2',
+    '1714':'1','1715':'2',
+  }
+  if (map[outcomeId]) return map[outcomeId]
+  if (outcomeId.startsWith('sr:winning_margin')) {
+    const parts = outcomeId.split(':')
+    return parts[parts.length - 1] ?? outcomeId
+  }
+  return outcomeId
+}
+
+function specLabel(specKey: string): string {
+  if (specKey === '_') return ''
+  const s = specKey.replace(/\\u002e/gi, '.').replace(/\\u003a/gi, ':')
+  if (s.startsWith('total='))    return `O/U ${s.replace('total=','')}`
+  if (s.startsWith('hcp='))      return `Hcp ${s.replace('hcp=','')}`
+  if (s.startsWith('goalnr='))   return `${s.replace('goalnr=','')}${s === 'goalnr=1' ? 'st' : 'th'} Goal`
+  if (s.startsWith('variant='))  return s.replace('variant=sr:winning_margin:','Margin ')
+  return s
+}
+
+const allParsedMarkets = computed((): ParsedMarket[] => {
+  const result: ParsedMarket[] = []
+  const odds = oddsRoot.value
+  if (!odds) return result
+
+  for (const [marketId, marketData] of Object.entries(odds)) {
+    const m = marketData as Record<string, unknown>
+    const sp = m.sp as Record<string, unknown>
+    if (!sp) continue
+    const meta = MARKET_META[marketId] ?? { name: `Market ${marketId}`, icon: '📈', category: 'Other' }
+
+    for (const [specKey, specData] of Object.entries(sp)) {
+      const sd = specData as Record<string, unknown>
+      if (sd.st === 3) continue  // suspended
+      const outMap = sd.out as Record<string, unknown>
+      if (!outMap) continue
+
+      const outcomes: ParsedOutcome[] = []
+      for (const [outcomeId, outData] of Object.entries(outMap)) {
+        const od = outData as Record<string, unknown>
+        if (od.st === 3) continue
+        outcomes.push({
+          id:    outcomeId,
+          label: outcomeLabel(marketId, outcomeId),
+          odds:  Number(od.o ?? 0).toFixed(2),
+          p:     Number(od.p ?? 0),
+        })
+      }
+      if (!outcomes.length) continue
+
+      result.push({
+        marketId,
+        specKey,
+        specLabel: specLabel(specKey),
+        name:     meta.name,
+        icon:     meta.icon,
+        category: meta.category,
+        outcomes,
+        open: marketId === '1',
+      })
+    }
+  }
+
+  // Sort: Main first, then Goals, Handicap, Period, Special, Other
+  const catOrder: Record<string, number> = { Main:1, Goals:2, Handicap:3, Period:4, Special:5, Other:6 }
+  result.sort((a, b) => {
+    const co = (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9)
+    if (co !== 0) return co
+    return Number(a.marketId) - Number(b.marketId)
+  })
+  return result
+})
+
+const allCategories = computed(() => {
+  const cats = new Set(['All'])
+  for (const m of allParsedMarkets.value) cats.add(m.category)
+  return Array.from(cats)
+})
+const activeCategory = ref('All')
+const filteredMarkets = computed(() =>
+  activeCategory.value === 'All'
+    ? allParsedMarkets.value
+    : allParsedMarkets.value.filter(m => m.category === activeCategory.value)
+)
+
+// ─── Quick computed odds ──────────────────────────────────────────────────────
+const mainMarketOutcomes = computed(() =>
+  allParsedMarkets.value.find(m => m.marketId === '1' && m.specKey === '_')?.outcomes ?? []
+)
+const bttsOutcomes = computed(() =>
+  allParsedMarkets.value.find(m => m.marketId === '13' && m.specKey === '_')?.outcomes ?? []
+)
+const ouOutcomes = computed(() => {
+  const target = allParsedMarkets.value.find(m => m.marketId === '18' && m.specKey.includes('2.5'))
+  return target?.outcomes ?? []
+})
+const dcOutcomes = computed(() =>
+  allParsedMarkets.value.find(m => m.marketId === '10' && m.specKey === '_')?.outcomes ?? []
+)
+
+const keyMarkets = computed(() => {
+  const km = []
+  if (mainMarketOutcomes.value.length) km.push({ marketId:'1', specKey:'_', name:'Match Result', outcomes: mainMarketOutcomes.value })
+  if (bttsOutcomes.value.length)       km.push({ marketId:'13', specKey:'_', name:'Both Teams To Score', outcomes: bttsOutcomes.value })
+  if (ouOutcomes.value.length) {
+    const spec = allParsedMarkets.value.find(m => m.marketId === '18' && m.specKey.includes('2.5'))?.specKey ?? 'total=2.5'
+    km.push({ marketId:'18', specKey: spec, name:'Total Goals O/U 2.5', outcomes: ouOutcomes.value })
+  }
+  if (dcOutcomes.value.length)         km.push({ marketId:'10', specKey:'_', name:'Double Chance', outcomes: dcOutcomes.value })
+  return km
+})
+
+// ─── Win probability (from real betmaster `p` values) ────────────────────────
+const rawProbs = computed(() => {
+  const market1 = allParsedMarkets.value.find(m => m.marketId === '1' && m.specKey === '_')
+  if (!market1) return { home: 0, draw: 0, away: 0 }
+  const h = market1.outcomes.find(o => o.id === '1')?.p ?? 0
+  const d = market1.outcomes.find(o => o.id === '2')?.p ?? 0
+  const a = market1.outcomes.find(o => o.id === '3')?.p ?? 0
+  return { home: h, draw: d, away: a }
+})
+const homeWinPct = computed(() => Math.round(rawProbs.value.home * 100))
+const drawPct    = computed(() => Math.round(rawProbs.value.draw  * 100))
+const awayWinPct = computed(() => Math.round(rawProbs.value.away  * 100))
+
+const predictedWinner = computed(() => {
+  const { home, draw, away } = rawProbs.value
+  if (home >= draw && home >= away) return homeName.value
+  if (away >= home && away >= draw) return awayName.value
+  return 'Draw'
+})
+const predictedConfidence = computed(() => {
+  const { home, draw, away } = rawProbs.value
+  return Math.round(Math.max(home, draw, away) * 100)
+})
+const predictedOdds = computed(() => {
+  if (!mainMarketOutcomes.value.length) return '-'
+  if (predictedWinner.value === homeName.value) return mainMarketOutcomes.value.find(o => o.id === '1')?.odds ?? '-'
+  if (predictedWinner.value === awayName.value) return mainMarketOutcomes.value.find(o => o.id === '3')?.odds ?? '-'
+  return mainMarketOutcomes.value.find(o => o.id === '2')?.odds ?? '-'
+})
+
+const marketPredictions = computed(() => {
+  const preds = []
+  const btts = allParsedMarkets.value.find(m => m.marketId === '13' && m.specKey === '_')
+  if (btts) {
+    const yesP = (btts.outcomes.find(o => o.id === '780')?.p ?? 0) * 100
+    preds.push({ label: 'Both Teams To Score', pct: Math.round(yesP), cls: 'pm-green', verdict: yesP > 50 ? 'YES' : 'NO' })
+  }
+  const ou25 = allParsedMarkets.value.find(m => m.marketId === '18' && m.specKey.includes('2.5'))
+  if (ou25) {
+    const overP = (ou25.outcomes.find(o => o.id === '12')?.p ?? 0) * 100
+    preds.push({ label: 'Over 2.5 Goals', pct: Math.round(overP), cls: 'pm-blue', verdict: overP > 50 ? 'YES' : 'NO' })
+  }
+  const ou15 = allParsedMarkets.value.find(m => m.marketId === '18' && m.specKey.includes('1.5'))
+  if (ou15) {
+    const overP = (ou15.outcomes.find(o => o.id === '12')?.p ?? 0) * 100
+    preds.push({ label: 'Over 1.5 Goals', pct: Math.round(overP), cls: 'pm-blue', verdict: overP > 50 ? 'YES' : 'NO' })
+  }
+  if (homeWinPct.value > 0) preds.push({ label: `${homeName.value} to Win`, pct: homeWinPct.value, cls: 'pm-red', verdict: homeWinPct.value > 50 ? 'YES' : 'NO' })
+  if (awayWinPct.value > 0) preds.push({ label: `${awayName.value} to Win`, pct: awayWinPct.value, cls: 'pm-purple', verdict: awayWinPct.value > 50 ? 'YES' : 'NO' })
+  return preds
+})
+
+// ─── Goal incidents for pitch ─────────────────────────────────────────────────
+const goalIncidents = computed(() =>
+  incidents.value.filter(i => i.type === 'goal' || i.type === 'ownGoal')
+)
+function incidentX(inc: Incident): number {
+  const maxMinutes = 90
+  return 10 + (inc.time / maxMinutes) * 480
+}
+function incidentIcon(type: string): string {
+  const m: Record<string, string> = {
+    goal:'⚽', ownGoal:'⚽', yellowCard:'🟨', redCard:'🟥',
+    yellowRedCard:'🟨🟥', substitution:'🔄', penaltyMissed:'❌'
+  }
+  return m[type] ?? '•'
+}
+
+// ─── AI Chat ─────────────────────────────────────────────────────────────────
+const chatMessages = ref<{ role: string; content: string; typing?: boolean }[]>([])
+const chatInput    = ref('')
+const aiLoading    = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
 
-const suggestions = [
-  `Who will win ${props.match.team1} vs ${props.match.team2}?`,
-  'What are the best value bets for this match?',
-  'Analyze both teams form and stats',
-  'Should I bet on Over 2.5 goals?',
-  'What is the head to head record?',
-]
-
-function sendSuggestion(s: string) {
-  chatInput.value = s
-  sendMessage()
-}
+const suggestions = computed(() => [
+  `Who will win ${homeName.value} vs ${awayName.value}?`,
+  `What are the best odds for ${tournamentName.value}?`,
+  `Analyze ${homeName.value}'s recent form`,
+  `Predict the scoreline for this match`,
+])
 
 async function sendMessage() {
   const text = chatInput.value.trim()
   if (!text || aiLoading.value) return
-
-  chatMessages.value.push({ role: 'user', content: text })
   chatInput.value = ''
+  chatMessages.value.push({ role: 'user', content: text })
   aiLoading.value = true
-
-  const typingMsg: ChatMessage = { role: 'assistant', content: '', typing: true }
-  chatMessages.value.push(typingMsg)
-
-  await nextTick()
-  scrollChat()
-
+  chatMessages.value.push({ role: 'assistant', content: '', typing: true })
+  await nextTick(); chatContainer.value?.scrollTo({ top: 9999, behavior: 'smooth' })
   try {
-    const systemPrompt = `You are BETWIN AI, an expert sports betting assistant. 
-The current match is: ${props.match.team1} vs ${props.match.team2} in ${props.league.name} (${props.league.flag}).
-Current live score: ${liveScore.value[0]}-${liveScore.value[1]} at ${liveTimer.value}.
-Odds: ${props.match.team1} Win=${props.match.odds1}, Draw=${props.match.oddsX}, ${props.match.team2} Win=${props.match.odds2}.
-Give concise, insightful betting analysis. Always include a clear recommendation.`
-
-    const response = await fetch('https://text.pollinations.ai/', {
+    const context = `Match: ${homeName.value} vs ${awayName.value}. Tournament: ${tournamentName.value}. Status: ${statusText.value}. Win probability: Home ${homeWinPct.value}%, Draw ${drawPct.value}%, Away ${awayWinPct.value}%.`
+    const res = await fetch('https://text.pollinations.ai/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...chatMessages.value
-            .filter(m => !m.typing)
-            .slice(0, -1)
-            .map(m => ({ role: m.role, content: m.content })),
-          { role: 'user', content: text }
-        ],
-        model: 'openai',
-        seed: 42,
-        jsonMode: false,
-        private: true
-      })
+      body: JSON.stringify({ model: 'openai', messages: [
+        { role: 'system', content: `You are a sports betting analyst. Context: ${context}` },
+        ...chatMessages.value.filter(m => !m.typing).map(m => ({ role: m.role, content: m.content })),
+      ]})
     })
-
-    const reply = await response.text()
-    const idx = chatMessages.value.findIndex(m => m.typing)
-    if (idx !== -1) {
-      chatMessages.value[idx] = { role: 'assistant', content: reply.trim(), typing: false }
-    }
+    const reply = await res.text()
+    const idx = chatMessages.value.findLastIndex(m => m.typing)
+    if (idx !== -1) chatMessages.value[idx] = { role: 'assistant', content: reply }
   } catch {
-    const idx = chatMessages.value.findIndex(m => m.typing)
-    if (idx !== -1) {
-      chatMessages.value[idx] = {
-        role: 'assistant',
-        content: `Based on current stats: ${props.match.team1} are favourites with odds at ${props.match.odds1}. With a live score of ${liveScore.value[0]}-${liveScore.value[1]}, the momentum favours the home side. Consider the Double Chance or Over 2.5 Goals markets for safer value.`,
-        typing: false
-      }
+    const idx = chatMessages.value.findLastIndex(m => m.typing)
+    if (idx !== -1) chatMessages.value[idx] = { role: 'assistant', content: 'Sorry, I could not connect. Please try again.' }
+  } finally {
+    aiLoading.value = false
+    await nextTick(); chatContainer.value?.scrollTo({ top: 9999, behavior: 'smooth' })
+  }
+}
+function sendSuggestion(s: string) { chatInput.value = s; sendMessage() }
+
+// ─── Data fetching ────────────────────────────────────────────────────────────
+async function fetchBetmaster() {
+  try {
+    const res = await fetch(`/betmaster-api/feed/sr/matches/${props.match.id}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const json = await res.json() as { match: unknown }
+    bmData.value = json.match as Record<string, unknown>
+  } catch (e) {
+    console.warn('[BetWin] Betmaster fetch failed:', e)
+  }
+}
+
+async function fetchSofaScore() {
+  if (!startTimeMs.value) return
+  try {
+    const d = new Date(startTimeMs.value)
+    const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    const res  = await fetch(`/sofascore-api/sport/football/scheduled-events/${date}`)
+    if (!res.ok) return
+    const json = await res.json() as { events?: unknown[] }
+    const events = json.events ?? []
+
+    const home = homeName.value.toLowerCase()
+    const away = awayName.value.toLowerCase()
+    const found = events.find((e: unknown) => {
+      const ev = e as Record<string, unknown>
+      const hn = gs(ev, 'homeTeam', 'name').toLowerCase()
+      const an = gs(ev, 'awayTeam', 'name').toLowerCase()
+      return (hn.includes(home.slice(0,5)) || home.includes(hn.slice(0,5))) &&
+             (an.includes(away.slice(0,5)) || away.includes(an.slice(0,5)))
+    })
+    if (!found) return
+    const eventId = gn2(found as Record<string, unknown>, 'id')
+    if (!eventId) return
+
+    // Fetch incidents and lineups in parallel
+    const [incRes, luRes] = await Promise.allSettled([
+      fetch(`/sofascore-api/event/${eventId}/incidents`),
+      fetch(`/sofascore-api/event/${eventId}/lineups`),
+    ])
+
+    if (incRes.status === 'fulfilled' && incRes.value.ok) {
+      const incJson = await incRes.value.json() as { incidents?: unknown[] }
+      incidents.value = (incJson.incidents ?? []).map((inc: unknown) => {
+        const i = inc as Record<string, unknown>
+        const isHome = gs(i, 'team', 'side') === 'home'
+        return {
+          id:     gn2(i, 'id'),
+          time:   gn2(i, 'time'),
+          type:   gs(i, 'incidentType'),
+          player: gs(i, 'player', 'name') || gs(i, 'playerIn', 'name'),
+          isHome,
+        }
+      }).filter((i: Incident) => i.time > 0).sort((a: Incident, b: Incident) => a.time - b.time)
     }
-  }
 
-  aiLoading.value = false
-  await nextTick()
-  scrollChat()
+    if (luRes.status === 'fulfilled' && luRes.value.ok) {
+      const luJson = await luRes.value.json() as { home?: unknown; away?: unknown }
+      const mapPlayers = (side: unknown): Player[] => {
+        const s = side as Record<string, unknown>
+        const players = (s?.players ?? []) as unknown[]
+        return players.map((pl: unknown) => {
+          const p = pl as Record<string, unknown>
+          return {
+            id:           gn2(p, 'player', 'id'),
+            name:         gs(p, 'player', 'name') || gs(p, 'player', 'shortName'),
+            jerseyNumber: String(gn2(p, 'jerseyNumber') || ''),
+            position:     gs(p, 'position'),
+          }
+        })
+      }
+      lineups.value = { home: mapPlayers(luJson.home), away: mapPlayers(luJson.away) }
+    }
+  } catch (e) {
+    console.warn('[BetWin] SofaScore fetch failed (graceful):', e)
+  }
 }
 
-function scrollChat() {
-  if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-  }
-}
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
+onMounted(async () => {
+  loading.value = true
+  await fetchBetmaster()
+  loading.value = false
 
-// ── PREDICTION TAB ────────────────────────────────────────────────────────
-const scorePredictions = [
-  { score: '2-0', pct: 18, top: true },
-  { score: '2-1', pct: 15, top: false },
-  { score: '1-0', pct: 14, top: false },
-  { score: '3-1', pct: 10, top: false },
-  { score: '1-1', pct: 9,  top: false },
-  { score: '2-2', pct: 7,  top: false },
-  { score: '0-1', pct: 6,  top: false },
-  { score: '3-0', pct: 5,  top: false },
-]
-const keyFactors = [
-  { icon: '🏆', label: 'Home advantage', desc: `${props.match.team1} wins 68% at home`, impact: 'positive' },
-  { icon: '⚡', label: 'Current form', desc: 'W-W-D-W-L in last 5 games', impact: 'positive' },
-  { icon: '🤕', label: 'Injuries', desc: '2 key players unavailable', impact: 'negative' },
-  { icon: '🔄', label: 'Head to head', desc: '3W-1D-1L in last 5 meetings', impact: 'positive' },
-  { icon: '🛡️', label: 'Defensive record', desc: 'Clean sheet in 40% of home games', impact: 'positive' },
-  { icon: '📉', label: 'Fatigue factor', desc: 'Played 3 games in last 7 days', impact: 'negative' },
-]
-const predictedMarkets = [
-  { label: `${props.match.team1} Win`, pct: 64, color: 'pred-t1', verdict: 'YES' },
-  { label: 'Over 2.5 Goals', pct: 62, color: 'pred-neutral', verdict: 'YES' },
-  { label: 'Both Teams Score', pct: 55, color: 'pred-neutral', verdict: 'YES' },
-  { label: 'Home Win HT', pct: 48, color: 'pred-t1', verdict: 'NO' },
-  { label: 'Draw', pct: 18, color: 'pred-draw', verdict: 'NO' },
-  { label: `${props.match.team2} Win`, pct: 18, color: 'pred-t2', verdict: 'NO' },
-]
-const valueBets = [
-  { label: `${props.match.team1} Win`, val: props.match.odds1, edge: 8 },
-  { label: 'Over 2.5 Goals', val: '1.65', edge: 5 },
-  { label: 'BTTS Yes', val: '1.72', edge: 3 },
-]
+  // Countdown timer
+  updateCountdown()
+  countdownTimer = setInterval(updateCountdown, 1000)
+
+  // Try SofaScore in background
+  fetchSofaScore()
+
+  // Poll betmaster every 30s if live
+  if (isLive.value) {
+    pollTimer = setInterval(async () => { await fetchBetmaster() }, 30000)
+  }
+})
+
+onUnmounted(() => {
+  if (pollTimer)     clearInterval(pollTimer)
+  if (countdownTimer) clearInterval(countdownTimer)
+})
 </script>
 
 <style scoped>
+/* ─── Layout ─────────────────────────────────────────────────────── */
 .match-detail {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: #0e1120;
-  overflow: hidden;
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  background: #12141f; position: relative;
 }
+.md-loading {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  gap: 12px; font-size: 13px; color: #9ba3b8; background: rgba(18,20,31,0.85); z-index: 10;
+}
+.md-spinner {
+  width: 20px; height: 20px; border: 2px solid #7c3aed44;
+  border-top-color: #7c3aed; border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── TOP BAR ─────────────────────────────── */
+/* ─── Topbar ─────────────────────────────────────────────────────── */
 .detail-topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: #141624;
-  border-bottom: 1px solid #252840;
-  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px; padding: 6px 12px;
+  background: #0e1120; border-bottom: 1px solid #252840; flex-shrink: 0; flex-wrap: wrap;
 }
 .back-btn {
-  display: flex; align-items: center; gap: 4px;
-  background: #252840; border: none; color: #e2e8f0;
-  padding: 5px 10px; border-radius: 4px;
-  font-size: 11px; font-weight: 700; cursor: pointer;
-  flex-shrink: 0; transition: background 0.15s;
+  background: #1a1d2e; border: 1px solid #252840; color: #9ba3b8;
+  padding: 4px 10px; border-radius: 5px; font-size: 12px; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
 }
-.back-btn:hover { background: #2e3660; }
-.back-arrow { font-size: 14px; font-weight: 900; }
+.back-btn:hover { background: #252840; color: #fff; }
 .breadcrumb {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 11px; flex: 1; min-width: 0; overflow: hidden;
+  display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0;
+  font-size: 10px; color: #9ba3b8; overflow: hidden;
 }
-.bc-flag { font-size: 12px; }
-.bc-sport { color: #9ba3b8; font-weight: 600; text-transform: uppercase; font-size: 10px; }
+.bc-logo { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+.bc-sport { color: #7a8299; font-weight: 700; text-transform: uppercase; font-size: 9px; }
 .bc-sep { color: #3a4060; }
-.bc-name { color: #c8cfe0; font-weight: 600; }
-.bc-match { color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bc-name { color: #c8cfe0; font-weight: 700; }
+.bc-match { color: #fff; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .detail-tabs { display: flex; gap: 2px; flex-shrink: 0; }
 .dtab {
-  background: #1a1d2e; border: none; color: #7a8299;
-  padding: 5px 10px; border-radius: 4px;
-  font-size: 10px; font-weight: 700; cursor: pointer;
-  text-transform: uppercase; transition: background 0.15s, color 0.15s;
-  display: flex; align-items: center; gap: 4px;
+  background: #1a1d2e; border: 1px solid #252840; color: #9ba3b8;
+  padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s;
 }
-.dtab:hover { color: #fff; background: #22263a; }
-.dtab.active { background: #e84c6b; color: #fff; }
-.dtab-icon { font-size: 11px; }
+.dtab.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+.dtab:hover:not(.active) { background: #252840; }
+.dtab-icon { font-size: 12px; }
 
-/* ── BODY LAYOUT ─────────────────────────── */
+/* ─── Body layout ────────────────────────────────────────────────── */
 .detail-body {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-height: 0;
-  display: flex;
-  gap: 8px;
-  padding: 10px;
+  display: flex; gap: 10px; padding: 10px; flex: 1; overflow-y: auto;
   align-items: flex-start;
-  scrollbar-width: thin;
-  scrollbar-color: #252840 transparent;
 }
-.detail-body::-webkit-scrollbar { width: 5px; }
-.detail-body::-webkit-scrollbar-track { background: transparent; }
-.detail-body::-webkit-scrollbar-thumb { background: #252840; border-radius: 3px; }
-.detail-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
+.detail-main { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.detail-right { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+
+/* ─── Match Hero Card ────────────────────────────────────────────── */
+.match-hero-card {
+  background: linear-gradient(135deg, #1a1040 0%, #0e1628 60%, #141a2e 100%);
+  border: 1px solid #2a2060; border-radius: 10px; overflow: hidden;
 }
-.detail-right {
-  width: 200px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.hero-meta {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: #9ba3b8;
 }
-
-/* ── SHARED CARD ─────────────────────────── */
-.h2h-card, .live-card, .stats-card, .form-card,
-.market-card, .pred-card, .pred-header-card {
-  background: #141a2e; border: 1px solid #1e2a42;
-  border-radius: 10px; overflow: hidden;
+.hero-cat-logo { width: 16px; height: 12px; object-fit: contain; border-radius: 1px; }
+.hero-tourn { font-weight: 700; color: #c8cfe0; }
+.hero-bull  { color: #3a4060; }
+.hero-round { color: #7a8299; }
+.hero-date  { color: #7a8299; }
+.hero-status {
+  margin-left: auto; font-size: 9px; font-weight: 800; padding: 2px 8px;
+  border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px;
 }
+.status-live     { background: rgba(232,76,107,0.2); color: #e84c6b; border: 1px solid rgba(232,76,107,0.3); animation: pulse-badge 1.5s infinite; }
+.status-finished { background: rgba(122,130,153,0.2); color: #9ba3b8; border: 1px solid rgba(122,130,153,0.3); }
+.status-prematch { background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.2); }
+@keyframes pulse-badge { 0%,100%{opacity:1}50%{opacity:0.6} }
 
-/* ── H2H ────────────────────────────────── */
-.h2h-title {
-  padding: 8px 14px; font-size: 11px; font-weight: 800;
-  color: #fff; text-transform: uppercase; letter-spacing: 1px;
-  background: #0e1628; border-bottom: 1px solid #1e2a42;
-  display: flex; align-items: center; gap: 6px;
+.hero-teams-area {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 16px 12px; gap: 10px;
 }
-.h2h-icon { font-size: 14px; }
-.h2h-content { display: flex; align-items: flex-start; padding: 14px; gap: 12px; }
-.h2h-team { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 90px; flex-shrink: 0; }
-.h2h-logo { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); font-size: 11px; font-weight: 800; color: #fff; }
-.t1-bg { background: linear-gradient(135deg,#FEBE10,#c99a00); }
-.t2-bg { background: linear-gradient(135deg,#DA291C,#8b001f); }
-.h2h-abbr { font-size: 10px; font-weight: 900; }
-.h2h-club { font-size: 9px; color: #7a8299; font-weight: 600; text-align: center; }
-.h2h-name { font-size: 10px; font-weight: 800; color: #fff; text-align: center; }
-.h2h-badge { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-.win { background: rgba(76,175,80,0.2); color: #4caf50; }
-.win-t2 { background: rgba(232,76,107,0.2); color: #e84c6b; }
-.h2h-stats { width: 100%; display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
-.hstat { display: flex; justify-content: space-between; width: 100%; }
-.hstat-label { font-size: 8px; color: #5a6a88; }
-.hstat-val { font-size: 8px; font-weight: 800; color: #e2e8f0; }
-.h2h-chart-area { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
-.h2h-vs-badge { display: flex; align-items: center; gap: 6px; background: #0e1628; border-radius: 20px; padding: 3px 10px; border: 1px solid #252840; }
-.vs-t1 { font-size: 9px; font-weight: 800; color: #FEBE10; }
-.vs-mid { font-size: 10px; font-weight: 900; color: #fff; }
-.vs-t2 { font-size: 9px; font-weight: 800; color: #DA291C; }
-.h2h-chart { width: 100%; height: 70px; display: block; }
-.chart-legend { display: flex; gap: 12px; font-size: 9px; }
-.leg-item.t1 { color: #e84c6b; }
-.leg-item.t2 { color: #4a90e2; }
-.h2h-results { display: flex; gap: 4px; margin-top: 4px; }
-.h2h-result-item { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-.h2h-result-item.win { background: rgba(76,175,80,0.2); color: #4caf50; }
-.h2h-result-item.draw { background: rgba(122,130,153,0.2); color: #9ba3b8; }
-.h2h-result-item.loss { background: rgba(232,76,107,0.2); color: #e84c6b; }
+.hero-team {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;
+}
+.hero-team-logo {
+  width: 56px; height: 56px; object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+.hero-team-name {
+  font-size: 12px; font-weight: 800; color: #fff; text-align: center; line-height: 1.3;
+}
+.hero-score-center { text-align: center; flex-shrink: 0; }
+.hero-live-score {
+  display: flex; align-items: center; gap: 4px; font-size: 42px; font-weight: 900; color: #fff;
+}
+.hls-sep { color: #5a6a88; font-size: 32px; }
+.hero-clock  { font-size: 12px; font-weight: 800; color: #e84c6b; margin-top: 2px; }
+.hero-ft     { font-size: 11px; font-weight: 700; color: #9ba3b8; margin-top: 2px; }
+.hero-ht     { font-size: 10px; color: #5a6a88; margin-top: 2px; }
+.hero-time   { font-size: 22px; font-weight: 900; color: #fff; }
+.hero-vs     { font-size: 14px; font-weight: 900; color: #5a6a88; letter-spacing: 2px; margin: 2px 0; }
+.hero-countdown { font-size: 11px; font-weight: 800; color: #7c3aed; font-variant-numeric: tabular-nums; }
 
-/* ── LIVE CARD ───────────────────────────── */
-.live-card-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
-.live-league-info { display: flex; align-items: center; gap: 6px; }
-.live-flag { font-size: 14px; }
-.live-league-name { font-size: 11px; font-weight: 700; color: #c8cfe0; }
-.live-date { font-size: 10px; color: #5a6a88; margin-left: 4px; }
-.live-badge { font-size: 10px; font-weight: 800; color: #e84c6b; background: rgba(232,76,107,0.15); border: 1px solid rgba(232,76,107,0.3); border-radius: 10px; padding: 2px 8px; animation: pulse-badge 1.5s infinite; }
-@keyframes pulse-badge { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
-.live-teams-area { display: flex; align-items: center; justify-content: space-between; padding: 14px; gap: 8px; background: linear-gradient(135deg,rgba(232,76,107,0.06) 0%,transparent 50%,rgba(74,144,226,0.06) 100%); }
-.live-team-side { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
-.live-player-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
-.t1-avatar { background: linear-gradient(135deg,#003087,#0047ba); }
-.t2-avatar { background: linear-gradient(135deg,#EF0107,#a61a10); }
-.lpa-text { font-size: 10px; font-weight: 900; color: #fff; }
-.live-team-info { text-align: center; }
-.lti-name { font-size: 11px; font-weight: 800; color: #fff; }
-.live-score-block { flex: 0 0 auto; text-align: center; }
-.score-boxes { display: flex; align-items: center; background: #0e1628; border-radius: 8px; border: 1px solid #252840; overflow: hidden; }
-.score-box { display: flex; flex-direction: column; align-items: center; padding: 10px 14px; gap: 2px; }
-.score-num { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; }
-.score-lbl { font-size: 8px; color: #5a6a88; text-transform: uppercase; font-weight: 700; }
-.score-divider { display: flex; flex-direction: column; align-items: center; padding: 8px 6px; border-left: 1px solid #252840; border-right: 1px solid #252840; }
-.timer-display { font-size: 11px; font-weight: 800; color: #e84c6b; }
-.live-stats-bars { padding: 8px 14px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #1e2a42; }
-.stat-bar-group { display: flex; align-items: center; gap: 6px; }
-.sb-pct { font-size: 10px; font-weight: 800; min-width: 28px; text-align: right; }
-.t1-pct { color: #e84c6b; }
-.t2-pct { color: #4a90e2; }
-.sb-track { flex: 1; height: 4px; background: #1e2a42; border-radius: 2px; overflow: hidden; }
-.sb-track.right { transform: scaleX(-1); }
-.sb-fill { height: 100%; border-radius: 2px; }
-.t1-fill { background: #e84c6b; }
-.t2-fill { background: #4a90e2; }
-.sb-label { font-size: 9px; color: #5a6a88; text-align: center; min-width: 90px; font-weight: 600; }
+.hero-odds-strip {
+  display: flex; border-top: 1px solid rgba(255,255,255,0.06);
+}
+.hero-odds-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px; background: transparent; border: none; border-right: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer; transition: background 0.15s;
+}
+.hero-odds-btn:last-child { border-right: none; }
+.hero-odds-btn:hover { background: rgba(255,255,255,0.05); }
+.hero-odds-btn.selected { background: rgba(232,76,107,0.15); }
+.hob-lbl  { font-size: 9px; color: #7a8299; font-weight: 700; }
+.hob-odds { font-size: 14px; font-weight: 900; color: #fff; }
+.hero-odds-btn.selected .hob-odds { color: #e84c6b; }
 
-/* ── STATS TABLE ─────────────────────────── */
-.stats-title { padding: 8px 14px; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
-.stats-body { display: flex; gap: 12px; padding: 12px 14px; }
-.radar-wrap { flex-shrink: 0; width: 110px; }
-.radar-svg { width: 100%; height: auto; }
-.stat-details { flex: 1; min-width: 0; }
-.stats-table { display: flex; flex-direction: column; gap: 2px; }
-.st-header { display: flex; align-items: center; padding: 3px 0; border-bottom: 1px solid #1e2a42; margin-bottom: 2px; }
-.st-row { display: flex; align-items: center; padding: 3px 0; border-bottom: 1px solid #1a2035; }
-.st-cat { flex: 1; font-size: 9px; color: #5a6a88; text-align: center; font-weight: 600; }
-.st-lbl { flex: 1; font-size: 9px; color: #7a8299; text-align: center; }
-.st-team { font-size: 9px; font-weight: 800; min-width: 36px; text-align: center; }
-.st-val { font-size: 9px; font-weight: 800; color: #e2e8f0; min-width: 36px; text-align: center; }
-.t1-col { color: #e84c6b; }
-.t2-col { color: #4a90e2; }
-
-/* ── FORM CARD ───────────────────────────── */
-.form-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; }
-.form-title { padding: 8px 14px; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
-.form-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-
-/* ── LEAGUE TABLE ─────────────────────────── */
-.league-table-card {
+/* ─── Tracker Card ───────────────────────────────────────────────── */
+.tracker-card {
   background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
 }
-.lt-header {
-  display: flex; align-items: center; gap: 8px;
+.tracker-head {
+  display: flex; align-items: center; justify-content: space-between;
   padding: 8px 14px; background: #0e1628; border-bottom: 1px solid #1e2a42;
 }
-.lt-flag { font-size: 16px; }
-.lt-title { font-size: 11px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
-.lt-table { width: 100%; }
-.lt-row {
-  display: grid;
-  grid-template-columns: 32px 1fr 28px 28px 28px 28px 28px 28px 32px 36px;
-  align-items: center;
-  padding: 5px 10px;
-  border-bottom: 1px solid #1a2035;
-  font-size: 10px;
-  color: #9ba3b8;
-  transition: background 0.15s;
+.tracker-title { font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+.tracker-status-badge { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+.pitch-wrap { position: relative; }
+.pitch-svg { width: 100%; height: auto; display: block; }
+.pitch-prematch-overlay {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  text-align: center; pointer-events: none;
 }
-.lt-row:hover { background: #1a2240; }
-.lt-head {
-  background: #0e1628;
-  font-size: 9px; font-weight: 800; color: #5a6a88;
-  text-transform: uppercase; letter-spacing: 0.5px;
-  border-bottom: 1px solid #1e2a42;
-}
-.lt-head:hover { background: #0e1628; }
-.lt-pos {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 700; color: #9ba3b8;
-}
-.lt-pos-dot {
-  width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0;
-  background: transparent;
-}
-.dot-cl  { background: #3b82f6; }
-.dot-el  { background: #f59e0b; }
-.dot-rel { background: #e84c6b; }
-.lt-team-col {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 10px; font-weight: 600; color: #e2e8f0;
-  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-}
-.lt-badge {
-  width: 22px; height: 16px; border-radius: 3px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 7px; font-weight: 900; color: #fff;
-}
-.lt-num {
-  text-align: center; font-size: 10px; color: #9ba3b8;
-}
-.lt-pts { font-weight: 800; }
-.lt-pts-val { color: #fff; font-size: 11px; font-weight: 900; }
-.lt-gd-pos { color: #4caf50; }
-.lt-gd-neg { color: #e84c6b; }
+.ppo-label    { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 2px; }
+.ppo-time     { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+.ppo-countdown { font-size: 12px; font-weight: 800; color: #7c3aed; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
-.lt-highlight-t1 { background: rgba(232, 76, 107, 0.08) !important; }
-.lt-highlight-t1 .lt-team-col { color: #e84c6b; font-weight: 800; }
-.lt-highlight-t1 .lt-pts-val { color: #e84c6b; }
-.lt-highlight-t2 { background: rgba(74, 144, 226, 0.08) !important; }
-.lt-highlight-t2 .lt-team-col { color: #4a90e2; font-weight: 800; }
-.lt-highlight-t2 .lt-pts-val { color: #4a90e2; }
+.incident-timeline { padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #1e2a42; }
+.incident-row { display: flex; align-items: center; }
+.inc-home-side,.inc-away-side { display: flex; align-items: center; gap: 6px; }
+.inc-away-side { flex-direction: row-reverse; margin-left: auto; }
+.inc-time   { font-size: 9px; font-weight: 700; color: #e84c6b; min-width: 28px; }
+.inc-icon   { font-size: 12px; }
+.inc-player { font-size: 10px; color: #c8cfe0; font-weight: 600; }
 
-.lt-legend {
-  display: flex; gap: 14px; padding: 6px 10px;
-  background: #0e1628; border-top: 1px solid #1e2a42;
+.tracker-empty { padding: 16px 14px; text-align: center; font-size: 11px; color: #5a6a88; }
+
+/* ─── Win Probability Card ───────────────────────────────────────── */
+.prob-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px;
+  padding: 10px 14px;
 }
-.lt-leg-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #5a6a88; }
-.lt-leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+.prob-title { font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.prob-body  { display: flex; flex-direction: column; gap: 8px; }
+.prob-item  { display: flex; align-items: center; gap: 8px; }
+.prob-team  { display: flex; align-items: center; gap: 6px; min-width: 110px; font-size: 10px; color: #c8cfe0; font-weight: 600; }
+.prob-logo  { width: 18px; height: 18px; object-fit: contain; }
+.prob-draw-icon { font-size: 10px; color: #5a6a88; }
+.prob-bar-wrap { flex: 1; }
+.prob-bar   { height: 8px; background: #1e2a42; border-radius: 4px; overflow: hidden; }
+.prob-fill  { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.home-pfill { background: linear-gradient(90deg, #e84c6b, #c0395a); }
+.draw-pfill { background: linear-gradient(90deg, #5a6a88, #3a4060); }
+.away-pfill { background: linear-gradient(90deg, #4a90e2, #2e6ab8); }
+.prob-pct   { font-size: 11px; font-weight: 800; min-width: 34px; text-align: right; }
+.home-pct   { color: #e84c6b; }
+.draw-pct   { color: #9ba3b8; }
+.away-pct   { color: #4a90e2; }
 
-.form-row { display: flex; align-items: center; gap: 10px; }
-.form-team-name { font-size: 10px; font-weight: 700; color: #c8cfe0; min-width: 120px; }
-.form-badges { display: flex; gap: 4px; }
-.form-badge { font-size: 10px; font-weight: 900; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-.form-badge.W { background: rgba(76,175,80,0.25); color: #4caf50; }
-.form-badge.D { background: rgba(122,130,153,0.2); color: #9ba3b8; }
-.form-badge.L { background: rgba(232,76,107,0.2); color: #e84c6b; }
+/* ─── Match Info Card ─────────────────────────────────────────────── */
+.match-info-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
+}
+.mic-title { padding: 8px 14px; font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
+.mic-grid  { display: grid; grid-template-columns: 1fr 1fr; }
+.mic-row   { display: flex; flex-direction: column; padding: 7px 12px; border-bottom: 1px solid #1a2035; border-right: 1px solid #1a2035; }
+.mic-row:nth-child(even) { border-right: none; }
+.mic-lbl   { font-size: 8px; color: #5a6a88; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+.mic-val   { font-size: 11px; color: #e2e8f0; font-weight: 600; }
 
-/* ── RIGHT SIDEBAR CARDS ─────────────────── */
-.related-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; }
-.related-title { padding: 8px 12px; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
-.rm-row { display: flex; align-items: center; padding: 8px 10px; border-bottom: 1px solid #1e2a42; cursor: pointer; transition: background 0.12s; gap: 4px; }
-.rm-row:hover { background: #1a2035; }
-.rm-row:last-child { border-bottom: none; }
-.rm-team-block { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
-.rm-logo { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 800; color: #fff; }
-.rm-name { font-size: 8px; color: #9ba3b8; text-align: center; line-height: 1.3; font-weight: 600; }
-.rm-vs { flex: 0 0 20px; text-align: center; }
-.rm-vs-icon { font-size: 10px; color: #e84c6b; font-weight: 900; }
-.prob-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; padding: 10px 12px; }
-.prob-title { font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.prob-bars { display: flex; flex-direction: column; gap: 5px; }
-.prob-item { display: flex; align-items: center; gap: 6px; }
-.prob-lbl { font-size: 9px; color: #5a6a88; min-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.prob-track { flex: 1; height: 5px; background: #1e2a42; border-radius: 3px; overflow: hidden; }
-.prob-fill { height: 100%; border-radius: 3px; }
-.t1-fill { background: #e84c6b; }
-.draw-fill { background: #7a8299; }
-.t2-fill { background: #4a90e2; }
-.prob-pct { font-size: 9px; font-weight: 800; color: #e2e8f0; min-width: 24px; text-align: right; }
+/* ─── Lineups Card ───────────────────────────────────────────────── */
+.lineups-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
+}
+.lu-title { padding: 8px 14px; font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
+.lu-body  { display: flex; }
+.lu-col   { flex: 1; padding: 8px 10px; }
+.lu-divider { width: 1px; background: #1e2a42; }
+.lu-team-header { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.lu-logo  { width: 18px; height: 18px; object-fit: contain; }
+.lu-player { display: flex; align-items: center; gap: 5px; padding: 3px 0; border-bottom: 1px solid #1a2035; }
+.lu-num   { font-size: 9px; font-weight: 800; color: #7c3aed; min-width: 18px; text-align: center; }
+.lu-name  { font-size: 10px; color: #c8cfe0; flex: 1; }
+.lu-pos   { font-size: 8px; color: #5a6a88; text-transform: uppercase; }
 
-/* ── ODDS TAB ────────────────────────────── */
+/* ─── Right Markets Card ─────────────────────────────────────────── */
+.right-markets-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
+}
+.rmc-title { padding: 8px 12px; font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
+.rmc-market { padding: 8px 10px; border-bottom: 1px solid #1a2035; }
+.rmc-market:last-child { border-bottom: none; }
+.rmc-market-name { font-size: 9px; color: #7a8299; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+.rmc-outcomes { display: flex; gap: 3px; }
+.rmc-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  background: #0e1628; border: 1px solid #1e2a42; border-radius: 5px;
+  padding: 5px 3px; cursor: pointer; transition: background 0.15s;
+}
+.rmc-btn:hover { background: #172035; border-color: #2e3f64; }
+.rmc-btn.selected { background: rgba(232,76,107,0.15); border-color: #e84c6b; }
+.rmc-lbl  { font-size: 8px; color: #7a8299; font-weight: 700; }
+.rmc-odds { font-size: 12px; font-weight: 900; color: #fff; }
+.rmc-btn.selected .rmc-odds { color: #e84c6b; }
+
+/* ─── Slip Card ──────────────────────────────────────────────────── */
+.slip-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
+}
+.slip-title { padding: 7px 12px; font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; background: #0e1628; border-bottom: 1px solid #1e2a42; }
+.slip-item  { padding: 7px 10px; border-bottom: 1px solid #1a2035; }
+.slip-market { font-size: 8px; color: #5a6a88; text-transform: uppercase; margin-bottom: 2px; }
+.slip-row   { display: flex; align-items: center; gap: 4px; }
+.slip-outcome { flex: 1; font-size: 10px; color: #e2e8f0; font-weight: 700; }
+.slip-odds-val { font-size: 12px; font-weight: 900; color: #e84c6b; }
+.slip-remove { background: none; border: none; color: #5a6a88; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; transition: color 0.12s; }
+.slip-remove:hover { color: #e84c6b; }
+.slip-hint-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; padding: 16px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 22px; }
+.slip-hint-text { font-size: 10px; color: #5a6a88; line-height: 1.5; }
+
+/* ─── Odds Tab ───────────────────────────────────────────────────── */
 .odds-body { align-items: flex-start; }
-.odds-live-bar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 14px; background: #141a2e;
-  border: 1px solid #1e2a42; border-radius: 8px;
-  font-size: 11px;
+.odds-status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; background: #141a2e; border: 1px solid #1e2a42; border-radius: 8px; gap: 8px;
 }
-.live-badge-sm { font-size: 9px; font-weight: 800; color: #e84c6b; background: rgba(232,76,107,0.15); border: 1px solid rgba(232,76,107,0.3); border-radius: 10px; padding: 2px 7px; animation: pulse-badge 1.5s infinite; }
-.olb-teams { color: #e2e8f0; font-weight: 600; flex: 1; }
-.olb-teams b { color: #fff; font-size: 13px; }
-.olb-timer { color: #e84c6b; font-weight: 800; font-size: 12px; }
-.market-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 8px; overflow: hidden; }
-.market-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.12s; }
+.osb-teams { display: flex; align-items: center; gap: 7px; flex: 1; font-size: 11px; color: #e2e8f0; font-weight: 700; }
+.osb-logo  { width: 20px; height: 20px; object-fit: contain; }
+.osb-name  { font-weight: 700; color: #e2e8f0; }
+.osb-score-txt { font-size: 15px; font-weight: 900; color: #fff; }
+.osb-vs    { font-size: 11px; color: #5a6a88; font-weight: 700; }
+.osb-right { display: flex; align-items: center; gap: 8px; }
+.osb-badge { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+.osb-mkt   { font-size: 9px; color: #5a6a88; font-weight: 600; }
+
+.mkt-category-bar { display: flex; gap: 4px; flex-wrap: wrap; }
+.mkt-cat-btn {
+  background: #1a1d2e; border: 1px solid #252840; color: #9ba3b8;
+  padding: 4px 10px; border-radius: 14px; font-size: 10px; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.mkt-cat-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+.mkt-cat-btn:hover:not(.active) { background: #252840; }
+
+.markets-list { display: flex; flex-direction: column; gap: 4px; }
+.market-card  { background: #141a2e; border: 1px solid #1e2a42; border-radius: 8px; overflow: hidden; }
+.market-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; user-select: none; transition: background 0.12s; }
 .market-header:hover { background: #1a2035; }
-.market-icon { font-size: 14px; }
-.market-name { flex: 1; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
-.market-count { font-size: 9px; color: #5a6a88; }
+.market-icon  { font-size: 14px; flex-shrink: 0; }
+.market-hdr-info { flex: 1; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.market-name  { font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+.market-spec-badge { font-size: 9px; font-weight: 700; color: #7c3aed; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; padding: 1px 6px; }
+.market-sel-count { font-size: 9px; color: #5a6a88; }
 .market-toggle { font-size: 9px; color: #5a6a88; }
 .market-outcomes {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 4px; padding: 8px 10px;
-  border-top: 1px solid #1e2a42;
+  gap: 4px; padding: 8px 10px; border-top: 1px solid #1e2a42;
 }
 .outcome-btn {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 10px; background: #0e1628; border-radius: 6px;
+  padding: 8px 10px; background: #0e1628; border: 1px solid #1e2a42; border-radius: 6px;
   cursor: pointer; transition: background 0.12s, border-color 0.12s;
-  border: 1px solid #1e2a42;
 }
-.outcome-btn:hover { background: #172035; border-color: #2e3f64; }
+.outcome-btn:hover  { background: #172035; border-color: #2e3f64; }
 .outcome-btn.selected { background: rgba(232,76,107,0.15); border-color: #e84c6b; }
-.outcome-label { font-size: 10px; color: #c8cfe0; font-weight: 600; }
-.outcome-odds { font-size: 12px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 2px; }
-.outcome-btn.selected .outcome-odds { color: #e84c6b; }
-.odds-up .trend-arrow { color: #4caf50; font-size: 8px; }
-.odds-down .trend-arrow { color: #e84c6b; font-size: 8px; }
-.slip-hint-card {
-  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px;
-  padding: 12px; text-align: center; display: flex; flex-direction: column;
-  align-items: center; gap: 6px;
-}
-.slip-hint-icon { font-size: 22px; }
-.slip-hint-text { font-size: 10px; color: #5a6a88; line-height: 1.5; }
-.slip-item { padding: 8px 12px; border-bottom: 1px solid #1e2a42; }
-.slip-market { font-size: 8px; color: #5a6a88; text-transform: uppercase; }
-.slip-outcome { font-size: 10px; font-weight: 700; color: #e2e8f0; }
-.slip-odds { font-size: 12px; font-weight: 900; color: #e84c6b; }
-.slip-total { display: flex; justify-content: space-between; padding: 8px 12px; border-top: 1px solid #252840; font-size: 10px; color: #9ba3b8; }
-.slip-total-val { font-weight: 900; color: #ffd700; }
-.slip-place-btn { width: 100%; padding: 10px; background: #e84c6b; border: none; color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: background 0.15s; }
-.slip-place-btn:hover { background: #d43c5c; }
-.market-stats-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; padding: 10px 12px; }
-.ms-title { font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 8px; }
-.ms-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #1a2035; }
-.ms-row:last-child { border-bottom: none; }
-.ms-label { font-size: 9px; color: #9ba3b8; }
-.ms-change { font-size: 9px; font-weight: 800; }
-.ms-change.up { color: #4caf50; }
-.ms-change.down { color: #e84c6b; }
+.out-lbl  { font-size: 10px; color: #c8cfe0; font-weight: 600; }
+.out-odds { font-size: 13px; font-weight: 900; color: #fff; }
+.outcome-btn.selected .out-odds { color: #e84c6b; }
 
-/* ── AI CHAT TAB ─────────────────────────── */
-.ai-body {
-  padding: 0;
-  overflow: hidden;
-  align-items: stretch;
-}
+/* ─── AI Chat ────────────────────────────────────────────────────── */
+.ai-body { padding: 0; overflow: hidden; align-items: stretch; }
 .ai-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; background: #0e1120; }
 .ai-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #141624; border-bottom: 1px solid #252840; flex-shrink: 0; }
-.ai-logo { font-size: 28px; flex-shrink: 0; }
-.ai-title { font-size: 13px; font-weight: 800; color: #fff; }
+.ai-logo   { font-size: 28px; flex-shrink: 0; }
+.ai-title  { font-size: 13px; font-weight: 800; color: #fff; }
 .ai-subtitle { font-size: 10px; color: #7a8299; }
-.ai-status { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #4caf50; font-weight: 700; margin-left: auto; }
-.ai-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4caf50; animation: pulse-badge 1.5s infinite; }
+.ai-online { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #4caf50; font-weight: 700; margin-left: auto; }
+.ai-dot    { width: 7px; height: 7px; border-radius: 50%; background: #4caf50; animation: pulse-badge 1.5s infinite; }
 .ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #1e2a42; flex-shrink: 0; }
 .suggestion-chip { background: #141a2e; border: 1px solid #252840; color: #c8cfe0; padding: 6px 12px; border-radius: 16px; font-size: 10px; font-weight: 600; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
 .suggestion-chip:hover { background: #1e2a42; border-color: #e84c6b; color: #fff; }
 .chat-messages { flex: 1; overflow-y: auto; min-height: 0; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
-.chat-msg { display: flex; align-items: flex-end; gap: 8px; }
+.chat-msg  { display: flex; align-items: flex-end; gap: 8px; }
 .chat-msg.user { flex-direction: row-reverse; }
 .msg-avatar { font-size: 18px; flex-shrink: 0; margin-bottom: 2px; }
-.user-avatar { }
-.msg-bubble {
-  max-width: 75%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 12px; line-height: 1.5; color: #e2e8f0;
-}
+.msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 12px; line-height: 1.5; color: #e2e8f0; }
 .chat-msg.assistant .msg-bubble { background: #141a2e; border: 1px solid #1e2a42; border-bottom-left-radius: 3px; }
 .chat-msg.user .msg-bubble { background: linear-gradient(135deg,#e84c6b,#c0395a); color: #fff; border-bottom-right-radius: 3px; }
 .typing-dots { display: inline-flex; gap: 4px; align-items: center; }
 .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: #7a8299; animation: typing 1.2s infinite; }
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+@keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:0.5}30%{transform:translateY(-4px);opacity:1} }
 .chat-input-area { display: flex; gap: 8px; padding: 12px 16px; background: #141624; border-top: 1px solid #252840; flex-shrink: 0; }
 .chat-input { flex: 1; background: #1a1d2e; border: 1px solid #252840; color: #e2e8f0; padding: 10px 14px; border-radius: 20px; font-size: 12px; outline: none; transition: border-color 0.15s; }
 .chat-input:focus { border-color: #e84c6b; }
 .chat-input::placeholder { color: #5a6a88; }
-.chat-input:disabled { opacity: 0.6; }
 .chat-send { width: 38px; height: 38px; border-radius: 50%; background: #e84c6b; border: none; color: #fff; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
 .chat-send:hover:not(:disabled) { background: #d43c5c; }
 .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ── PREDICTION TAB ──────────────────────── */
-.pred-header-card { background: linear-gradient(135deg,#1a1040,#0e1628); border: 1px solid #2e2060; border-radius: 10px; padding: 20px; text-align: center; }
+/* ─── Prediction Tab ─────────────────────────────────────────────── */
+.pred-hero-card {
+  background: linear-gradient(135deg,#1a1040,#0e1628); border: 1px solid #2e2060;
+  border-radius: 10px; padding: 20px; text-align: center;
+}
 .pred-badge { display: inline-block; background: rgba(232,76,107,0.2); border: 1px solid rgba(232,76,107,0.4); color: #e84c6b; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.pred-match-title { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 2px; }
-.pred-league { font-size: 10px; color: #7a8299; margin-bottom: 12px; }
+.pred-match-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 2px; }
+.pred-meta { font-size: 10px; color: #7a8299; margin-bottom: 12px; }
 .pred-verdict { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; }
-.pred-verdict-label { font-size: 9px; color: #7a8299; text-transform: uppercase; font-weight: 700; }
-.pred-verdict-value { font-size: 18px; font-weight: 900; color: #e84c6b; }
-.pred-confidence { font-size: 10px; color: #9ba3b8; margin-top: 2px; }
+.pred-verdict-lbl { font-size: 9px; color: #7a8299; text-transform: uppercase; font-weight: 700; }
+.pred-verdict-val { font-size: 18px; font-weight: 900; color: #e84c6b; }
+.pred-confidence  { font-size: 10px; color: #9ba3b8; margin-top: 2px; }
 .pred-confidence b { color: #4caf50; }
-.pred-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; }
-.pred-card-title { padding: 8px 14px; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
-.pred-prob-bars { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.pred-prob-item { display: flex; align-items: center; gap: 8px; }
-.pred-prob-team { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #c8cfe0; font-weight: 600; min-width: 110px; }
-.pred-team-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.t1-dot { background: #e84c6b; }
-.draw-dot { background: #7a8299; }
-.t2-dot { background: #4a90e2; }
-.pred-prob-track { flex: 1; height: 22px; background: #0e1628; border-radius: 4px; overflow: hidden; border: 1px solid #1e2a42; }
-.pred-prob-fill { height: 100%; display: flex; align-items: center; padding-left: 6px; border-radius: 4px; transition: width 0.6s ease; }
-.pred-prob-label { font-size: 10px; font-weight: 800; color: #fff; }
-.t1-pred-fill { background: linear-gradient(90deg,#e84c6b,#c0395a); }
+
+.pred-prob-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
+}
+.ppc-title { padding: 8px 14px; font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
+.ppc-body  { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.ppc-row   { display: flex; align-items: center; gap: 8px; }
+.ppc-team  { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #c8cfe0; font-weight: 600; min-width: 115px; }
+.ppc-logo  { width: 18px; height: 18px; object-fit: contain; }
+.draw-dash { color: #5a6a88; font-size: 12px; }
+.ppc-bar-track { flex: 1; height: 24px; background: #0e1628; border-radius: 4px; overflow: hidden; border: 1px solid #1e2a42; }
+.ppc-bar-fill  { height: 100%; display: flex; align-items: center; padding-left: 6px; border-radius: 4px; transition: width 0.6s ease; }
+.ppc-pct-label { font-size: 10px; font-weight: 800; color: #fff; }
+.home-pred-fill { background: linear-gradient(90deg,#e84c6b,#c0395a); }
 .draw-pred-fill { background: linear-gradient(90deg,#5a6a88,#3a4060); }
-.t2-pred-fill { background: linear-gradient(90deg,#4a90e2,#2e6ab8); }
-.pred-scores-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 12px 14px; }
-.pred-score-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: #0e1628; border-radius: 8px; padding: 8px 4px; border: 1px solid #1e2a42; transition: border-color 0.15s; }
-.pred-score-item.top { border-color: #e84c6b; background: rgba(232,76,107,0.1); }
-.ps-score { font-size: 13px; font-weight: 900; color: #fff; }
-.ps-pct { font-size: 10px; font-weight: 700; color: #e84c6b; }
-.ps-bar { width: 4px; height: 40px; background: #1e2a42; border-radius: 2px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
-.ps-bar-fill { width: 100%; background: linear-gradient(to top,#e84c6b,rgba(232,76,107,0.3)); border-radius: 2px; }
-.pred-factors { padding: 8px 14px; display: flex; flex-direction: column; gap: 6px; }
-.pred-factor { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1a2035; }
-.pred-factor:last-child { border-bottom: none; }
-.pf-icon { font-size: 16px; flex-shrink: 0; }
-.pf-body { flex: 1; }
-.pf-label { font-size: 10px; font-weight: 800; color: #e2e8f0; }
-.pf-desc { font-size: 9px; color: #7a8299; margin-top: 1px; }
-.pf-impact { font-size: 12px; font-weight: 900; }
-.pf-impact.positive { color: #4caf50; }
-.pf-impact.negative { color: #e84c6b; }
-.pred-markets { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
-.pm-row { display: flex; align-items: center; gap: 8px; }
-.pm-label { font-size: 9px; color: #9ba3b8; min-width: 110px; font-weight: 600; }
+.away-pred-fill { background: linear-gradient(90deg,#4a90e2,#2e6ab8); }
+.ppc-pct   { font-size: 11px; font-weight: 800; min-width: 32px; text-align: right; }
+
+.pred-markets-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; }
+.pmc-title { padding: 8px 14px; font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
+.pmc-body  { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.pm-row    { display: flex; align-items: center; gap: 8px; }
+.pm-label  { font-size: 9px; color: #9ba3b8; min-width: 130px; font-weight: 600; }
 .pm-bar-wrap { flex: 1; }
-.pm-bar { height: 5px; background: #1e2a42; border-radius: 3px; overflow: hidden; }
-.pm-bar-fill { height: 100%; border-radius: 3px; }
-.pred-t1 { background: #e84c6b; }
-.pred-t2 { background: #4a90e2; }
-.pred-draw { background: #7a8299; }
-.pred-neutral { background: #7c3aed; }
-.pred-t1-text { color: #e84c6b; }
-.pred-t2-text { color: #4a90e2; }
-.pred-neutral-text { color: #9d6cf0; }
-.pred-draw-text { color: #7a8299; }
-.pm-pct { font-size: 9px; font-weight: 800; min-width: 30px; text-align: right; }
+.pm-bar    { height: 6px; background: #1e2a42; border-radius: 3px; overflow: hidden; }
+.pm-fill   { height: 100%; border-radius: 3px; transition: width 0.6s; }
+.pm-green  { background: linear-gradient(90deg,#4caf50,#2e8b40); }
+.pm-blue   { background: linear-gradient(90deg,#4a90e2,#2e6ab8); }
+.pm-red    { background: linear-gradient(90deg,#e84c6b,#c0395a); }
+.pm-purple { background: linear-gradient(90deg,#9d6cf0,#7c3aed); }
+.pm-pct    { font-size: 9px; font-weight: 800; min-width: 28px; text-align: right; color: #9ba3b8; }
 .pm-verdict { font-size: 9px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
-.pm-yes { background: rgba(76,175,80,0.2); color: #4caf50; }
-.pm-no { background: rgba(232,76,107,0.15); color: #e84c6b; }
+.pm-yes    { background: rgba(76,175,80,0.2); color: #4caf50; }
+.pm-no     { background: rgba(232,76,107,0.15); color: #e84c6b; }
+
 .pred-tip-card { background: linear-gradient(135deg,#1a1040,#0e1628); border: 1px solid #2e2060; border-radius: 10px; overflow: hidden; }
-.tip-header { padding: 8px 12px; font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(0,0,0,0.3); border-bottom: 1px solid #2e2060; }
-.tip-body { padding: 12px; }
-.tip-market { font-size: 9px; color: #7a8299; text-transform: uppercase; font-weight: 700; }
-.tip-selection { font-size: 14px; font-weight: 900; color: #fff; margin: 4px 0 8px; }
-.tip-odds-label { font-size: 9px; color: #7a8299; }
-.tip-odds-val { font-size: 24px; font-weight: 900; color: #e84c6b; }
-.tc-label { font-size: 9px; color: #7a8299; margin-top: 8px; margin-bottom: 4px; }
-.tc-bar { height: 5px; background: #1e2a42; border-radius: 3px; overflow: hidden; }
-.tc-fill { height: 100%; background: linear-gradient(90deg,#4caf50,#2e9c40); border-radius: 3px; }
-.tc-pct { font-size: 10px; font-weight: 800; color: #4caf50; margin-top: 2px; }
-.pred-value-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; padding: 10px 12px; }
-.pv-title { font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 8px; }
-.pv-row { padding: 5px 0; border-bottom: 1px solid #1a2035; display: flex; flex-direction: column; gap: 2px; }
-.pv-row:last-child { border-bottom: none; }
-.pv-label { font-size: 9px; color: #9ba3b8; }
-.pv-val { font-size: 12px; font-weight: 900; color: #fff; }
-.pv-edge { font-size: 9px; font-weight: 700; color: #7a8299; }
-.pv-edge.positive { color: #4caf50; }
+.ptc-header { padding: 8px 12px; font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(0,0,0,0.3); border-bottom: 1px solid #2e2060; }
+.ptc-body   { padding: 12px; }
+.ptc-market { font-size: 9px; color: #7a8299; text-transform: uppercase; font-weight: 700; }
+.ptc-selection { font-size: 15px; font-weight: 900; color: #fff; margin: 4px 0 8px; }
+.ptc-odds-lbl  { font-size: 9px; color: #7a8299; }
+.ptc-odds-val  { font-size: 28px; font-weight: 900; color: #e84c6b; }
+.ptc-conf-lbl  { font-size: 9px; color: #7a8299; margin-top: 8px; margin-bottom: 4px; }
+.ptc-bar       { height: 5px; background: #1e2a42; border-radius: 3px; overflow: hidden; margin-bottom: 3px; }
+.ptc-bar-fill  { height: 100%; background: linear-gradient(90deg,#4caf50,#2e9c40); border-radius: 3px; }
+.ptc-conf-pct  { font-size: 10px; font-weight: 800; color: #4caf50; }
 </style>

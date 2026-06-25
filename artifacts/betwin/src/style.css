@@ -1,0 +1,138 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #1a1d2e;
+  color: #e2e8f0;
+  font-size: 12px;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1d2e;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a3f5c;
+  border-radius: 2px;
+}
+
+.bet-highlight {
+  background-color: #e84c6b;
+  color: #fff;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+.odds-btn {
+  background-color: #252840;
+  color: #e2e8f0;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 36px;
+  text-align: center;
+  transition: background 0.15s;
+}
+.odds-btn:hover {
+  background-color: #3a3f6e;
+}
+.odds-btn.active {
+  background-color: #e84c6b;
+  color: #fff;
+}
+.odds-btn.highlighted {
+  color: #e84c6b;
+}
+
+.nav-tab {
+  color: #9ba3b8;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.nav-tab:hover {
+  color: #fff;
+}
+.nav-tab.active {
+  color: #fff;
+  border-bottom-color: #e84c6b;
+}
+
+.sidebar-sport-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+.sidebar-sport-item:hover {
+  background: #252840;
+}
+.sidebar-sport-item.active {
+  background: #252840;
+  color: #fff;
+}
+
+.sport-badge {
+  background-color: #e84c6b;
+  color: #fff;
+  border-radius: 10px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 30px;
+  text-align: center;
+}
+
+.match-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  border-bottom: 1px solid #252840;
+  padding: 4px 0;
+}
+
+.league-card {
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  height: 80px;
+  min-width: 100px;
+}
+
+.bet-slip-input {
+  background: #1a1d2e;
+  border: 1px solid #3a3f5c;
+  border-radius: 4px;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  width: 100%;
+  outline: none;
+}
+.bet-slip-input:focus {
+  border-color: #e84c6b;
+}

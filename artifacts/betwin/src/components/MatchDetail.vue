@@ -868,16 +868,25 @@ const valueBets = [
 /* ── BODY LAYOUT ─────────────────────────── */
 .detail-body {
   flex: 1; display: flex; gap: 8px;
-  padding: 10px; overflow-y: auto; overflow-x: hidden;
+  padding: 10px; overflow: hidden; min-height: 0;
 }
 .detail-main {
   flex: 1; display: flex; flex-direction: column;
-  gap: 8px; min-width: 0;
+  gap: 8px; min-width: 0; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding-right: 4px;
 }
+.detail-main::-webkit-scrollbar { width: 4px; }
+.detail-main::-webkit-scrollbar-track { background: transparent; }
+.detail-main::-webkit-scrollbar-thumb { background: #252840; border-radius: 2px; }
 .detail-right {
   width: 200px; flex-shrink: 0;
   display: flex; flex-direction: column; gap: 8px;
+  overflow-y: auto; min-height: 0;
 }
+.detail-right::-webkit-scrollbar { width: 3px; }
+.detail-right::-webkit-scrollbar-track { background: transparent; }
+.detail-right::-webkit-scrollbar-thumb { background: #252840; border-radius: 2px; }
 
 /* ── SHARED CARD ─────────────────────────── */
 .h2h-card, .live-card, .stats-card, .form-card,
@@ -1079,7 +1088,7 @@ const valueBets = [
 .ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #1e2a42; flex-shrink: 0; }
 .suggestion-chip { background: #141a2e; border: 1px solid #252840; color: #c8cfe0; padding: 6px 12px; border-radius: 16px; font-size: 10px; font-weight: 600; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
 .suggestion-chip:hover { background: #1e2a42; border-color: #e84c6b; color: #fff; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+.chat-messages { flex: 1; overflow-y: auto; min-height: 0; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
 .chat-msg { display: flex; align-items: flex-end; gap: 8px; }
 .chat-msg.user { flex-direction: row-reverse; }
 .msg-avatar { font-size: 18px; flex-shrink: 0; margin-bottom: 2px; }

@@ -81,24 +81,32 @@
 
               <!-- Card bottom: odds row -->
               <div class="lm-odds-strip">
-                <div class="lm-odds-cell lm-odds-label">1</div>
-                <button
-                  class="lm-odds-val"
-                  :class="{ 'odds-active': lm.activeOdd === 1 }"
+                <div
+                  class="lm-odds-pair"
+                  :class="{ 'odds-pair-active': lm.activeOdd === 1 }"
                   @click="lm.activeOdd = lm.activeOdd === 1 ? 0 : 1"
-                >{{ lm.odds[0] }}</button>
-                <div class="lm-odds-cell lm-odds-label">X</div>
-                <button
-                  class="lm-odds-val"
-                  :class="{ 'odds-active': lm.activeOdd === 2 }"
+                >
+                  <span class="lm-odds-lbl">1</span>
+                  <span class="lm-odds-num">{{ lm.odds[0] }}</span>
+                </div>
+                <div class="lm-pair-divider"></div>
+                <div
+                  class="lm-odds-pair"
+                  :class="{ 'odds-pair-active': lm.activeOdd === 2 }"
                   @click="lm.activeOdd = lm.activeOdd === 2 ? 0 : 2"
-                >{{ lm.odds[1] }}</button>
-                <div class="lm-odds-cell lm-odds-label">2</div>
-                <button
-                  class="lm-odds-val"
-                  :class="{ 'odds-active': lm.activeOdd === 3 }"
+                >
+                  <span class="lm-odds-lbl">X</span>
+                  <span class="lm-odds-num">{{ lm.odds[1] }}</span>
+                </div>
+                <div class="lm-pair-divider"></div>
+                <div
+                  class="lm-odds-pair"
+                  :class="{ 'odds-pair-active': lm.activeOdd === 3 }"
                   @click="lm.activeOdd = lm.activeOdd === 3 ? 0 : 3"
-                >{{ lm.odds[2] }}</button>
+                >
+                  <span class="lm-odds-lbl">2</span>
+                  <span class="lm-odds-num">{{ lm.odds[2] }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -437,36 +445,67 @@ const leagueImageCards = [
 
 /* Odds strip */
 .lm-odds-strip {
-  display: flex; align-items: stretch;
+  display: flex;
+  align-items: stretch;
   border-top: 1px solid #1e2a42;
 }
-.lm-odds-cell {
+
+/* Each pair = label + value side by side */
+.lm-odds-pair {
   flex: 1;
-  display: flex; align-items: center; justify-content: center;
-  padding: 7px 2px;
-  font-size: 11px; font-weight: 700;
-}
-.lm-odds-label {
-  color: #5a6080;
-  border-right: 1px solid #1e2a42;
-  font-size: 10px;
-}
-.lm-odds-val {
-  flex: 1.8;
-  background: transparent;
-  border: none;
-  border-right: 1px solid #1e2a42;
-  color: #e2e8f0;
-  font-size: 11px; font-weight: 800;
+  display: flex;
+  align-items: center;
   cursor: pointer;
-  padding: 7px 2px;
-  text-align: center;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s;
+  min-width: 0;
 }
-.lm-odds-val:last-child { border-right: none; }
-.lm-odds-val:hover { background: #1e2a42; }
-.lm-odds-val.odds-active {
+.lm-odds-pair:hover:not(.odds-pair-active) {
+  background: #172035;
+}
+
+.lm-pair-divider {
+  width: 1px;
+  background: #1e2a42;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+/* Label cell (1 / X / 2) */
+.lm-odds-lbl {
+  flex: 0 0 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5a6a88;
+  border-right: 1px solid #1e2a42;
+  transition: color 0.12s;
+}
+
+/* Value cell (21.00 / 8.20 / 1.13) */
+.lm-odds-num {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 2px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #dde4f0;
+  transition: color 0.12s;
+}
+
+/* Active pair — both label and value highlight together */
+.lm-odds-pair.odds-pair-active {
   background: #e84c6b;
+}
+.lm-odds-pair.odds-pair-active .lm-odds-lbl {
+  color: #fff;
+  border-right-color: rgba(255,255,255,0.25);
+}
+.lm-odds-pair.odds-pair-active .lm-odds-num {
   color: #fff;
 }
 

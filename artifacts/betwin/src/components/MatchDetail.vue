@@ -183,6 +183,68 @@
           </div>
         </div>
 
+        <!-- League table -->
+        <div class="league-table-card">
+          <div class="lt-header">
+            <span class="lt-flag">{{ league.flag }}</span>
+            <span class="lt-title">{{ league.name }} — Standings</span>
+          </div>
+          <div class="lt-table">
+            <div class="lt-row lt-head">
+              <span class="lt-pos">#</span>
+              <span class="lt-team-col">Team</span>
+              <span class="lt-num">P</span>
+              <span class="lt-num">W</span>
+              <span class="lt-num">D</span>
+              <span class="lt-num">L</span>
+              <span class="lt-num">GF</span>
+              <span class="lt-num">GA</span>
+              <span class="lt-num">GD</span>
+              <span class="lt-num lt-pts">Pts</span>
+            </div>
+            <div
+              v-for="row in leagueTable"
+              :key="row.team"
+              class="lt-row"
+              :class="{
+                'lt-highlight-t1': row.team === match.team1,
+                'lt-highlight-t2': row.team === match.team2,
+                'lt-zone-cl': row.pos <= 4,
+                'lt-zone-el': row.pos === 5,
+                'lt-zone-rel': row.pos >= leagueTable.length - 2,
+              }"
+            >
+              <span class="lt-pos">
+                <span class="lt-pos-dot" :class="{
+                  'dot-cl': row.pos <= 4,
+                  'dot-el': row.pos === 5,
+                  'dot-rel': row.pos >= leagueTable.length - 2,
+                }"></span>
+                {{ row.pos }}
+              </span>
+              <span class="lt-team-col">
+                <span class="lt-badge" :style="{ background: row.color }">{{ row.abbr }}</span>
+                {{ row.team }}
+              </span>
+              <span class="lt-num">{{ row.p }}</span>
+              <span class="lt-num">{{ row.w }}</span>
+              <span class="lt-num">{{ row.d }}</span>
+              <span class="lt-num">{{ row.l }}</span>
+              <span class="lt-num">{{ row.gf }}</span>
+              <span class="lt-num">{{ row.ga }}</span>
+              <span class="lt-num" :class="{ 'lt-gd-pos': row.gf - row.ga > 0, 'lt-gd-neg': row.gf - row.ga < 0 }">
+                {{ row.gf - row.ga > 0 ? '+' : '' }}{{ row.gf - row.ga }}
+              </span>
+              <span class="lt-num lt-pts lt-pts-val">{{ row.pts }}</span>
+            </div>
+          </div>
+          <div class="lt-legend">
+            <span class="lt-leg-item"><span class="lt-leg-dot dot-cl"></span> Champions League</span>
+            <span class="lt-leg-item"><span class="lt-leg-dot dot-el"></span> Europa League</span>
+            <span class="lt-leg-item"><span class="lt-leg-dot dot-rel"></span> Relegation</span>
+          </div>
+        </div>
+
       </div>
 
       <!-- Right column -->
@@ -539,6 +601,32 @@ const bettingStats = [
 ]
 const team1Form = ['W', 'W', 'D', 'W', 'L']
 const team2Form = ['L', 'W', 'D', 'L', 'W']
+
+const leagueTable = computed(() => {
+  const others = [
+    { team: 'FC Barcelona',     abbr: 'FCB', color: '#004D98', w: 18, d: 4, l: 2, gf: 58, ga: 22 },
+    { team: 'Atletico Madrid',  abbr: 'ATM', color: '#CB3524', w: 16, d: 5, l: 3, gf: 48, ga: 28 },
+    { team: 'FC Sevilla',       abbr: 'SEV', color: '#D4021D', w: 14, d: 6, l: 4, gf: 40, ga: 30 },
+    { team: 'FC Valencia',      abbr: 'VCF', color: '#F7D000', w: 12, d: 5, l: 7, gf: 35, ga: 33 },
+    { team: 'Real Sociedad',    abbr: 'RSO', color: '#0067B1', w: 11, d: 6, l: 7, gf: 32, ga: 31 },
+    { team: 'Athletic Club',    abbr: 'ATH', color: '#EE2523', w: 10, d: 7, l: 7, gf: 30, ga: 29 },
+    { team: 'Villarreal CF',    abbr: 'VIL', color: '#FFD700', w: 9,  d: 8, l: 7, gf: 28, ga: 27 },
+    { team: 'Betis Sevilla',    abbr: 'BET', color: '#00A650', w: 8,  d: 7, l: 9, gf: 26, ga: 32 },
+    { team: 'Celta Vigo',       abbr: 'CEL', color: '#6EBFDE', w: 7,  d: 6, l: 11,gf: 24, ga: 36 },
+    { team: 'Girona FC',        abbr: 'GIR', color: '#CC0000', w: 5,  d: 5, l: 14,gf: 20, ga: 44 },
+    { team: 'Mallorca',         abbr: 'MAL', color: '#FF0000', w: 4,  d: 6, l: 14,gf: 18, ga: 46 },
+    { team: 'Las Palmas',       abbr: 'LAS', color: '#F7DF00', w: 3,  d: 4, l: 17,gf: 15, ga: 52 },
+  ]
+  const t1 = { team: props.match.team1, abbr: team1Abbr.value, color: '#e84c6b', w: 20, d: 3, l: 1, gf: 62, ga: 18 }
+  const t2 = { team: props.match.team2, abbr: team2Abbr.value, color: '#4a90e2', w: 13, d: 4, l: 7, gf: 38, ga: 30 }
+  const all = [t1, ...others.slice(0, 4), t2, ...others.slice(4)]
+  return all.map((r, i) => ({
+    ...r,
+    pos: i + 1,
+    p: r.w + r.d + r.l,
+    pts: r.w * 3 + r.d,
+  }))
+})
 const h2hResults = [
   { id: 1, score: '2-0', outcome: 'win' },
   { id: 2, score: '1-1', outcome: 'draw' },
@@ -977,6 +1065,79 @@ const valueBets = [
 .form-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden; }
 .form-title { padding: 8px 14px; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; background: #0e1628; border-bottom: 1px solid #1e2a42; }
 .form-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+/* ── LEAGUE TABLE ─────────────────────────── */
+.league-table-card {
+  background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; overflow: hidden;
+}
+.lt-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; background: #0e1628; border-bottom: 1px solid #1e2a42;
+}
+.lt-flag { font-size: 16px; }
+.lt-title { font-size: 11px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+.lt-table { width: 100%; }
+.lt-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 28px 28px 28px 28px 28px 28px 32px 36px;
+  align-items: center;
+  padding: 5px 10px;
+  border-bottom: 1px solid #1a2035;
+  font-size: 10px;
+  color: #9ba3b8;
+  transition: background 0.15s;
+}
+.lt-row:hover { background: #1a2240; }
+.lt-head {
+  background: #0e1628;
+  font-size: 9px; font-weight: 800; color: #5a6a88;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid #1e2a42;
+}
+.lt-head:hover { background: #0e1628; }
+.lt-pos {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; color: #9ba3b8;
+}
+.lt-pos-dot {
+  width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0;
+  background: transparent;
+}
+.dot-cl  { background: #3b82f6; }
+.dot-el  { background: #f59e0b; }
+.dot-rel { background: #e84c6b; }
+.lt-team-col {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 600; color: #e2e8f0;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.lt-badge {
+  width: 22px; height: 16px; border-radius: 3px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7px; font-weight: 900; color: #fff;
+}
+.lt-num {
+  text-align: center; font-size: 10px; color: #9ba3b8;
+}
+.lt-pts { font-weight: 800; }
+.lt-pts-val { color: #fff; font-size: 11px; font-weight: 900; }
+.lt-gd-pos { color: #4caf50; }
+.lt-gd-neg { color: #e84c6b; }
+
+.lt-highlight-t1 { background: rgba(232, 76, 107, 0.08) !important; }
+.lt-highlight-t1 .lt-team-col { color: #e84c6b; font-weight: 800; }
+.lt-highlight-t1 .lt-pts-val { color: #e84c6b; }
+.lt-highlight-t2 { background: rgba(74, 144, 226, 0.08) !important; }
+.lt-highlight-t2 .lt-team-col { color: #4a90e2; font-weight: 800; }
+.lt-highlight-t2 .lt-pts-val { color: #4a90e2; }
+
+.lt-legend {
+  display: flex; gap: 14px; padding: 6px 10px;
+  background: #0e1628; border-top: 1px solid #1e2a42;
+}
+.lt-leg-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #5a6a88; }
+.lt-leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
 .form-row { display: flex; align-items: center; gap: 10px; }
 .form-team-name { font-size: 10px; font-weight: 700; color: #c8cfe0; min-width: 120px; }
 .form-badges { display: flex; gap: 4px; }

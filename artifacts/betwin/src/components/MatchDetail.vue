@@ -867,26 +867,34 @@ const valueBets = [
 
 /* ── BODY LAYOUT ─────────────────────────── */
 .detail-body {
-  flex: 1; display: flex; gap: 8px;
-  padding: 10px; overflow: hidden; min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  align-items: flex-start;
+  scrollbar-width: thin;
+  scrollbar-color: #252840 transparent;
 }
+.detail-body::-webkit-scrollbar { width: 5px; }
+.detail-body::-webkit-scrollbar-track { background: transparent; }
+.detail-body::-webkit-scrollbar-thumb { background: #252840; border-radius: 3px; }
 .detail-main {
-  flex: 1; display: flex; flex-direction: column;
-  gap: 8px; min-width: 0; min-height: 0;
-  overflow-y: auto; overflow-x: hidden;
-  padding-right: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
 }
-.detail-main::-webkit-scrollbar { width: 4px; }
-.detail-main::-webkit-scrollbar-track { background: transparent; }
-.detail-main::-webkit-scrollbar-thumb { background: #252840; border-radius: 2px; }
 .detail-right {
-  width: 200px; flex-shrink: 0;
-  display: flex; flex-direction: column; gap: 8px;
-  overflow-y: auto; min-height: 0;
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.detail-right::-webkit-scrollbar { width: 3px; }
-.detail-right::-webkit-scrollbar-track { background: transparent; }
-.detail-right::-webkit-scrollbar-thumb { background: #252840; border-radius: 2px; }
 
 /* ── SHARED CARD ─────────────────────────── */
 .h2h-card, .live-card, .stats-card, .form-card,
@@ -1020,7 +1028,7 @@ const valueBets = [
 .prob-pct { font-size: 9px; font-weight: 800; color: #e2e8f0; min-width: 24px; text-align: right; }
 
 /* ── ODDS TAB ────────────────────────────── */
-.odds-body { flex-direction: row; }
+.odds-body { align-items: flex-start; }
 .odds-live-bar {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 14px; background: #141a2e;
@@ -1077,7 +1085,11 @@ const valueBets = [
 .ms-change.down { color: #e84c6b; }
 
 /* ── AI CHAT TAB ─────────────────────────── */
-.ai-body { padding: 0; }
+.ai-body {
+  padding: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
 .ai-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; background: #0e1120; }
 .ai-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #141624; border-bottom: 1px solid #252840; flex-shrink: 0; }
 .ai-logo { font-size: 28px; flex-shrink: 0; }

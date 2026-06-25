@@ -30,6 +30,7 @@
       v-if="selectedMatch"
       :match="selectedMatch"
       :league="selectedLeague!"
+      :initial-tab="selectedInitialTab"
       @close="selectedMatch = null"
     />
 
@@ -206,10 +207,12 @@ interface League { flag: string; sport: string; name: string }
 
 const selectedMatch = ref<Match | null>(null)
 const selectedLeague = ref<League | null>(null)
+const selectedInitialTab = ref<string | undefined>(undefined)
 
-function openMatchDetail({ match, league }: { match: Match; league: League }) {
+function openMatchDetail({ match, league, initialTab }: { match: Match; league: League; initialTab?: string }) {
   selectedMatch.value = match
   selectedLeague.value = league
+  selectedInitialTab.value = initialTab
 }
 
 const activeCategory = ref('Soccer')

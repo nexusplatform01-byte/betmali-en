@@ -691,7 +691,7 @@ interface MatchProp {
 }
 interface LeagueProp { flag: string; sport: string; name: string }
 
-const props = defineProps<{ match: MatchProp; league: LeagueProp }>()
+const props = defineProps<{ match: MatchProp; league: LeagueProp; initialTab?: string }>()
 const emit = defineEmits<{ close: [] }>()
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
@@ -702,7 +702,7 @@ const TABS = [
   { id: 'ai',         label: 'AI',         icon: '🤖' },
   { id: 'prediction', label: 'Prediction', icon: '🔮' },
 ]
-const activeTab = ref('overview')
+const activeTab = ref(props.initialTab ?? 'overview')
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const loading = ref(true)
@@ -1107,26 +1107,61 @@ async function fetchBetmaster() {
   }
 }
 
+// ─── SofaScore name matching helpers ─────────────────────────────────────────
+const TEAM_ALIASES: Record<string, string> = {
+  'usa': 'united states', 'united states': 'usa',
+  'ivory coast': 'cote divoire', 'cote divoire': 'ivory coast',
+  'cape verde': 'cabo verde', 'cabo verde': 'cape verde',
+  'south korea': 'korea republic', 'korea republic': 'south korea',
+  'north korea': 'korea dpr', 'korea dpr': 'north korea',
+  'curacao': 'curacao', 'netherlands antilles': 'curacao',
+  'czech republic': 'czechia', 'czechia': 'czech republic',
+  'republic of ireland': 'ireland', 'ireland': 'republic of ireland',
+}
+function normName(n: string): string {
+  return n.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
+}
+function namesMatch(a: string, b: string): boolean {
+  const na = normName(a); const nb = normName(b)
+  if (na === nb) return true
+  if (na.includes(nb) || nb.includes(na)) return true
+  if (na.length >= 3 && nb.length >= 3 && na.slice(0,4) === nb.slice(0,4)) return true
+  const al = TEAM_ALIASES[na]
+  if (al && (al === nb || al.includes(nb) || nb.includes(al))) return true
+  // token overlap: if they share ≥2 words
+  const wa = new Set(na.split(' ')); const wb = nb.split(' ')
+  const shared = wb.filter(w => w.length > 2 && wa.has(w))
+  return shared.length >= 1 && Math.min(na.split(' ').length, nb.split(' ').length) === 1
+    ? shared.length >= 1 : shared.length >= 2
+}
+
 async function fetchSofaScore() {
   if (!startTimeMs.value) return
   statsLoading.value = true
   try {
+    // Try today ±1 day to handle timezone differences
     const d = new Date(startTimeMs.value)
-    const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-    const res  = await fetch(`/sofascore-api/sport/football/scheduled-events/${date}`)
-    if (!res.ok) { statsLoading.value = false; return }
-    const json = await res.json() as { events?: unknown[] }
-    const events = json.events ?? []
+    const tryDates: string[] = []
+    for (let offset = -1; offset <= 1; offset++) {
+      const dd = new Date(d.getTime() + offset * 86400000)
+      tryDates.push(`${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,'0')}-${String(dd.getDate()).padStart(2,'0')}`)
+    }
 
-    const home = homeName.value.toLowerCase()
-    const away = awayName.value.toLowerCase()
-    const found = events.find((e: unknown) => {
-      const ev = e as Record<string, unknown>
-      const hn = gs(ev, 'homeTeam', 'name').toLowerCase()
-      const an = gs(ev, 'awayTeam', 'name').toLowerCase()
-      return (hn.includes(home.slice(0,5)) || home.includes(hn.slice(0,5))) &&
-             (an.includes(away.slice(0,5)) || away.includes(an.slice(0,5)))
-    })
+    let found: unknown = null
+    for (const date of tryDates) {
+      const res = await fetch(`/sofascore-api/sport/football/scheduled-events/${date}`)
+      if (!res.ok) continue
+      const json = await res.json() as { events?: unknown[] }
+      found = (json.events ?? []).find((e: unknown) => {
+        const ev = e as Record<string, unknown>
+        const hn = gs(ev, 'homeTeam', 'name')
+        const an = gs(ev, 'awayTeam', 'name')
+        return namesMatch(hn, homeName.value) && namesMatch(an, awayName.value)
+      })
+      if (found) break
+    }
     if (!found) { statsLoading.value = false; return }
     const ev = found as Record<string, unknown>
     const eventId = gn2(ev, 'id')

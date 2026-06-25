@@ -75,7 +75,13 @@
 
             <div class="tm-match-actions">
               <button class="tm-action-btn" @click.stop title="Favourite">☆</button>
-              <button class="tm-action-btn" @click.stop title="Statistics">📊</button>
+              <button class="tm-action-btn tm-stats-btn" @click="onStatsClick(match, $event)" title="Statistics">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stats-svg-icon">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </button>
             </div>
 
             <div class="tm-teams">
@@ -150,18 +156,21 @@ interface MatchGroup {
   matches: MappedMatch[]
 }
 
+interface MatchClickPayload {
+  match: {
+    id: number; date: string; time: string
+    team1: string; team2: string
+    odds1: string; oddsX: string; odds2: string
+    odds1x: string; oddsX2: string; odds12: string
+    highlighted: string
+    homeLogo?: string; awayLogo?: string
+  };
+  league: { flag: string; sport: string; name: string }
+  initialTab?: string
+}
+
 const emit = defineEmits<{
-  'match-click': [payload: {
-    match: {
-      id: number; date: string; time: string
-      team1: string; team2: string
-      odds1: string; oddsX: string; odds2: string
-      odds1x: string; oddsX2: string; odds12: string
-      highlighted: string
-      homeLogo?: string; awayLogo?: string
-    };
-    league: { flag: string; sport: string; name: string }
-  }]
+  'match-click': [payload: MatchClickPayload]
 }>()
 
 const loading = ref(true)
@@ -273,9 +282,9 @@ async function fetchMatches() {
   }
 }
 
-function onMatchClick(match: MappedMatch) {
+function buildPayload(match: MappedMatch, initialTab?: string): MatchClickPayload {
   const group = groupedMatches.value.find(g => g.matches.some(m => m.id === match.id))
-  emit('match-click', {
+  return {
     match: {
       id: match.id,
       date: match.dateStr,
@@ -297,8 +306,11 @@ function onMatchClick(match: MappedMatch) {
       sport: group?.sport ?? 'Soccer',
       name: group?.tournamentName ?? '',
     },
-  })
+    initialTab,
+  }
 }
+function onMatchClick(match: MappedMatch) { emit('match-click', buildPayload(match)) }
+function onStatsClick(match: MappedMatch, e: Event) { e.stopPropagation(); emit('match-click', buildPayload(match, 'stats')) }
 
 onMounted(fetchMatches)
 </script>
@@ -473,6 +485,9 @@ onMounted(fetchMatches)
   transition: color 0.12s;
 }
 .tm-action-btn:hover { color: #9ba3b8; }
+.tm-stats-btn { display: flex; align-items: center; justify-content: center; padding: 2px; }
+.tm-stats-btn:hover { color: #a855f7; }
+.stats-svg-icon { width: 13px; height: 13px; }
 
 .tm-teams {
   flex: 1;

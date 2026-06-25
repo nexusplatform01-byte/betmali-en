@@ -365,6 +365,185 @@
       </div>
     </div>
 
+    <!-- ═══════════════ STATS TAB ═══════════════ -->
+    <div v-else-if="activeTab === 'stats'" class="detail-body stats-body">
+
+      <!-- Loading state -->
+      <div v-if="statsLoading" class="stats-loading">
+        <div class="md-spinner"></div><span>Fetching live data from SofaScore…</span>
+      </div>
+
+      <!-- No data fallback -->
+      <div v-else-if="!matchStats.length && !h2hMeetings.length && !standings.length" class="stats-empty">
+        <div class="stats-empty-icon">📡</div>
+        <div class="stats-empty-title">Stats not available</div>
+        <div class="stats-empty-sub">SofaScore data will appear here once the match is indexed</div>
+      </div>
+
+      <template v-else>
+
+        <!-- ── Match Statistics ── -->
+        <div v-if="matchStats.length" class="stats-card">
+          <div class="stats-card-header">
+            <span class="stats-card-icon">⚡</span>
+            <span>Match Statistics</span>
+            <span class="stats-badge">LIVE</span>
+          </div>
+          <div class="stats-card-body">
+            <div class="stat-teams-hdr">
+              <div class="stat-team-lbl">
+                <img v-if="homeLogo" :src="homeLogo" class="stat-team-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                {{ homeName }}
+              </div>
+              <div class="stat-team-lbl away-lbl">
+                {{ awayName }}
+                <img v-if="awayLogo" :src="awayLogo" class="stat-team-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+              </div>
+            </div>
+            <div v-for="stat in matchStats" :key="stat.name" class="stat-row">
+              <span class="stat-val home-val">{{ stat.home }}</span>
+              <div class="stat-bars">
+                <div class="stat-bar-wrap home-bar">
+                  <div class="stat-bar-fill home-fill" :style="{ width: statBarPct(stat.homeNum, stat.awayNum, true) + '%' }"></div>
+                </div>
+                <span class="stat-name">{{ stat.name }}</span>
+                <div class="stat-bar-wrap away-bar">
+                  <div class="stat-bar-fill away-fill" :style="{ width: statBarPct(stat.homeNum, stat.awayNum, false) + '%' }"></div>
+                </div>
+              </div>
+              <span class="stat-val away-val">{{ stat.away }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── H2H Meetings ── -->
+        <div v-if="h2hMeetings.length" class="stats-card">
+          <div class="stats-card-header">
+            <span class="stats-card-icon">⚔️</span>
+            <span>Head to Head</span>
+            <span class="stats-count">Last {{ h2hMeetings.length }} meetings</span>
+          </div>
+          <div class="stats-card-body">
+            <!-- H2H summary bar -->
+            <div class="h2h-summary">
+              <div class="h2h-sum-team">
+                <img v-if="homeLogo" :src="homeLogo" class="h2h-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span class="h2h-sum-name">{{ homeName }}</span>
+                <span class="h2h-sum-num">{{ h2hMeetings.filter(m => h2hResultFor(m, sofaHomeTeamId) === 'W').length }}</span>
+              </div>
+              <div class="h2h-sum-mid">
+                <span class="h2h-draw-num">{{ h2hMeetings.filter(m => h2hResultFor(m, sofaHomeTeamId) === 'D').length }}</span>
+                <span class="h2h-draw-lbl">Draws</span>
+              </div>
+              <div class="h2h-sum-team away-sum">
+                <span class="h2h-sum-num">{{ h2hMeetings.filter(m => h2hResultFor(m, sofaAwayTeamId) === 'W').length }}</span>
+                <span class="h2h-sum-name">{{ awayName }}</span>
+                <img v-if="awayLogo" :src="awayLogo" class="h2h-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+              </div>
+            </div>
+
+            <!-- Meeting list -->
+            <div v-for="m in h2hMeetings" :key="m.id" class="h2h-row">
+              <span class="h2h-date">{{ m.date }}</span>
+              <span class="h2h-tourn">{{ m.tournament }}</span>
+              <div class="h2h-match">
+                <span class="h2h-team" :class="{ 'h2h-win': m.homeScore > m.awayScore }">{{ m.homeTeam }}</span>
+                <div class="h2h-score-box">
+                  <span class="h2h-s">{{ m.homeScore }}</span>
+                  <span class="h2h-sdash">-</span>
+                  <span class="h2h-s">{{ m.awayScore }}</span>
+                </div>
+                <span class="h2h-team h2h-team-away" :class="{ 'h2h-win': m.awayScore > m.homeScore }">{{ m.awayTeam }}</span>
+              </div>
+              <span class="h2h-result-badge" :class="h2hResultFor(m, sofaHomeTeamId) === 'W' ? 'badge-w' : h2hResultFor(m, sofaHomeTeamId) === 'L' ? 'badge-l' : 'badge-d'">
+                {{ h2hResultFor(m, sofaHomeTeamId) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Team Form ── -->
+        <div v-if="homeForm.length || awayForm.length" class="stats-card">
+          <div class="stats-card-header">
+            <span class="stats-card-icon">📋</span>
+            <span>Recent Form</span>
+            <span class="stats-count">Last 5 matches</span>
+          </div>
+          <div class="stats-card-body form-body">
+            <div class="form-row">
+              <div class="form-team-info">
+                <img v-if="homeLogo" :src="homeLogo" class="form-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span class="form-team-name">{{ homeName }}</span>
+              </div>
+              <div class="form-dots">
+                <div v-for="(f, i) in homeForm" :key="i" class="form-dot" :class="'form-' + f.result" :title="f.result + ' vs ' + f.opponent + ' (' + f.score + ')'">
+                  {{ f.result }}
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-team-info">
+                <img v-if="awayLogo" :src="awayLogo" class="form-logo" @error="($event.target as HTMLImageElement).style.display='none'" />
+                <span class="form-team-name">{{ awayName }}</span>
+              </div>
+              <div class="form-dots">
+                <div v-for="(f, i) in awayForm" :key="i" class="form-dot" :class="'form-' + f.result" :title="f.result + ' vs ' + f.opponent + ' (' + f.score + ')'">
+                  {{ f.result }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── League Standings ── -->
+        <div v-if="standings.length" class="stats-card standings-card">
+          <div class="stats-card-header">
+            <span class="stats-card-icon">🏆</span>
+            <span>{{ tournamentName }}</span>
+            <span class="stats-count">Standings</span>
+          </div>
+          <div class="standings-table-wrap">
+            <table class="standings-table">
+              <thead>
+                <tr>
+                  <th class="st-pos">#</th>
+                  <th class="st-team">Team</th>
+                  <th>P</th>
+                  <th>W</th>
+                  <th>D</th>
+                  <th>L</th>
+                  <th>GF</th>
+                  <th>GA</th>
+                  <th>GD</th>
+                  <th class="st-pts">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in standings" :key="row.teamId"
+                    :class="{ 'st-highlighted': row.teamId === sofaHomeTeamId || row.teamId === sofaAwayTeamId }">
+                  <td class="st-pos">{{ row.position }}</td>
+                  <td class="st-team">
+                    <span class="st-team-name">{{ row.teamName }}</span>
+                  </td>
+                  <td>{{ row.matches }}</td>
+                  <td>{{ row.wins }}</td>
+                  <td>{{ row.draws }}</td>
+                  <td>{{ row.losses }}</td>
+                  <td>{{ row.goalsFor }}</td>
+                  <td>{{ row.goalsAgainst }}</td>
+                  <td :class="row.goalsFor - row.goalsAgainst > 0 ? 'gd-pos' : row.goalsFor - row.goalsAgainst < 0 ? 'gd-neg' : ''">
+                    {{ row.goalsFor - row.goalsAgainst > 0 ? '+' : '' }}{{ row.goalsFor - row.goalsAgainst }}
+                  </td>
+                  <td class="st-pts">{{ row.points }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </template>
+    </div>
+
     <!-- ═══════════════ AI TAB ═══════════════ -->
     <div v-else-if="activeTab === 'ai'" class="detail-body ai-body">
       <div class="ai-panel">
@@ -517,9 +696,10 @@ const emit = defineEmits<{ close: [] }>()
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: '📊' },
-  { id: 'odds',     label: 'Odds',     icon: '🎲' },
-  { id: 'ai',       label: 'AI',       icon: '🤖' },
+  { id: 'overview',   label: 'Overview',   icon: '📊' },
+  { id: 'stats',      label: 'Stats',      icon: '📈' },
+  { id: 'odds',       label: 'Odds',       icon: '🎲' },
+  { id: 'ai',         label: 'AI',         icon: '🤖' },
   { id: 'prediction', label: 'Prediction', icon: '🔮' },
 ]
 const activeTab = ref('overview')
@@ -530,8 +710,21 @@ const bmData  = ref<Record<string, unknown> | null>(null)
 
 interface Incident { id: number; time: number; type: string; player: string; isHome: boolean }
 interface Player    { id: number; name: string; jerseyNumber: string; position: string }
-const incidents = ref<Incident[]>([])
-const lineups   = ref<{ home: Player[]; away: Player[] }>({ home: [], away: [] })
+interface H2HEvent  { id: number; date: string; homeTeam: string; awayTeam: string; homeScore: number; awayScore: number; tournament: string; homeId: number; awayId: number }
+interface StatItem  { name: string; home: string; away: string; homeNum: number; awayNum: number }
+interface Standing  { position: number; teamId: number; teamName: string; teamShort: string; matches: number; wins: number; draws: number; losses: number; goalsFor: number; goalsAgainst: number; points: number; form: string }
+interface FormMatch { result: 'W' | 'D' | 'L'; score: string; opponent: string }
+
+const incidents    = ref<Incident[]>([])
+const lineups      = ref<{ home: Player[]; away: Player[] }>({ home: [], away: [] })
+const h2hMeetings  = ref<H2HEvent[]>([])
+const homeForm     = ref<FormMatch[]>([])
+const awayForm     = ref<FormMatch[]>([])
+const matchStats   = ref<StatItem[]>([])
+const standings    = ref<Standing[]>([])
+const sofaHomeTeamId = ref(0)
+const sofaAwayTeamId = ref(0)
+const statsLoading   = ref(false)
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let countdownTimer: ReturnType<typeof setInterval> | null = null
@@ -916,11 +1109,12 @@ async function fetchBetmaster() {
 
 async function fetchSofaScore() {
   if (!startTimeMs.value) return
+  statsLoading.value = true
   try {
     const d = new Date(startTimeMs.value)
     const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
     const res  = await fetch(`/sofascore-api/sport/football/scheduled-events/${date}`)
-    if (!res.ok) return
+    if (!res.ok) { statsLoading.value = false; return }
     const json = await res.json() as { events?: unknown[] }
     const events = json.events ?? []
 
@@ -933,16 +1127,29 @@ async function fetchSofaScore() {
       return (hn.includes(home.slice(0,5)) || home.includes(hn.slice(0,5))) &&
              (an.includes(away.slice(0,5)) || away.includes(an.slice(0,5)))
     })
-    if (!found) return
-    const eventId = gn2(found as Record<string, unknown>, 'id')
-    if (!eventId) return
+    if (!found) { statsLoading.value = false; return }
+    const ev = found as Record<string, unknown>
+    const eventId = gn2(ev, 'id')
+    if (!eventId) { statsLoading.value = false; return }
 
-    // Fetch incidents and lineups in parallel
-    const [incRes, luRes] = await Promise.allSettled([
+    sofaHomeTeamId.value = gn2(ev, 'homeTeam', 'id')
+    sofaAwayTeamId.value = gn2(ev, 'awayTeam', 'id')
+
+    const uniqueTournId = gn2(ev, 'tournament', 'uniqueTournament', 'id')
+    const seasonId      = gn2(ev, 'season', 'id')
+
+    // Fetch all data in parallel
+    const [incRes, luRes, h2hRes, statsRes, standRes] = await Promise.allSettled([
       fetch(`/sofascore-api/event/${eventId}/incidents`),
       fetch(`/sofascore-api/event/${eventId}/lineups`),
+      fetch(`/sofascore-api/event/${eventId}/h2h`),
+      fetch(`/sofascore-api/event/${eventId}/statistics`),
+      uniqueTournId && seasonId
+        ? fetch(`/sofascore-api/unique-tournament/${uniqueTournId}/season/${seasonId}/standings/total`)
+        : Promise.reject('no ids'),
     ])
 
+    // ── Incidents ──
     if (incRes.status === 'fulfilled' && incRes.value.ok) {
       const incJson = await incRes.value.json() as { incidents?: unknown[] }
       incidents.value = (incJson.incidents ?? []).map((inc: unknown) => {
@@ -958,6 +1165,7 @@ async function fetchSofaScore() {
       }).filter((i: Incident) => i.time > 0).sort((a: Incident, b: Incident) => a.time - b.time)
     }
 
+    // ── Lineups ──
     if (luRes.status === 'fulfilled' && luRes.value.ok) {
       const luJson = await luRes.value.json() as { home?: unknown; away?: unknown }
       const mapPlayers = (side: unknown): Player[] => {
@@ -975,9 +1183,120 @@ async function fetchSofaScore() {
       }
       lineups.value = { home: mapPlayers(luJson.home), away: mapPlayers(luJson.away) }
     }
+
+    // ── H2H ──
+    if (h2hRes.status === 'fulfilled' && h2hRes.value.ok) {
+      const h2hJson = await h2hRes.value.json() as {
+        events?: unknown[]
+        homeTeamLastMatches?: unknown[]
+        awayTeamLastMatches?: unknown[]
+      }
+
+      const parseEvent = (e: unknown): H2HEvent => {
+        const ev = e as Record<string, unknown>
+        const hs = gn2(ev, 'homeScore', 'display')
+        const as_ = gn2(ev, 'awayScore', 'display')
+        const ts = gn2(ev, 'startTimestamp') * 1000
+        return {
+          id:        gn2(ev, 'id'),
+          date:      ts ? new Date(ts).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' }) : '',
+          homeTeam:  gs(ev, 'homeTeam', 'shortName') || gs(ev, 'homeTeam', 'name'),
+          awayTeam:  gs(ev, 'awayTeam', 'shortName') || gs(ev, 'awayTeam', 'name'),
+          homeScore: hs,
+          awayScore: as_,
+          tournament: gs(ev, 'tournament', 'name'),
+          homeId:    gn2(ev, 'homeTeam', 'id'),
+          awayId:    gn2(ev, 'awayTeam', 'id'),
+        }
+      }
+
+      h2hMeetings.value = (h2hJson.events ?? []).slice(0, 10).map(parseEvent)
+
+      const parseForm = (matches: unknown[], teamId: number): FormMatch[] =>
+        (matches ?? []).slice(0, 5).map((e: unknown) => {
+          const ev = e as Record<string, unknown>
+          const hs = gn2(ev, 'homeScore', 'display')
+          const as_ = gn2(ev, 'awayScore', 'display')
+          const hid = gn2(ev, 'homeTeam', 'id')
+          const isHome = hid === teamId
+          let result: 'W' | 'D' | 'L' = 'D'
+          if (hs > as_) result = isHome ? 'W' : 'L'
+          else if (as_ > hs) result = isHome ? 'L' : 'W'
+          const opp = isHome
+            ? (gs(ev, 'awayTeam', 'shortName') || gs(ev, 'awayTeam', 'name'))
+            : (gs(ev, 'homeTeam', 'shortName') || gs(ev, 'homeTeam', 'name'))
+          return { result, score: `${hs}-${as_}`, opponent: opp }
+        })
+
+      homeForm.value = parseForm(h2hJson.homeTeamLastMatches ?? [], sofaHomeTeamId.value)
+      awayForm.value = parseForm(h2hJson.awayTeamLastMatches ?? [], sofaAwayTeamId.value)
+    }
+
+    // ── Statistics ──
+    if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
+      const stJson = await statsRes.value.json() as { statistics?: unknown[] }
+      const allPeriod = (stJson.statistics ?? []).find((p: unknown) => gs(p as Record<string,unknown>, 'period') === 'ALL')
+      if (allPeriod) {
+        const groups = (gn(allPeriod as Record<string,unknown>, 'groups') as unknown[]) ?? []
+        const items: StatItem[] = []
+        for (const g of groups) {
+          const statItems = (gn(g as Record<string,unknown>, 'statisticsItems') as unknown[]) ?? []
+          for (const si of statItems) {
+            const s = si as Record<string, unknown>
+            const hv = String(s.home ?? '')
+            const av = String(s.away ?? '')
+            const hn = parseFloat(hv) || 0
+            const an = parseFloat(av) || 0
+            items.push({ name: String(s.name ?? ''), home: hv, away: av, homeNum: hn, awayNum: an })
+          }
+        }
+        const SHOW = ['Ball possession','Total shots','Shots on target','Corners','Fouls','Yellow cards','Red cards','Offsides','Saves','Passes','Tackles','Free kicks']
+        matchStats.value = items.filter(i => SHOW.some(k => i.name.toLowerCase().includes(k.toLowerCase()))).slice(0, 12)
+      }
+    }
+
+    // ── Standings ──
+    if (standRes.status === 'fulfilled' && standRes.value.ok) {
+      const stJson = await standRes.value.json() as { standings?: unknown[] }
+      const rows = (gn((stJson.standings ?? [])[0] as Record<string,unknown>, 'rows') as unknown[]) ?? []
+      standings.value = rows.map((r: unknown) => {
+        const row = r as Record<string, unknown>
+        const gf = gn2(row, 'scoresFor')
+        const ga = gn2(row, 'scoresAgainst')
+        return {
+          position:   gn2(row, 'position'),
+          teamId:     gn2(row, 'team', 'id'),
+          teamName:   gs(row, 'team', 'name'),
+          teamShort:  gs(row, 'team', 'shortName') || gs(row, 'team', 'name').slice(0,3).toUpperCase(),
+          matches:    gn2(row, 'matches'),
+          wins:       gn2(row, 'wins'),
+          draws:      gn2(row, 'draws'),
+          losses:     gn2(row, 'losses'),
+          goalsFor:   gf,
+          goalsAgainst: ga,
+          points:     gn2(row, 'points'),
+          form:       gs(row, 'promotion', 'text'),
+        }
+      })
+    }
   } catch (e) {
     console.warn('[BetWin] SofaScore fetch failed (graceful):', e)
+  } finally {
+    statsLoading.value = false
   }
+}
+
+// ─── Stats helpers ────────────────────────────────────────────────────────────
+function statBarPct(homeNum: number, awayNum: number, isHome: boolean): number {
+  const total = homeNum + awayNum
+  if (!total) return 50
+  return Math.round(isHome ? (homeNum / total) * 100 : (awayNum / total) * 100)
+}
+function h2hResultFor(m: H2HEvent, teamId: number): 'W' | 'D' | 'L' {
+  const isHome = m.homeId === teamId
+  if (m.homeScore > m.awayScore) return isHome ? 'W' : 'L'
+  if (m.awayScore > m.homeScore) return isHome ? 'L' : 'W'
+  return 'D'
 }
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
@@ -1284,6 +1603,146 @@ onUnmounted(() => {
 .out-lbl  { font-size: 10px; color: #c8cfe0; font-weight: 600; }
 .out-odds { font-size: 13px; font-weight: 900; color: #fff; }
 .outcome-btn.selected .out-odds { color: #e84c6b; }
+
+/* ─── Stats Tab ──────────────────────────────────────────────────── */
+.stats-body {
+  flex-direction: column; max-width: 860px; margin: 0 auto; padding: 12px;
+  gap: 10px; overflow-y: auto; flex: 1;
+}
+.stats-loading {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 48px; color: #9ba3b8; font-size: 13px;
+}
+.stats-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 64px 24px; gap: 8px; text-align: center;
+}
+.stats-empty-icon { font-size: 40px; }
+.stats-empty-title { font-size: 15px; font-weight: 700; color: #c8cfe0; }
+.stats-empty-sub { font-size: 12px; color: #5a6280; }
+
+.stats-card {
+  background: #181b2e; border: 1px solid #252840; border-radius: 10px; overflow: hidden;
+}
+.stats-card-header {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  background: #0e1120; border-bottom: 1px solid #252840;
+  font-size: 12px; font-weight: 700; color: #c8cfe0;
+}
+.stats-card-icon { font-size: 14px; }
+.stats-badge {
+  margin-left: auto; font-size: 9px; font-weight: 800; padding: 2px 7px;
+  border-radius: 10px; background: rgba(232,76,107,0.2); color: #e84c6b;
+  border: 1px solid rgba(232,76,107,0.3); animation: pulse-badge 1.5s infinite;
+}
+.stats-count { margin-left: auto; font-size: 10px; color: #7a8299; font-weight: 600; }
+.stats-card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+/* Match statistics bars */
+.stat-teams-hdr {
+  display: flex; justify-content: space-between; margin-bottom: 4px;
+  font-size: 11px; font-weight: 700; color: #9ba3b8;
+}
+.stat-team-lbl { display: flex; align-items: center; gap: 5px; }
+.stat-team-lbl.away-lbl { flex-direction: row-reverse; }
+.stat-team-logo { width: 18px; height: 18px; object-fit: contain; }
+.stat-row {
+  display: grid; grid-template-columns: 36px 1fr 36px;
+  align-items: center; gap: 8px;
+}
+.stat-val { font-size: 12px; font-weight: 800; color: #fff; }
+.stat-val.home-val { text-align: right; }
+.stat-val.away-val { text-align: left; }
+.stat-bars {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px;
+}
+.stat-name { font-size: 10px; color: #7a8299; text-align: center; white-space: nowrap; }
+.stat-bar-wrap { height: 6px; border-radius: 3px; background: #252840; overflow: hidden; }
+.home-bar { display: flex; justify-content: flex-end; }
+.away-bar { display: flex; justify-content: flex-start; }
+.stat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.home-fill { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+.away-fill { background: linear-gradient(90deg, #e84c6b, #f06292); }
+
+/* H2H */
+.h2h-summary {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #0e1120; border-radius: 8px; padding: 10px 14px; margin-bottom: 4px;
+}
+.h2h-sum-team { display: flex; align-items: center; gap: 7px; flex: 1; }
+.h2h-sum-team.away-sum { flex-direction: row-reverse; }
+.h2h-logo { width: 24px; height: 24px; object-fit: contain; }
+.h2h-sum-name { font-size: 11px; font-weight: 700; color: #c8cfe0; }
+.h2h-sum-num { font-size: 22px; font-weight: 900; color: #7c3aed; min-width: 24px; text-align: center; }
+.h2h-sum-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 12px; }
+.h2h-draw-num { font-size: 22px; font-weight: 900; color: #e0b040; }
+.h2h-draw-lbl { font-size: 9px; color: #5a6280; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.h2h-row {
+  display: grid; grid-template-columns: 62px 1fr auto 24px;
+  align-items: center; gap: 8px; padding: 7px 0;
+  border-bottom: 1px solid #1e2138;
+}
+.h2h-row:last-child { border-bottom: none; }
+.h2h-date { font-size: 10px; color: #5a6280; white-space: nowrap; }
+.h2h-tourn { font-size: 10px; color: #7a8299; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.h2h-match { display: flex; align-items: center; gap: 6px; justify-content: center; }
+.h2h-team { font-size: 11px; color: #9ba3b8; font-weight: 600; white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+.h2h-team-away { text-align: right; }
+.h2h-win { color: #c8cfe0; font-weight: 800; }
+.h2h-score-box { display: flex; align-items: center; gap: 3px; }
+.h2h-s { font-size: 13px; font-weight: 900; color: #fff; min-width: 14px; text-align: center; }
+.h2h-sdash { font-size: 12px; color: #3a4060; }
+.h2h-result-badge {
+  width: 20px; height: 20px; border-radius: 50%; font-size: 9px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.badge-w { background: rgba(76,175,80,0.25); color: #4caf50; border: 1px solid rgba(76,175,80,0.3); }
+.badge-l { background: rgba(232,76,107,0.2); color: #e84c6b; border: 1px solid rgba(232,76,107,0.3); }
+.badge-d { background: rgba(224,176,64,0.2); color: #e0b040; border: 1px solid rgba(224,176,64,0.3); }
+
+/* Recent Form */
+.form-body { gap: 12px; }
+.form-row { display: flex; align-items: center; gap: 10px; }
+.form-team-info { display: flex; align-items: center; gap: 6px; width: 160px; flex-shrink: 0; }
+.form-logo { width: 22px; height: 22px; object-fit: contain; }
+.form-team-name { font-size: 11px; font-weight: 700; color: #c8cfe0; }
+.form-dots { display: flex; gap: 6px; }
+.form-dot {
+  width: 28px; height: 28px; border-radius: 50%; font-size: 10px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; cursor: default;
+}
+.form-W { background: rgba(76,175,80,0.25); color: #4caf50; border: 1px solid rgba(76,175,80,0.4); }
+.form-L { background: rgba(232,76,107,0.2); color: #e84c6b; border: 1px solid rgba(232,76,107,0.4); }
+.form-D { background: rgba(224,176,64,0.2); color: #e0b040; border: 1px solid rgba(224,176,64,0.4); }
+
+/* Standings Table */
+.standings-card .stats-card-body { padding: 0; }
+.standings-table-wrap { overflow-x: auto; }
+.standings-table {
+  width: 100%; border-collapse: collapse; font-size: 11px; color: #9ba3b8;
+}
+.standings-table th {
+  padding: 8px 6px; text-align: center; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; color: #5a6280; background: #0e1120;
+  border-bottom: 1px solid #252840; letter-spacing: 0.5px;
+}
+.standings-table td {
+  padding: 7px 6px; text-align: center; border-bottom: 1px solid #1a1d2e;
+}
+.standings-table tbody tr:last-child td { border-bottom: none; }
+.standings-table tbody tr:hover td { background: #1e2138; }
+.st-highlighted td {
+  background: rgba(124,58,237,0.08) !important;
+  color: #c8cfe0 !important; font-weight: 700;
+}
+.st-highlighted td.st-pts { color: #a855f7 !important; }
+.st-pos { color: #5a6280; font-size: 10px; width: 24px; }
+.st-team { text-align: left !important; padding-left: 10px !important; }
+.st-team-name { font-size: 11px; font-weight: 600; color: #c8cfe0; }
+.st-pts { font-weight: 900 !important; color: #fff !important; }
+.gd-pos { color: #4caf50; font-weight: 700; }
+.gd-neg { color: #e84c6b; font-weight: 700; }
 
 /* ─── AI Chat ────────────────────────────────────────────────────── */
 .ai-body { padding: 0; overflow: hidden; align-items: stretch; }

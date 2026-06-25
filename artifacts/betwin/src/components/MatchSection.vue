@@ -19,24 +19,29 @@
     </div>
 
     <!-- Match rows -->
-    <div v-for="match in matches" :key="match.id" class="match-row">
+    <div
+      v-for="match in matches"
+      :key="match.id"
+      class="match-row"
+      @click="emit('match-click', { match, league })"
+    >
       <div class="match-info">
         <div class="match-date">{{ match.date }}</div>
         <div class="match-time">{{ match.time }}</div>
         <div class="match-actions">
-          <button class="action-btn">☆</button>
-          <button class="action-btn">📊</button>
-          <button class="action-btn">📺</button>
+          <button class="action-btn" @click.stop>☆</button>
+          <button class="action-btn" @click.stop>📊</button>
+          <button class="action-btn" @click.stop>📺</button>
         </div>
         <div class="match-teams">
           <div class="team">{{ match.team1 }}</div>
           <div class="team">{{ match.team2 }}</div>
         </div>
         <div class="market-count">
-          <span class="mc-value">660 ›</span>
+          <span class="mc-value" @click.stop>660 ›</span>
         </div>
       </div>
-      <div class="match-odds">
+      <div class="match-odds" @click.stop>
         <OddsButton :value="match.odds1" :active="match.highlighted === 'odds1'" />
         <OddsButton :value="match.oddsX" :active="match.highlighted === 'oddsX'" />
         <OddsButton :value="match.odds2" :active="match.highlighted === 'odds2'" />
@@ -75,6 +80,10 @@ interface League {
 defineProps<{
   league: League
   matches: Match[]
+}>()
+
+const emit = defineEmits<{
+  'match-click': [payload: { match: Match; league: League }]
 }>()
 </script>
 
@@ -127,6 +136,7 @@ defineProps<{
   padding: 4px 10px;
   border-bottom: 1px solid #1f2236;
   transition: background 0.12s;
+  cursor: pointer;
 }
 .match-row:hover { background: #1f2236; }
 
@@ -174,7 +184,6 @@ defineProps<{
   text-overflow: ellipsis;
   line-height: 1.5;
 }
-.team:hover { color: #fff; cursor: pointer; }
 
 .market-count {
   margin-left: 4px;

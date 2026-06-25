@@ -1,7 +1,7 @@
 <template>
   <main class="main-content">
-    <!-- Hero banner -->
-    <div class="hero-banner">
+    <!-- Hero banner (hidden in detail view) -->
+    <div class="hero-banner" v-if="!selectedMatch">
       <div class="hero-text">
         <div class="hero-sport">SPORT</div>
         <div class="hero-betting">BETTING</div>
@@ -25,13 +25,22 @@
       <button class="cat-more">›</button>
     </div>
 
-    <!-- Scrollable content area -->
-    <div class="content-scroll">
+    <!-- MATCH DETAIL VIEW -->
+    <MatchDetail
+      v-if="selectedMatch"
+      :match="selectedMatch"
+      :league="selectedLeague!"
+      @close="selectedMatch = null"
+    />
+
+    <!-- NORMAL CONTENT (hidden when detail is open) -->
+    <div v-else class="content-scroll">
 
       <!-- First match section -->
       <MatchSection
         :league="{ flag: '🇹🇷', sport: 'Soccer', name: 'Turkiye Kupasi' }"
         :matches="matchesGroup1"
+        @match-click="openMatchDetail"
       />
 
       <!-- Popular Leagues -->
@@ -147,12 +156,14 @@
       <MatchSection
         :league="{ flag: '🇹🇷', sport: 'Soccer', name: 'Turkiye Kupasi' }"
         :matches="matchesGroup2"
+        @match-click="openMatchDetail"
       />
 
       <!-- Third match section -->
       <MatchSection
         :league="{ flag: '🇹🇷', sport: 'Soccer', name: 'Turkiye Kupasi' }"
         :matches="matchesGroup3"
+        @match-click="openMatchDetail"
       />
 
       <!-- Bottom promo banner -->
@@ -171,13 +182,38 @@
         </div>
       </div>
 
-    </div>
+    </div><!-- end v-else content-scroll -->
   </main>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import MatchSection from './MatchSection.vue'
+import MatchDetail from './MatchDetail.vue'
+
+interface Match {
+  id: number
+  date: string
+  time: string
+  team1: string
+  team2: string
+  odds1: string
+  oddsX: string
+  odds2: string
+  odds1x: string
+  oddsX2: string
+  odds12: string
+  highlighted: string
+}
+interface League { flag: string; sport: string; name: string }
+
+const selectedMatch = ref<Match | null>(null)
+const selectedLeague = ref<League | null>(null)
+
+function openMatchDetail({ match, league }: { match: Match; league: League }) {
+  selectedMatch.value = match
+  selectedLeague.value = league
+}
 
 const activeCategory = ref('Soccer')
 

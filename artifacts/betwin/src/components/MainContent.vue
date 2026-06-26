@@ -18,7 +18,7 @@
         :class="{ active: activeCategory === cat.name }"
         @click="activeCategory = cat.name"
       >
-        <div class="cat-icon">{{ cat.icon }}</div>
+        <img :src="cat.icon" :alt="cat.name" class="cat-icon-img" loading="eager" fetchpriority="high" />
         <div class="cat-name">{{ cat.name }}</div>
         <div class="cat-count">{{ cat.events }} events</div>
       </div>
@@ -231,17 +231,7 @@ function openMatchDetail({ match, league, initialTab }: { match: Match; league: 
 const activeCategory = ref('Soccer')
 
 const sportCategories = [
-  { name: 'Soccer', icon: '⚽', events: '1041' },
-  { name: 'Basketball', icon: '🏀', events: '104' },
-  { name: 'Tennis', icon: '🎾', events: '104' },
-  { name: 'Ice Hockey', icon: '🏒', events: '1041' },
-  { name: 'Volleyball', icon: '🏐', events: '104' },
-  { name: 'Handball', icon: '🤾', events: '104' },
-  { name: 'Snooker', icon: '🎱', events: '104' },
-  { name: 'Darts', icon: '🎯', events: '104' },
-  { name: 'Bandy', icon: '🏑', events: '104' },
-  { name: 'Cricket', icon: '🏏', events: '104' },
-  { name: 'Floorball', icon: '🏒', events: '104' },
+  { name: 'Soccer', icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png', events: '1041' },
 ]
 
 const makeMatches = () => [
@@ -363,7 +353,7 @@ const leagueImageCards = [
 }
 .sport-cat:hover { border-bottom-color: #3a3f5c; }
 .sport-cat.active { border-bottom-color: #e84c6b; }
-.cat-icon { font-size: 16px; }
+.cat-icon-img { width: 32px; height: 32px; object-fit: contain; }
 .cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; white-space: nowrap; }
 .sport-cat.active .cat-name { color: #fff; }
 .cat-count { font-size: 9px; color: #5a6080; }

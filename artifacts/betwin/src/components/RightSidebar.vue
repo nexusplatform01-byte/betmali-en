@@ -26,7 +26,7 @@
     <!-- Selection items -->
     <div class="selections-list">
       <div v-if="slipItems.length === 0" class="slip-empty">
-        <div class="slip-empty-icon">🎯</div>
+        <img src="https://cdn3d.iconscout.com/3d/premium/thumb/bet-3d-icon-png-download-14793184.png" class="slip-empty-img" alt="bet slip" loading="eager" fetchpriority="high" />
         <div class="slip-empty-text">No selections yet.<br>Click odds to add them here.</div>
       </div>
       <div v-for="sel in slipItems" :key="sel.key" class="selection-item">
@@ -190,7 +190,7 @@ const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
   padding: 24px 12px;
   gap: 8px;
 }
-.slip-empty-icon { font-size: 28px; }
+.slip-empty-img { width: 52px; height: 52px; object-fit: contain; }
 .slip-empty-text {
   font-size: 10px;
   color: #5a6080;

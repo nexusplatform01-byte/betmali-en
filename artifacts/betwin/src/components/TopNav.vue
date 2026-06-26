@@ -15,7 +15,7 @@
       <div class="upper-right">
         <div class="upper-links">
           <button class="upper-btn" @click="fireToast">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/phone-talk-3d-icon-png-download-3626670.png" class="upper-icon-img" alt="call" />
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/phone-talk-3d-icon-png-download-3626670.png" class="upper-icon-img" alt="call" loading="eager" fetchpriority="high" />
             <span>LET US<br>CALL YOU</span>
           </button>
           <button class="upper-btn onwin" @click="fireToast">
@@ -44,7 +44,7 @@
         :class="{ active: activeTab === tab.label }"
         @click="handleTabClick(tab.label)"
       >
-        <img :src="tab.imgSrc" :alt="tab.label" class="tab-icon-img" />
+        <img :src="tab.imgSrc" :alt="tab.label" class="tab-icon-img" loading="eager" fetchpriority="high" />
         {{ tab.label }}
         <span v-if="tab.live" class="live-dot"></span>
       </div>
@@ -80,10 +80,6 @@ const navTabs = [
   { label: 'VIRTUAL',     imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/football-player-kicks-the-ball-3d-icon-png-download-5752063.png' },
   { label: 'AVIATOR',     imgSrc: 'https://seaflag.in/wp-content/uploads/2023/05/aviator-spribe-gaming_f3091ddd1.jpg' },
   { label: 'GAMES',       imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-slot-machine-3d-icon-png-download-6925740.png' },
-  { label: 'ONWINX',      imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-3d-icon-png-download-7308671.png' },
-  { label: 'BINGO',       imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-slot-machine-3d-icon-png-download-6925740.png' },
-  { label: 'CSPORTS',     imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png' },
-  { label: 'PARLAYBAY',   imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/bet-3d-icon-png-download-14793184.png' },
   { label: 'PROMOTIONS',  imgSrc: '/promo-icon.png' },
 ]
 </script>

@@ -14,24 +14,27 @@
       </div>
       <div class="upper-right">
         <div class="upper-links">
-          <button class="upper-btn">
-            <span class="icon">💰</span>
-            <span>KAYIP<br>BONUSU AL</span>
-          </button>
-          <button class="upper-btn">
-            <span class="icon">📞</span>
+          <button class="upper-btn" @click="fireToast">
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/phone-talk-3d-icon-png-download-3626670.png" class="upper-icon-img" alt="call" />
             <span>LET US<br>CALL YOU</span>
           </button>
-          <button class="upper-btn onwin">
-            <span class="icon">📺</span>
+          <button class="upper-btn onwin" @click="fireToast">
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png" class="upper-icon-img" alt="tv" />
             <span>ONWIN<br>TV LIVE</span>
           </button>
         </div>
         <div class="flag-selector">🇬🇧</div>
-        <button class="btn-register">REGISTER +</button>
-        <button class="btn-login">LOGIN 🔑</button>
+        <button class="btn-register" @click="fireToast">
+          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/sign-up-3d-icon-png-download-12826539.png" class="btn-icon-img" alt="register" />
+          REGISTER
+        </button>
+        <button class="btn-login" @click="fireToast">
+          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/account-login-3d-icon-png-download-11502707.png" class="btn-icon-img" alt="login" />
+          LOGIN
+        </button>
       </div>
     </div>
+
     <!-- Lower nav tabs -->
     <nav class="lower-nav">
       <div
@@ -41,7 +44,7 @@
         :class="{ active: activeTab === tab.label }"
         @click="handleTabClick(tab.label)"
       >
-        <span v-if="tab.icon" class="tab-icon">{{ tab.icon }}</span>
+        <img :src="tab.imgSrc" :alt="tab.label" class="tab-icon-img" />
         {{ tab.label }}
         <span v-if="tab.live" class="live-dot"></span>
       </div>
@@ -56,29 +59,32 @@ const activeTab = ref('BETTING')
 const showToast = ref(false)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-function handleTabClick(label: string) {
-  if (label === 'BETTING') {
-    activeTab.value = label
-    return
-  }
+function fireToast() {
   if (toastTimer) clearTimeout(toastTimer)
   showToast.value = true
   toastTimer = setTimeout(() => { showToast.value = false }, 2500)
 }
 
+function handleTabClick(label: string) {
+  if (label === 'BETTING') {
+    activeTab.value = label
+    return
+  }
+  fireToast()
+}
+
 const navTabs = [
-  { label: 'BETTING', icon: '⚽' },
-  { label: 'LIVE', icon: '🔴', live: true },
-  { label: 'LIVE CASINO', icon: '🎰' },
-  { label: 'Casino', icon: '♠️' },
-  { label: 'VIRTUAL', icon: '🖥️' },
-  { label: 'AVIATOR', icon: '✈️' },
-  { label: 'ONWINX', icon: '🎮' },
-  { label: 'GAMES', icon: '🎲' },
-  { label: 'PARLAYBAY', icon: '💎' },
-  { label: 'BINGO', icon: '🎱' },
-  { label: 'CSPORTS', icon: '🏆' },
-  { label: 'PROMOTIONS', icon: '🎁' },
+  { label: 'BETTING',     imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/betting-3d-icon-png-download-9927750.png' },
+  { label: 'LIVE',        imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/live-3d-icon-png-download-6925805.png', live: true },
+  { label: 'LIVE CASINO', imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-3d-icon-png-download-7308671.png' },
+  { label: 'VIRTUAL',     imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/football-player-kicks-the-ball-3d-icon-png-download-5752063.png' },
+  { label: 'AVIATOR',     imgSrc: 'https://seaflag.in/wp-content/uploads/2023/05/aviator-spribe-gaming_f3091ddd1.jpg' },
+  { label: 'GAMES',       imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-slot-machine-3d-icon-png-download-6925740.png' },
+  { label: 'ONWINX',      imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-3d-icon-png-download-7308671.png' },
+  { label: 'BINGO',       imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/casino-slot-machine-3d-icon-png-download-6925740.png' },
+  { label: 'CSPORTS',     imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png' },
+  { label: 'PARLAYBAY',   imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/bet-3d-icon-png-download-14793184.png' },
+  { label: 'PROMOTIONS',  imgSrc: '/promo-icon.png' },
 ]
 </script>
 
@@ -107,7 +113,7 @@ const navTabs = [
 .upper-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .upper-links {
   display: flex;
@@ -123,7 +129,7 @@ const navTabs = [
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   text-align: left;
   line-height: 1.3;
   text-transform: uppercase;
@@ -131,8 +137,13 @@ const navTabs = [
   transition: background 0.15s;
 }
 .upper-btn:hover { background: #2f3450; }
-.upper-btn .icon { font-size: 12px; }
 .upper-btn.onwin { color: #00c6ff; }
+.upper-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .flag-selector {
   font-size: 18px;
   cursor: pointer;
@@ -144,26 +155,39 @@ const navTabs = [
   background: transparent;
   border: 1px solid #e84c6b;
   color: #e84c6b;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.15s, color 0.15s;
 }
 .btn-register:hover { background: #e84c6b; color: #fff; }
 .btn-login {
   background: #e84c6b;
   border: none;
   color: #fff;
-  padding: 5px 14px;
+  padding: 4px 12px;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   transition: background 0.15s;
 }
 .btn-login:hover { background: #c93559; }
+.btn-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* Nav tabs */
 .lower-nav {
   display: flex;
   align-items: center;
@@ -174,28 +198,37 @@ const navTabs = [
 .lower-nav::-webkit-scrollbar { display: none; }
 .nav-tab {
   color: #9ba3b8;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 9px 10px;
+  padding: 5px 8px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   white-space: nowrap;
   border-bottom: 2px solid transparent;
   transition: color 0.15s, border-color 0.15s;
   text-transform: uppercase;
   position: relative;
+  min-width: 56px;
 }
 .nav-tab:hover { color: #fff; }
 .nav-tab.active { color: #fff; border-bottom-color: #e84c6b; }
-.tab-icon { font-size: 12px; }
+.tab-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 4px;
+}
 .live-dot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
   width: 6px;
   height: 6px;
   background: #e84c6b;
   border-radius: 50%;
-  display: inline-block;
   animation: pulse 1.5s infinite;
 }
 @keyframes pulse {

@@ -278,17 +278,10 @@
           </div>
         </div>
 
-        <!-- Selected bets summary -->
-        <div v-if="selectedBetsList.length" class="slip-card">
-          <div class="slip-title">SELECTIONS ({{ selectedBetsList.length }})</div>
-          <div v-for="bet in selectedBetsList" :key="bet.key" class="slip-item">
-            <div class="slip-market">{{ bet.marketName }}</div>
-            <div class="slip-row">
-              <span class="slip-outcome">{{ bet.label }}</span>
-              <span class="slip-odds-val">{{ bet.odds }}</span>
-              <button class="slip-remove" @click="removeBet(bet.key)">×</button>
-            </div>
-          </div>
+        <!-- Hint to use sidebar bet slip -->
+        <div class="slip-hint-card">
+          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/bet-3d-icon-png-download-14793184.png" class="slip-hint-icon-img" alt="bet slip" />
+          <div class="slip-hint-text">Your selections appear in the Bet Slip on the right sidebar</div>
         </div>
       </div>
     </div>
@@ -347,20 +340,9 @@
 
       <!-- Right column -->
       <div class="detail-right">
-        <div v-if="selectedBetsList.length" class="slip-card">
-          <div class="slip-title">SELECTIONS</div>
-          <div v-for="bet in selectedBetsList" :key="bet.key" class="slip-item">
-            <div class="slip-market">{{ bet.marketName }}</div>
-            <div class="slip-row">
-              <span class="slip-outcome">{{ bet.label }}</span>
-              <span class="slip-odds-val">{{ bet.odds }}</span>
-              <button class="slip-remove" @click="removeBet(bet.key)">×</button>
-            </div>
-          </div>
-        </div>
-        <div v-else class="slip-hint-card">
-          <div>🛒</div>
-          <div class="slip-hint-text">Click any odds button to add to your selection</div>
+        <div class="slip-hint-card">
+          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/bet-3d-icon-png-download-14793184.png" class="slip-hint-icon-img" alt="bet slip" />
+          <div class="slip-hint-text">Your selections appear in the Bet Slip on the right sidebar</div>
         </div>
       </div>
     </div>
@@ -1627,7 +1609,8 @@ onUnmounted(() => {
 .slip-odds-val { font-size: 12px; font-weight: 900; color: #e84c6b; }
 .slip-remove { background: none; border: none; color: #5a6a88; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; transition: color 0.12s; }
 .slip-remove:hover { color: #e84c6b; }
-.slip-hint-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; padding: 16px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 22px; }
+.slip-hint-card { background: #141a2e; border: 1px solid #1e2a42; border-radius: 10px; padding: 16px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.slip-hint-icon-img { width: 48px; height: 48px; object-fit: contain; }
 .slip-hint-text { font-size: 10px; color: #5a6a88; line-height: 1.5; }
 
 /* ─── Odds Tab ───────────────────────────────────────────────────── */

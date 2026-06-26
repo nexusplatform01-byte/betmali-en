@@ -2,7 +2,10 @@
   <aside class="right-sidebar">
     <!-- Bet Slip header -->
     <div class="betslip-header">
-      <span class="betslip-title">BET SLIP</span>
+      <div class="betslip-title-row">
+        <img src="https://cdn3d.iconscout.com/3d/premium/thumb/bet-3d-icon-png-download-14793184.png" class="betslip-icon" alt="bet slip" />
+        <span class="betslip-title">BET SLIP</span>
+      </div>
       <div class="betslip-tabs">
         <button
           v-for="tab in slipTabs"
@@ -116,13 +119,23 @@ const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
   padding: 8px 8px 0;
   border-bottom: 1px solid #252840;
 }
+.betslip-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.betslip-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .betslip-title {
   font-size: 11px;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.5px;
-  display: block;
-  margin-bottom: 6px;
 }
 .betslip-tabs {
   display: flex;

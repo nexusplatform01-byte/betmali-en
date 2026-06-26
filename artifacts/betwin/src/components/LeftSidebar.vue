@@ -26,50 +26,17 @@
       <span>Outrights</span>
       <span class="chevron" :class="{ open: outrightsOpen }">›</span>
     </div>
-    <div v-if="outrightsOpen" class="subsection">
-      <div class="sidebar-sport-item active">
-        <span class="flag">🇹🇷</span>
-        <span class="sport-name">Soccer</span>
-        <span class="sport-badge">21</span>
-      </div>
-    </div>
 
     <!-- Top Championships -->
     <div class="section-header collapsible" @click="champOpen = !champOpen">
       <span>Top Championships</span>
       <span class="chevron" :class="{ open: champOpen }">›</span>
     </div>
-    <div v-if="champOpen" class="subsection">
-      <div
-        v-for="champ in topChampionships"
-        :key="champ.name"
-        class="sidebar-sport-item"
-        :class="{ active: activeChamp === champ.name }"
-        @click="activeChamp = champ.name"
-      >
-        <span class="flag">{{ champ.flag }}</span>
-        <span class="sport-name">{{ champ.name }}</span>
-        <span class="champ-count">{{ champ.count }}</span>
-      </div>
-    </div>
 
     <!-- Popular Sports -->
     <div class="section-header collapsible" @click="popularOpen = !popularOpen">
       <span>Popular Sports</span>
       <span class="chevron" :class="{ open: popularOpen }">›</span>
-    </div>
-    <div v-if="popularOpen" class="subsection">
-      <div
-        v-for="sport in popularSports"
-        :key="sport.name"
-        class="sidebar-sport-item"
-        :class="{ active: activeSport === sport.name }"
-        @click="activeSport = sport.name"
-      >
-        <span class="flag">{{ sport.flag }}</span>
-        <span class="sport-name">{{ sport.name }}</span>
-        <span class="sport-badge">{{ sport.count }}</span>
-      </div>
     </div>
 
     <!-- All Sports list -->
@@ -97,38 +64,7 @@ import { ref } from 'vue'
 const outrightsOpen = ref(true)
 const champOpen = ref(true)
 const popularOpen = ref(true)
-const activeChamp = ref('Premier League')
 const activeSport = ref('Soccer')
-
-const topChampionships = [
-  { name: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', count: '' },
-  { name: 'Bundesliga', flag: '🇩🇪', count: '' },
-  { name: 'Serie A', flag: '🇮🇹', count: '' },
-  { name: 'LaLiga', flag: '🇪🇸', count: '' },
-  { name: 'Bundesliga', flag: '🇩🇪', count: '' },
-  { name: 'Serie A', flag: '🇮🇹', count: '' },
-  { name: 'LaLiga', flag: '🇪🇸', count: '' },
-  { name: 'Liga 1 France', flag: '🇫🇷', count: '' },
-]
-
-const popularSports = [
-  { name: 'Soccer', flag: '⚽', count: '1023' },
-  { name: 'Internacional', flag: '🌍', count: '' },
-  { name: 'Clubes Internacional', flag: '🌐', count: '' },
-  { name: 'Internacional Youth', flag: '🌍', count: '' },
-  { name: 'Turkey', flag: '🇹🇷', count: '' },
-  { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', count: '' },
-  { name: 'Spain', flag: '🇪🇸', count: '' },
-  { name: 'Italy', flag: '🇮🇹', count: '' },
-  { name: 'Germany', flag: '🇩🇪', count: '' },
-  { name: 'France', flag: '🇫🇷', count: '' },
-  { name: 'Turkey', flag: '🇹🇷', count: '' },
-  { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', count: '' },
-  { name: 'Spain', flag: '🇪🇸', count: '' },
-  { name: 'Italy', flag: '🇮🇹', count: '' },
-  { name: 'France', flag: '🇫🇷', count: '' },
-  { name: 'Netherlands', flag: '🇳🇱', count: '' },
-]
 
 const allSports = [
   { name: 'Soccer', icon: '⚽', count: '1023' },
@@ -261,38 +197,6 @@ const allSports = [
 }
 .chevron.open { transform: rotate(90deg); }
 
-.subsection { padding: 2px 0; }
-.sidebar-sport-item {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  cursor: pointer;
-  gap: 5px;
-  transition: background 0.15s;
-}
-.sidebar-sport-item:hover { background: #252840; }
-.sidebar-sport-item.active { background: #252840; }
-.flag { font-size: 12px; min-width: 16px; }
-.sport-name {
-  flex: 1;
-  color: #c8cfe0;
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.champ-count { color: #5a6080; font-size: 10px; }
-.sport-badge {
-  background: #e84c6b;
-  color: #fff;
-  border-radius: 8px;
-  padding: 0 5px;
-  font-size: 9px;
-  font-weight: 700;
-  min-width: 28px;
-  text-align: center;
-}
-
 .sports-list { padding: 2px 0; }
 .sport-list-item {
   display: flex;
@@ -307,4 +211,14 @@ const allSports = [
 .sport-left { display: flex; align-items: center; gap: 6px; }
 .sport-emoji { font-size: 12px; }
 .sport-label { color: #c8cfe0; font-size: 11px; }
+.sport-badge {
+  background: #e84c6b;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 5px;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: center;
+}
 </style>

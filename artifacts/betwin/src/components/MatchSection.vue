@@ -42,12 +42,18 @@
         </div>
       </div>
       <div class="match-odds" @click.stop>
-        <OddsButton :value="match.odds1" :active="match.highlighted === 'odds1'" />
-        <OddsButton :value="match.oddsX" :active="match.highlighted === 'oddsX'" />
-        <OddsButton :value="match.odds2" :active="match.highlighted === 'odds2'" />
-        <OddsButton :value="match.odds1x" :active="match.highlighted === 'odds1x'" />
-        <OddsButton :value="match.oddsX2" :active="match.highlighted === 'oddsX2'" />
-        <OddsButton :value="match.odds12" :active="match.highlighted === 'odds12'" />
+        <OddsButton :value="match.odds1" :active="match.highlighted === 'odds1'"
+          :bet-key="`${league.name}-${match.id}-1`" bet-label="Home Win (1)" :bet-match="`${match.team1} vs ${match.team2}`" bet-market="Match Result" />
+        <OddsButton :value="match.oddsX" :active="match.highlighted === 'oddsX'"
+          :bet-key="`${league.name}-${match.id}-X`" bet-label="Draw (X)" :bet-match="`${match.team1} vs ${match.team2}`" bet-market="Match Result" />
+        <OddsButton :value="match.odds2" :active="match.highlighted === 'odds2'"
+          :bet-key="`${league.name}-${match.id}-2`" bet-label="Away Win (2)" :bet-match="`${match.team1} vs ${match.team2}`" bet-market="Match Result" />
+        <OddsButton :value="match.odds1x" :active="match.highlighted === 'odds1x'"
+          :bet-key="`${league.name}-${match.id}-1X`" bet-label="Home or Draw (1X)" :bet-match="`${match.team1} vs ${match.team2}`" bet-market="Double Chance" />
+        <OddsButton :value="match.oddsX2" :active="match.highlighted === 'oddsX2'"
+          :bet-key="`${league.name}-${match.id}-X2`" bet-label="Draw or Away (X2)" :bet-match="`${match.team1} vs ${match.team2}`" bet-market="Double Chance" />
+        <OddsButton :value="match.odds12" :active="match.highlighted === 'odds12'"
+          :bet-key="`${league.name}-${match.id}-12`" bet-label="Home or Away (12)" :bet-match="`${match.team1} vs ${match.team2}`" bet-market="Double Chance" />
       </div>
     </div>
   </div>

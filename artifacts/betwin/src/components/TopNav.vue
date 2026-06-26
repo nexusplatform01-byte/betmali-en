@@ -1,5 +1,12 @@
 <template>
   <header class="top-bar">
+    <!-- Coming soon toast -->
+    <transition name="toast-fade">
+      <div v-if="showToast" class="coming-soon-toast">
+        🔴 Coming Soon
+      </div>
+    </transition>
+
     <!-- Upper bar -->
     <div class="upper-bar">
       <div class="logo">
@@ -32,7 +39,7 @@
         :key="tab.label"
         class="nav-tab"
         :class="{ active: activeTab === tab.label }"
-        @click="activeTab = tab.label"
+        @click="handleTabClick(tab.label)"
       >
         <span v-if="tab.icon" class="tab-icon">{{ tab.icon }}</span>
         {{ tab.label }}
@@ -46,6 +53,18 @@
 import { ref } from 'vue'
 
 const activeTab = ref('BETTING')
+const showToast = ref(false)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function handleTabClick(label: string) {
+  if (label === 'BETTING') {
+    activeTab.value = label
+    return
+  }
+  if (toastTimer) clearTimeout(toastTimer)
+  showToast.value = true
+  toastTimer = setTimeout(() => { showToast.value = false }, 2500)
+}
 
 const navTabs = [
   { label: 'BETTING', icon: '⚽' },
@@ -68,6 +87,7 @@ const navTabs = [
   background: #1a1d2e;
   border-bottom: 1px solid #252840;
   flex-shrink: 0;
+  position: relative;
 }
 .upper-bar {
   display: flex;
@@ -181,5 +201,31 @@ const navTabs = [
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
+}
+
+/* Coming Soon toast */
+.coming-soon-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #141624;
+  border: 1px solid #e84c6b;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 8px;
+  z-index: 999;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px #e84c6b44;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast-fade-enter-active, .toast-fade-leave-active {
+  transition: opacity 0.25s, transform 0.25s;
+}
+.toast-fade-enter-from, .toast-fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -60%);
 }
 </style>

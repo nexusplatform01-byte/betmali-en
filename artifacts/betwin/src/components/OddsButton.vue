@@ -1,23 +1,43 @@
 <template>
   <button
     class="odds-btn"
-    :class="{ active: active, clicked: isClicked }"
-    @click="handleClick"
+    :class="{ active: active, clicked: isActive }"
+    @click.stop="handleClick"
+    :disabled="value === '-'"
   >{{ value }}</button>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useBetSlip } from '@/composables/useBetSlip'
 
 const props = defineProps<{
   value: string
   active?: boolean
+  betKey?: string
+  betLabel?: string
+  betMatch?: string
+  betMarket?: string
 }>()
 
-const isClicked = ref(false)
+const { toggleBet, hasBet } = useBetSlip()
+
+const isActive = computed(() => {
+  if (props.betKey) return hasBet(props.betKey)
+  return false
+})
 
 function handleClick() {
-  isClicked.value = !isClicked.value
+  if (props.value === '-') return
+  if (props.betKey) {
+    toggleBet({
+      key: props.betKey,
+      label: props.betLabel ?? props.value,
+      odds: props.value,
+      matchName: props.betMatch ?? '',
+      market: props.betMarket ?? 'Match Result',
+    })
+  }
 }
 </script>
 
@@ -35,7 +55,8 @@ function handleClick() {
   text-align: center;
   transition: background 0.12s, color 0.12s;
 }
-.odds-btn:hover { background: #3a3f6e; }
+.odds-btn:hover:not(:disabled) { background: #3a3f6e; }
+.odds-btn:disabled { opacity: 0.4; cursor: default; }
 .odds-btn.active {
   color: #e84c6b;
   font-weight: 800;

@@ -111,12 +111,18 @@
           </div>
 
           <div class="tm-match-odds" @click.stop>
-            <OddsButton :value="match.odds1" />
-            <OddsButton :value="match.oddsX" />
-            <OddsButton :value="match.odds2" />
-            <OddsButton :value="match.odds1x" />
-            <OddsButton :value="match.oddsX2" />
-            <OddsButton :value="match.odds12" />
+            <OddsButton :value="match.odds1"
+              :bet-key="`${match.id}-1`" bet-label="Home Win (1)" :bet-match="`${match.homeName} vs ${match.awayName}`" bet-market="Match Result" />
+            <OddsButton :value="match.oddsX"
+              :bet-key="`${match.id}-X`" bet-label="Draw (X)" :bet-match="`${match.homeName} vs ${match.awayName}`" bet-market="Match Result" />
+            <OddsButton :value="match.odds2"
+              :bet-key="`${match.id}-2`" bet-label="Away Win (2)" :bet-match="`${match.homeName} vs ${match.awayName}`" bet-market="Match Result" />
+            <OddsButton :value="match.odds1x"
+              :bet-key="`${match.id}-1X`" bet-label="Home or Draw (1X)" :bet-match="`${match.homeName} vs ${match.awayName}`" bet-market="Double Chance" />
+            <OddsButton :value="match.oddsX2"
+              :bet-key="`${match.id}-X2`" bet-label="Draw or Away (X2)" :bet-match="`${match.homeName} vs ${match.awayName}`" bet-market="Double Chance" />
+            <OddsButton :value="match.odds12"
+              :bet-key="`${match.id}-12`" bet-label="Home or Away (12)" :bet-match="`${match.homeName} vs ${match.awayName}`" bet-market="Double Chance" />
           </div>
         </div>
       </div>

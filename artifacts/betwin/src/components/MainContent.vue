@@ -106,8 +106,8 @@
               <div class="lm-odds-strip">
                 <div
                   class="lm-odds-pair"
-                  :class="{ 'odds-pair-active': lm.activeOdd === 1 }"
-                  @click="lm.activeOdd = lm.activeOdd === 1 ? 0 : 1"
+                  :class="{ 'odds-pair-active': lmOddActive(lm, 0) }"
+                  @click="toggleLmOdd(lm, 0)"
                 >
                   <span class="lm-odds-lbl">1</span>
                   <span class="lm-odds-num">{{ lm.odds[0] }}</span>
@@ -115,8 +115,8 @@
                 <div class="lm-pair-divider"></div>
                 <div
                   class="lm-odds-pair"
-                  :class="{ 'odds-pair-active': lm.activeOdd === 2 }"
-                  @click="lm.activeOdd = lm.activeOdd === 2 ? 0 : 2"
+                  :class="{ 'odds-pair-active': lmOddActive(lm, 1) }"
+                  @click="toggleLmOdd(lm, 1)"
                 >
                   <span class="lm-odds-lbl">X</span>
                   <span class="lm-odds-num">{{ lm.odds[1] }}</span>
@@ -124,8 +124,8 @@
                 <div class="lm-pair-divider"></div>
                 <div
                   class="lm-odds-pair"
-                  :class="{ 'odds-pair-active': lm.activeOdd === 3 }"
-                  @click="lm.activeOdd = lm.activeOdd === 3 ? 0 : 3"
+                  :class="{ 'odds-pair-active': lmOddActive(lm, 2) }"
+                  @click="toggleLmOdd(lm, 2)"
                 >
                   <span class="lm-odds-lbl">2</span>
                   <span class="lm-odds-num">{{ lm.odds[2] }}</span>
@@ -146,21 +146,15 @@
             class="lig-card"
             :style="{ background: card.gradient }"
           >
-            <!-- Logo top-left -->
-            <div class="lig-logo-wrap">
-              <div class="lig-logo" :style="{ background: card.logoBackground }">
-                <span class="lig-logo-icon">{{ card.logoIcon }}</span>
-              </div>
-              <div class="lig-logo-text">{{ card.logoText }}</div>
+            <div class="lig-logo-img-wrap">
+              <img
+                :src="card.logoUrl"
+                :alt="card.logoText"
+                class="lig-real-logo"
+                @error="($event.target as HTMLImageElement).style.opacity = '0'"
+              />
             </div>
-
-            <!-- Player silhouette area (CSS art) -->
-            <div class="lig-player" :style="{ '--pc': card.playerColor, '--pc2': card.playerColor2 }">
-              <div class="player-body"></div>
-              <div class="player-head"></div>
-              <div class="player-arm-l"></div>
-              <div class="player-arm-r"></div>
-            </div>
+            <div class="lig-card-name">{{ card.logoText }}</div>
           </div>
         </div>
 
@@ -206,6 +200,7 @@ import MatchSection from './MatchSection.vue'
 import TopMatchesSection from './TopMatchesSection.vue'
 import MatchDetail from './MatchDetail.vue'
 import { usePopularLeagueMatches } from '@/composables/usePopularLeagueMatches'
+import { useBetSlip } from '@/composables/useBetSlip'
 
 interface Match {
   id: number
@@ -262,52 +257,56 @@ const matchesGroup2 = makeMatches()
 const matchesGroup3 = makeMatches()
 
 const { cards: leagueMatchCards, loading: leagueLoading, error: leagueError, refresh: leagueRefresh } = usePopularLeagueMatches()
+const { toggleBet, hasBet } = useBetSlip()
+
+function toggleLmOdd(lm: typeof leagueMatchCards.value[0], outcomeIdx: number) {
+  const key = `lm-${lm.leagueName}-${lm.team1}-${lm.team2}-${outcomeIdx}`
+  const label = outcomeIdx === 0 ? `Home Win (1)` : outcomeIdx === 1 ? 'Draw (X)' : 'Away Win (2)'
+  const odds = lm.odds[outcomeIdx]
+  if (odds === '-') return
+  toggleBet({ key, label, odds, matchName: `${lm.team1} vs ${lm.team2}`, market: 'Match Result' })
+}
+
+function lmOddActive(lm: typeof leagueMatchCards.value[0], outcomeIdx: number) {
+  return hasBet(`lm-${lm.leagueName}-${lm.team1}-${lm.team2}-${outcomeIdx}`)
+}
 
 const leagueImageCards = [
   {
     id: 'bundesliga',
     gradient: 'linear-gradient(135deg, #e8a000 0%, #d32f2f 60%, #b71c1c 100%)',
-    logoBackground: '#fff',
-    logoIcon: '⚽',
+    logoUrl: '/sofascore-api/unique-tournament/35/image',
     logoText: 'BUNDESLIGA',
-    playerColor: '#dc143c',
-    playerColor2: '#fff',
   },
   {
     id: 'premier',
     gradient: 'linear-gradient(135deg, #00b4d8 0%, #0077b6 50%, #023e8a 100%)',
-    logoBackground: '#fff',
-    logoIcon: '🦁',
-    logoText: 'Premier\nLeague',
-    playerColor: '#6de7ff',
-    playerColor2: '#fff',
+    logoUrl: '/sofascore-api/unique-tournament/17/image',
+    logoText: 'Premier League',
   },
   {
     id: 'seriea',
     gradient: 'linear-gradient(135deg, #ff6b35 0%, #d32f2f 50%, #880000 100%)',
-    logoBackground: '#fff',
-    logoIcon: '⭐',
+    logoUrl: '/sofascore-api/unique-tournament/23/image',
     logoText: 'SERIE A',
-    playerColor: '#ff5252',
-    playerColor2: '#000',
   },
   {
     id: 'ligue1',
     gradient: 'linear-gradient(135deg, #1a1a4e 0%, #2d2d8f 50%, #4040c0 100%)',
-    logoBackground: '#fff',
-    logoIcon: '🏅',
+    logoUrl: '/sofascore-api/unique-tournament/34/image',
     logoText: 'LIGUE 1',
-    playerColor: '#5c6bc0',
-    playerColor2: '#fff',
   },
   {
     id: 'laliga',
     gradient: 'linear-gradient(135deg, #ff8f00 0%, #e65100 60%, #bf360c 100%)',
-    logoBackground: '#fff',
-    logoIcon: '🔶',
+    logoUrl: '/sofascore-api/unique-tournament/8/image',
     logoText: 'LaLiga',
-    playerColor: '#ffcc02',
-    playerColor2: '#a50044',
+  },
+  {
+    id: 'champions',
+    gradient: 'linear-gradient(135deg, #0a0a2e 0%, #1a4a8f 50%, #2060c0 100%)',
+    logoUrl: '/sofascore-api/unique-tournament/7/image',
+    logoText: 'Champions League',
   },
 ]
 </script>
@@ -602,101 +601,58 @@ const leagueImageCards = [
 .league-img-cards-row::-webkit-scrollbar { display: none; }
 
 .lig-card {
-  min-width: 140px;
-  height: 148px;
-  border-radius: 8px;
+  min-width: 120px;
+  height: 130px;
+  border-radius: 10px;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
-  display: flex; align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 8px;
 }
 .lig-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.6);
 }
 
-/* League logo top-left */
-.lig-logo-wrap {
-  position: absolute;
-  top: 10px; left: 10px;
-  display: flex; flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  z-index: 2;
-}
-.lig-logo {
-  width: 36px; height: 36px;
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-.lig-logo-icon { font-size: 18px; }
-.lig-logo-text {
-  font-size: 9px; font-weight: 800;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  line-height: 1.3;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  white-space: pre;
-}
-
-/* CSS player silhouette */
-.lig-player {
-  position: absolute;
-  bottom: 0;
-  right: -8px;
-  width: 85px;
-  height: 135px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.player-body {
-  position: absolute;
-  bottom: 0;
-  width: 34px;
-  height: 72px;
-  background: var(--pc);
-  border-radius: 14px 14px 6px 6px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.player-head {
-  position: absolute;
-  bottom: 68px;
-  width: 22px;
-  height: 26px;
-  background: #c8a882;
+.lig-logo-img-wrap {
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.12);
   border-radius: 50%;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  overflow: hidden;
+  flex-shrink: 0;
 }
-.player-arm-l {
-  position: absolute;
-  bottom: 28px;
-  left: 4px;
-  width: 14px;
-  height: 44px;
-  background: var(--pc);
-  border-radius: 8px;
-  transform: rotate(16deg);
-  transform-origin: top center;
+
+.lig-real-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  transition: opacity 0.3s;
 }
-.player-arm-r {
-  position: absolute;
-  bottom: 28px;
-  right: 4px;
-  width: 14px;
-  height: 44px;
-  background: var(--pc2);
-  border-radius: 8px;
-  transform: rotate(-16deg);
-  transform-origin: top center;
+
+.lig-card-name {
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+  line-height: 1.3;
 }
+
 
 /* ─── Bottom promo ────────────────────────────────── */
 .bottom-promo {

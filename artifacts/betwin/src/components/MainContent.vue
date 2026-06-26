@@ -353,7 +353,7 @@ const leagueImageCards = [
 }
 .sport-cat:hover { border-bottom-color: #3a3f5c; }
 .sport-cat.active { border-bottom-color: #e84c6b; }
-.cat-icon-img { width: 32px; height: 32px; object-fit: contain; }
+.cat-icon-img { width: 20px; height: 20px; object-fit: contain; }
 .cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; white-space: nowrap; }
 .sport-cat.active .cat-name { color: #fff; }
 .cat-count { font-size: 9px; color: #5a6080; }

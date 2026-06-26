@@ -196,26 +196,26 @@ const navTabs = [
   color: #9ba3b8;
   font-size: 10px;
   font-weight: 600;
-  padding: 5px 8px;
+  padding: 0 10px;
+  height: 36px;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
+  gap: 5px;
   white-space: nowrap;
   border-bottom: 2px solid transparent;
   transition: color 0.15s, border-color 0.15s;
   text-transform: uppercase;
   position: relative;
-  min-width: 56px;
 }
 .nav-tab:hover { color: #fff; }
 .nav-tab.active { color: #fff; border-bottom-color: #e84c6b; }
 .tab-icon-img {
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
-  border-radius: 4px;
+  flex-shrink: 0;
 }
 .live-dot {
   position: absolute;

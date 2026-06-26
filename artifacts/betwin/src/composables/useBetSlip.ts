@@ -12,9 +12,10 @@ const slipItems = ref<BetSlipItem[]>([])
 
 export function useBetSlip() {
   function addBet(item: BetSlipItem) {
-    if (!slipItems.value.find(b => b.key === item.key)) {
-      slipItems.value.push(item)
-    }
+    if (slipItems.value.find(b => b.key === item.key)) return
+    // Remove any existing bet for the same match (enforce 1 odd per match)
+    slipItems.value = slipItems.value.filter(b => b.matchName !== item.matchName)
+    slipItems.value.push(item)
   }
 
   function removeBet(key: string) {

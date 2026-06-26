@@ -39,22 +39,6 @@
       <span class="chevron" :class="{ open: popularOpen }">›</span>
     </div>
 
-    <!-- All Sports list -->
-    <div class="sports-list">
-      <div
-        v-for="sport in allSports"
-        :key="sport.name"
-        class="sport-list-item"
-        :class="{ active: activeSport === sport.name }"
-        @click="activeSport = sport.name"
-      >
-        <div class="sport-left">
-          <span class="sport-emoji">{{ sport.icon }}</span>
-          <span class="sport-label">{{ sport.name }}</span>
-        </div>
-        <span class="sport-badge">{{ sport.count }}</span>
-      </div>
-    </div>
   </aside>
 </template>
 
@@ -64,28 +48,6 @@ import { ref } from 'vue'
 const outrightsOpen = ref(true)
 const champOpen = ref(true)
 const popularOpen = ref(true)
-const activeSport = ref('Soccer')
-
-const allSports = [
-  { name: 'Soccer', icon: '⚽', count: '1023' },
-  { name: 'Basketball', icon: '🏀', count: '1023' },
-  { name: 'Tennis', icon: '🎾', count: '1023' },
-  { name: 'Ice Hockey', icon: '🏒', count: '1023' },
-  { name: 'Volleyball', icon: '🏐', count: '1023' },
-  { name: 'Handball', icon: '🤾', count: '1023' },
-  { name: 'Snooker', icon: '🎱', count: '1023' },
-  { name: 'Darts', icon: '🎯', count: '1023' },
-  { name: 'Bandy', icon: '🏑', count: '1023' },
-  { name: 'Cricket', icon: '🏏', count: '1023' },
-  { name: 'Floorball', icon: '🏒', count: '1023' },
-  { name: 'Badminton', icon: '🏸', count: '1023' },
-  { name: 'Futsal', icon: '⚽', count: '1023' },
-  { name: 'American Football', icon: '🏈', count: '1023' },
-  { name: 'Field Hockey', icon: '🏑', count: '1023' },
-  { name: 'Rugby', icon: '🏉', count: '1023' },
-  { name: 'Table Tennis', icon: '🏓', count: '1023' },
-  { name: 'Water Polo', icon: '🤽', count: '1023' },
-]
 </script>
 
 <style scoped>
@@ -197,28 +159,4 @@ const allSports = [
 }
 .chevron.open { transform: rotate(90deg); }
 
-.sports-list { padding: 2px 0; }
-.sport-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 8px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.sport-list-item:hover { background: #252840; }
-.sport-list-item.active { background: #252840; }
-.sport-left { display: flex; align-items: center; gap: 6px; }
-.sport-emoji { font-size: 12px; }
-.sport-label { color: #c8cfe0; font-size: 11px; }
-.sport-badge {
-  background: #e84c6b;
-  color: #fff;
-  border-radius: 8px;
-  padding: 0 5px;
-  font-size: 9px;
-  font-weight: 700;
-  min-width: 28px;
-  text-align: center;
-}
 </style>

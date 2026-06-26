@@ -2,6 +2,7 @@
   <main class="main-content">
     <!-- Hero banner (hidden in detail view) -->
     <div class="hero-banner" v-if="!selectedMatch">
+      <img src="https://www.topbet.ug/ibet/img/b/icimage_18365.jpg" class="hero-bg-img" alt="" loading="eager" fetchpriority="high" />
       <div class="hero-text">
         <div class="hero-sport">SPORT</div>
         <div class="hero-betting">BETTING</div>
@@ -311,28 +312,41 @@ const leagueImageCards = [
 /* Hero Banner */
 .hero-banner {
   position: relative;
-  height: 120px;
+  height: 140px;
   background: linear-gradient(135deg, #7b1fa2 0%, #5c35c9 35%, #1565c0 70%, #0288d1 100%);
   overflow: hidden;
   flex-shrink: 0;
   display: flex;
   align-items: flex-end;
   padding: 12px 20px;
+  border-radius: 12px;
+  margin: 8px 8px 0;
+}
+.hero-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  opacity: 0.85;
 }
 .hero-text { position: relative; z-index: 2; }
 .hero-sport {
   font-size: 13px; font-weight: 700; color: #fff;
   letter-spacing: 3px; text-transform: uppercase; opacity: 0.9;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
 }
 .hero-betting {
   font-size: 36px; font-weight: 900; color: #fff;
   letter-spacing: 2px; text-transform: uppercase;
   font-style: italic; line-height: 1;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.6);
 }
 .hero-overlay {
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.05) 0%, transparent 70%);
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
 }
 
 /* Sport categories */

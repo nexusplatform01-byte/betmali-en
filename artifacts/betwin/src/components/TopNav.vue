@@ -18,18 +18,13 @@
             <img src="https://cdn3d.iconscout.com/3d/premium/thumb/phone-talk-3d-icon-png-download-3626670.png" class="upper-icon-img" alt="call" loading="eager" fetchpriority="high" />
             <span>LET US<br>CALL YOU</span>
           </button>
-          <button class="upper-btn onwin" @click="fireToast">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png" class="upper-icon-img" alt="tv" />
-            <span>ONWIN<br>TV LIVE</span>
-          </button>
         </div>
-        <div class="flag-selector">🇬🇧</div>
-        <button class="btn-register" @click="fireToast">
-          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/sign-up-3d-icon-png-download-12826539.png" class="btn-icon-img" alt="register" />
+        <button class="btn-register" @click="openRegister">
+          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/sign-up-3d-icon-png-download-12826539.png" class="btn-icon-img" alt="register" loading="eager" fetchpriority="high" />
           REGISTER
         </button>
-        <button class="btn-login" @click="fireToast">
-          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/account-login-3d-icon-png-download-11502707.png" class="btn-icon-img" alt="login" />
+        <button class="btn-login" @click="openLogin">
+          <img src="https://cdn3d.iconscout.com/3d/premium/thumb/account-login-3d-icon-png-download-11502707.png" class="btn-icon-img" alt="login" loading="eager" fetchpriority="high" />
           LOGIN
         </button>
       </div>
@@ -54,10 +49,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useAuthModal } from '@/composables/useAuthModal'
 
 const activeTab = ref('BETTING')
 const showToast = ref(false)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+const { openLogin, openRegister } = useAuthModal()
 
 function fireToast() {
   if (toastTimer) clearTimeout(toastTimer)

@@ -105,9 +105,6 @@
               </div>
             </div>
 
-            <div class="tm-market-count" @click.stop>
-              <span class="tm-mc-badge">{{ match.marketCount }} ›</span>
-            </div>
           </div>
 
           <div class="tm-match-odds" @click.stop>

@@ -6,6 +6,7 @@
       <MainContent />
       <RightSidebar />
     </div>
+    <AuthModal />
   </div>
 </template>
 
@@ -14,6 +15,7 @@ import TopNav from '@/components/TopNav.vue'
 import LeftSidebar from '@/components/LeftSidebar.vue'
 import MainContent from '@/components/MainContent.vue'
 import RightSidebar from '@/components/RightSidebar.vue'
+import AuthModal from '@/components/AuthModal.vue'
 </script>
 
 <style scoped>

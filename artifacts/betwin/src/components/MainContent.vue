@@ -20,9 +20,7 @@
       >
         <img :src="cat.icon" :alt="cat.name" class="cat-icon-img" loading="eager" fetchpriority="high" />
         <div class="cat-name">{{ cat.name }}</div>
-        <div class="cat-count">{{ cat.events }} events</div>
       </div>
-      <button class="cat-more">›</button>
     </div>
 
     <!-- MATCH DETAIL VIEW -->
@@ -342,25 +340,24 @@ const leagueImageCards = [
   display: flex; align-items: center;
   background: #1a1d2e; border-bottom: 1px solid #252840;
   overflow-x: auto; flex-shrink: 0;
-  scrollbar-width: none; padding: 0 4px;
+  scrollbar-width: none; padding: 4px 8px;
+  border-radius: 0 0 10px 10px;
+  gap: 2px;
 }
 .sport-categories::-webkit-scrollbar { display: none; }
 .sport-cat {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 6px 10px; cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: border-color 0.15s; min-width: 60px; gap: 1px;
+  display: flex; flex-direction: row; align-items: center;
+  padding: 5px 10px; cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background 0.15s, border-color 0.15s; gap: 6px;
+  white-space: nowrap;
 }
-.sport-cat:hover { border-bottom-color: #3a3f5c; }
-.sport-cat.active { border-bottom-color: #e84c6b; }
-.cat-icon-img { width: 20px; height: 20px; object-fit: contain; }
-.cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; white-space: nowrap; }
+.sport-cat:hover { background: #252840; }
+.sport-cat.active { background: #252840; border-color: #e84c6b; }
+.cat-icon-img { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+.cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; }
 .sport-cat.active .cat-name { color: #fff; }
-.cat-count { font-size: 9px; color: #5a6080; }
-.cat-more {
-  background: none; border: none; color: #9ba3b8;
-  font-size: 18px; cursor: pointer; padding: 0 8px; flex-shrink: 0;
-}
 
 /* Content scroll */
 .content-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }

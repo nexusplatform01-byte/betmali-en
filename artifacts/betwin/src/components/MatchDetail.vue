@@ -672,6 +672,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useBetSlip } from '@/composables/useBetSlip'
 
 interface MatchProp {
   id: number
@@ -730,27 +731,30 @@ let pollTimer: ReturnType<typeof setInterval> | null = null
 let countdownTimer: ReturnType<typeof setInterval> | null = null
 const countdown = ref('')
 
-// ─── Bet slip ────────────────────────────────────────────────────────────────
-interface BetItem { key: string; marketId: string; specKey: string; outcomeId: string; marketName: string; label: string; odds: string }
-const selectedBets     = ref<Set<string>>(new Set())
-const selectedBetsMap  = ref<Map<string, BetItem>>(new Map())
+// ─── Bet slip (shared composable) ────────────────────────────────────────────
+const { toggleBet: _sharedToggle, removeBet: _sharedRemove, hasBet, slipItems } = useBetSlip()
 
+function betKey(marketId: string, specKey: string, outcomeId: string) {
+  return `detail-${props.match.id}-${marketId}-${specKey}-${outcomeId}`
+}
 function toggleBet(marketId: string, specKey: string, outcomeId: string, marketName: string, label: string, odds: string) {
-  const key = `${marketId}-${specKey}-${outcomeId}`
-  if (selectedBets.value.has(key)) {
-    selectedBets.value.delete(key)
-    selectedBetsMap.value.delete(key)
-  } else {
-    selectedBets.value.add(key)
-    selectedBetsMap.value.set(key, { key, marketId, specKey, outcomeId, marketName, label, odds })
+  const key = betKey(marketId, specKey, outcomeId)
+  _sharedToggle({ key, label, odds, matchName: `${props.match.team1} vs ${props.match.team2}`, market: marketName })
+}
+function removeBet(key: string) { _sharedRemove(key) }
+
+const selectedBets = computed(() => ({
+  has: (localKey: string) => {
+    // localKey is in format `${marketId}-${specKey}-${outcomeId}`
+    const full = `detail-${props.match.id}-${localKey}`
+    return hasBet(full)
   }
-  selectedBets.value = new Set(selectedBets.value)
-}
-function removeBet(key: string) {
-  selectedBets.value.delete(key); selectedBets.value = new Set(selectedBets.value)
-  selectedBetsMap.value.delete(key)
-}
-const selectedBetsList = computed(() => Array.from(selectedBetsMap.value.values()))
+}))
+const selectedBetsList = computed(() =>
+  slipItems.value
+    .filter(b => b.key.startsWith(`detail-${props.match.id}-`))
+    .map(b => ({ key: b.key, marketName: b.market, label: b.label, odds: b.odds }))
+)
 
 // ─── Betmaster data helpers ───────────────────────────────────────────────────
 function gn(obj: unknown, ...path: string[]): unknown {
@@ -794,14 +798,25 @@ const liveScore   = computed(() => {
 })
 const matchClock  = computed(() => gs(infoDynamic.value, 'clock', 'played') || '0')
 const periodScores = computed(() => {
-  const ps = gn(infoDynamic.value, 'period_scores') as unknown[]
-  if (!ps) return []
-  return ps.map((p: unknown) => ({ home: gn2(p as Record<string, unknown>, 'home_score'), away: gn2(p as Record<string, unknown>, 'away_score'), number: gn2(p as Record<string, unknown>, 'number') }))
+  const ps = gn(infoDynamic.value, 'period_scores')
+  if (!ps || !Array.isArray(ps)) return []
+  return (ps as unknown[]).map((p: unknown) => ({ home: gn2(p as Record<string, unknown>, 'home_score'), away: gn2(p as Record<string, unknown>, 'away_score'), number: gn2(p as Record<string, unknown>, 'number') }))
 })
 
 const marketCount = computed(() => gn2(infoDynamic.value, 'markets_stats', 'sr1', '3', 'active_counter'))
 
-const startTimeMs = computed(() => gn2(infoStatic.value, 'start_time') || new Date(props.match.date).getTime())
+const startTimeMs = computed(() => {
+  const raw = gn2(infoStatic.value, 'start_time')
+  if (raw > 0) return raw > 1e12 ? raw : raw * 1000
+  // Parse display date 'DD.MM.YY' or 'DD.MM.YYYY'
+  const parts = props.match.date.split('.')
+  if (parts.length === 3) {
+    const [dd, mm, yy] = parts
+    const yyyy = yy.length === 2 ? 2000 + parseInt(yy) : parseInt(yy)
+    return new Date(yyyy, parseInt(mm) - 1, parseInt(dd)).getTime()
+  }
+  return Date.now()
+})
 const matchDateStr = computed(() => {
   if (!startTimeMs.value) return props.match.date
   const d = new Date(startTimeMs.value)
@@ -1137,17 +1152,42 @@ function namesMatch(a: string, b: string): boolean {
     ? shared.length >= 1 : shared.length >= 2
 }
 
+function deriveMatchDate(): Date {
+  // 1. Try Betmaster start_time — could be ms (>1e12) or seconds (<1e12)
+  const raw = gn2(infoStatic.value, 'start_time')
+  if (raw > 0) {
+    const ms = raw > 1e12 ? raw : raw * 1000
+    const d = new Date(ms)
+    if (!isNaN(d.getTime())) return d
+  }
+  // 2. Parse display date 'DD.MM.YY' or 'DD.MM.YYYY'
+  const parts = props.match.date.split('.')
+  if (parts.length === 3) {
+    const [dd, mm, yy] = parts
+    const yyyy = yy.length === 2 ? 2000 + parseInt(yy) : parseInt(yy)
+    const d = new Date(yyyy, parseInt(mm) - 1, parseInt(dd))
+    if (!isNaN(d.getTime())) return d
+  }
+  // 3. Fallback to today
+  return new Date()
+}
+
 async function fetchSofaScore() {
-  if (!startTimeMs.value) return
   statsLoading.value = true
   try {
-    // Try today ±1 day to handle timezone differences
-    const d = new Date(startTimeMs.value)
+    const d = deriveMatchDate()
+    // Try match date ±2 days to handle timezone & indexing delays
+    const seenDates = new Set<string>()
     const tryDates: string[] = []
-    for (let offset = -1; offset <= 1; offset++) {
+    for (let offset = -2; offset <= 2; offset++) {
       const dd = new Date(d.getTime() + offset * 86400000)
-      tryDates.push(`${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,'0')}-${String(dd.getDate()).padStart(2,'0')}`)
+      const ds = `${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,'0')}-${String(dd.getDate()).padStart(2,'0')}`
+      if (!seenDates.has(ds)) { seenDates.add(ds); tryDates.push(ds) }
     }
+    // Also always include today
+    const today = new Date()
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+    if (!seenDates.has(todayStr)) tryDates.push(todayStr)
 
     let found: unknown = null
     for (const date of tryDates) {

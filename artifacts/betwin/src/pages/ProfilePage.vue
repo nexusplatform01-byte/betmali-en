@@ -3,381 +3,366 @@
     <TopNav />
     <div class="profile-layout">
 
-      <!-- ── LEFT NAV ── -->
+      <!-- ── SIDEBAR ── -->
       <aside class="profile-sidebar">
-        <div class="ps-user-card">
-          <div class="ps-avatar">{{ avatarLetter }}</div>
+        <div class="ps-user">
+          <div class="ps-av">{{ avatarLetter }}</div>
           <div class="ps-info">
             <div class="ps-name">{{ currentUser?.name }}</div>
-            <div class="ps-balance">
+            <div class="ps-bal">
               <span v-if="balVis">UGX {{ currentUser?.balance.toLocaleString() }}</span>
-              <span v-else>UGX ••••••</span>
-              <button class="ps-eye" @click="balVis = !balVis">
-                <svg v-if="balVis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-svg"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <span v-else class="ps-bal-hidden">UGX ••••••</span>
+              <button class="ps-eye" @click="balVis=!balVis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <template v-if="balVis"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></template>
+                  <template v-else><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></template>
+                </svg>
               </button>
             </div>
           </div>
         </div>
+
         <nav class="ps-nav">
-          <button v-for="t in tabs" :key="t.id" class="psnav-btn" :class="{ active: activeTab === t.id }" @click="activeTab = t.id">
-            <span class="psnav-icon">{{ t.icon }}</span>
+          <button v-for="t in tabs" :key="t.id" class="psnav-btn" :class="{active: activeTab===t.id}" @click="activeTab=t.id">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <template v-if="t.id==='overview'"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></template>
+              <template v-else-if="t.id==='wallet'"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></template>
+              <template v-else-if="t.id==='bets'"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></template>
+              <template v-else-if="t.id==='transactions'"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></template>
+              <template v-else-if="t.id==='account'"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></template>
+              <template v-else-if="t.id==='settings'"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></template>
+            </svg>
             <span>{{ t.label }}</span>
           </button>
         </nav>
-        <button class="ps-back-btn" @click="$router.push('/')">← Back to Betting</button>
+
+        <button class="ps-back" @click="$router.push('/')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Betting
+        </button>
       </aside>
 
-      <!-- ── MAIN CONTENT ── -->
+      <!-- ── MAIN ── -->
       <main class="profile-main">
 
-        <!-- ═══ OVERVIEW ═══ -->
-        <section v-if="activeTab === 'overview'" class="tab-section">
-          <div class="section-title">Overview</div>
-          <div class="overview-welcome">
-            <div class="ow-avatar">{{ avatarLetter }}</div>
-            <div>
-              <div class="ow-name">Welcome back, {{ currentUser?.name }}!</div>
-              <div class="ow-since">Member since June 2026</div>
-            </div>
+        <!-- OVERVIEW -->
+        <section v-if="activeTab==='overview'" class="tab-sec">
+          <div class="sec-title">Overview</div>
+          <div class="ov-hero">
+            <div class="ov-av">{{ avatarLetter }}</div>
+            <div><div class="ov-name">{{ currentUser?.name }}</div><div class="ov-since">Member since June 2026</div></div>
+            <div class="ov-bal-pill">UGX {{ currentUser?.balance.toLocaleString() }}</div>
           </div>
           <div class="stats-grid">
-            <div class="stat-card">
-              <div class="sc-val">{{ bets.length }}</div>
-              <div class="sc-label">Total Bets</div>
-            </div>
-            <div class="stat-card won">
-              <div class="sc-val">{{ bets.filter(b=>b.status==='won').length }}</div>
-              <div class="sc-label">Won</div>
-            </div>
-            <div class="stat-card lost">
-              <div class="sc-val">{{ bets.filter(b=>b.status==='lost').length }}</div>
-              <div class="sc-label">Lost</div>
-            </div>
-            <div class="stat-card pending">
-              <div class="sc-val">{{ bets.filter(b=>b.status==='pending').length }}</div>
-              <div class="sc-label">Pending</div>
-            </div>
+            <div class="sc"><div class="sc-v">{{ bets.length }}</div><div class="sc-l">Total Bets</div></div>
+            <div class="sc won"><div class="sc-v">{{ bets.filter(b=>b.status==='won').length }}</div><div class="sc-l">Won</div></div>
+            <div class="sc lost"><div class="sc-v">{{ bets.filter(b=>b.status==='lost').length }}</div><div class="sc-l">Lost</div></div>
+            <div class="sc pend"><div class="sc-v">{{ bets.filter(b=>b.status==='pending').length }}</div><div class="sc-l">Pending</div></div>
           </div>
-          <div class="ov-winrate" v-if="bets.filter(b=>b.status!=='pending').length">
-            <div class="wrl">Win Rate</div>
-            <div class="wr-bar-wrap">
-              <div class="wr-bar" :style="{ width: winRatePct + '%' }"></div>
-            </div>
-            <div class="wr-pct">{{ winRatePct }}%</div>
+          <div class="ov-wr" v-if="bets.filter(b=>b.status!=='pending').length">
+            <span class="wr-lbl">Win Rate</span>
+            <div class="wr-bar"><div class="wr-fill" :style="{width:winRatePct+'%'}"></div></div>
+            <span class="wr-v">{{ winRatePct }}%</span>
           </div>
-          <div class="section-subtitle">Recent Bets</div>
-          <div class="recent-bets">
-            <div v-for="b in bets.slice(0,3)" :key="b.id" class="rb-card" @click="openTicket(b)">
-              <div class="rb-left">
-                <div class="rb-id">TICKET #{{ b.id }}</div>
-                <div class="rb-meta">{{ b.type.toUpperCase() }} · {{ b.selections.length }} pick{{ b.selections.length > 1 ? 's' : '' }}</div>
+          <div class="sub-title">Recent Bets</div>
+          <div class="recent-list">
+            <div v-for="b in bets.slice(0,3)" :key="b.id" class="rb-row" @click="openTicket(b)">
+              <div class="rb-l">
+                <span class="rb-id">TICKET #{{ b.id }}</span>
+                <span class="rb-meta">{{ b.type.toUpperCase() }} · {{ b.selections.length }} picks</span>
               </div>
-              <div class="rb-right">
-                <span class="status-badge" :class="b.status">{{ b.status.toUpperCase() }}</span>
-              </div>
+              <span class="sbadge" :class="b.status">{{ statusLabel(b.status) }}</span>
             </div>
           </div>
-          <div class="quick-actions">
-            <button class="qa-btn deposit" @click="activeTab='wallet'">💰 Deposit</button>
-            <button class="qa-btn withdraw" @click="activeTab='wallet'; walletTab='withdraw'">💸 Withdraw</button>
-            <button class="qa-btn bets" @click="activeTab='bets'">🎫 My Bets</button>
-          </div>
-        </section>
-
-        <!-- ═══ WALLET ═══ -->
-        <section v-else-if="activeTab === 'wallet'" class="tab-section">
-          <div class="section-title">Wallet</div>
-          <div class="wallet-balance-card">
-            <div class="wbc-label">Available Balance</div>
-            <div class="wbc-amount">UGX {{ currentUser?.balance.toLocaleString() }}</div>
-            <div class="wbc-actions">
-              <button class="wbc-tab-btn" :class="{ active: walletTab==='deposit' }" @click="walletTab='deposit'">Deposit</button>
-              <button class="wbc-tab-btn" :class="{ active: walletTab==='withdraw' }" @click="walletTab='withdraw'">Withdraw</button>
-            </div>
-          </div>
-
-          <!-- Deposit -->
-          <div v-if="walletTab === 'deposit'" class="wallet-form-card">
-            <div class="wf-title">💰 Deposit Funds</div>
-            <div class="form-group">
-              <label>Amount (UGX)</label>
-              <input v-model.number="depositAmount" type="number" placeholder="e.g. 50,000" class="pf-input" min="1000" />
-            </div>
-            <div class="quick-amounts">
-              <button v-for="a in [5000,10000,20000,50000,100000]" :key="a" class="qa-amount" @click="depositAmount = a">{{ a>=1000 ? (a/1000)+'K' : a }}</button>
-            </div>
-            <div class="form-group">
-              <label>Payment Method</label>
-              <div class="payment-methods">
-                <button v-for="m in paymentMethods" :key="m.id" class="pm-btn" :class="{ active: selectedPayment === m.id }" @click="selectedPayment = m.id">
-                  <span class="pm-icon">{{ m.icon }}</span>
-                  <span class="pm-name">{{ m.name }}</span>
-                </button>
-              </div>
-            </div>
-            <div class="form-group" v-if="selectedPayment !== 'card'">
-              <label>{{ selectedPayment === 'mtn' ? 'MTN' : 'Airtel' }} Phone Number</label>
-              <input v-model="depositPhone" type="tel" placeholder="e.g. 0700000000" class="pf-input" />
-            </div>
-            <div v-if="selectedPayment === 'card'" class="form-group">
-              <label>Card Number</label>
-              <input v-model="cardNumber" type="text" placeholder="0000 0000 0000 0000" class="pf-input" maxlength="19" />
-            </div>
-            <button class="pf-submit deposit-btn" @click="handleDeposit" :disabled="!depositAmount || depositAmount < 1000">
-              Deposit UGX {{ depositAmount ? depositAmount.toLocaleString() : '0' }}
+          <div class="ov-actions">
+            <button class="ov-btn dep" @click="openWalletModal('deposit')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+              Deposit
             </button>
-            <div v-if="walletMsg" class="wallet-msg" :class="walletMsgType">{{ walletMsg }}</div>
-          </div>
-
-          <!-- Withdraw -->
-          <div v-else class="wallet-form-card">
-            <div class="wf-title">💸 Withdraw Funds</div>
-            <div class="form-group">
-              <label>Amount (UGX)</label>
-              <input v-model.number="withdrawAmount" type="number" placeholder="e.g. 20,000" class="pf-input" :max="currentUser?.balance" min="1000" />
-              <div class="field-hint">Available: UGX {{ currentUser?.balance.toLocaleString() }}</div>
-            </div>
-            <div class="quick-amounts">
-              <button v-for="a in [5000,10000,20000,50000]" :key="a" class="qa-amount" @click="withdrawAmount = a">{{ a>=1000 ? (a/1000)+'K' : a }}</button>
-            </div>
-            <div class="form-group">
-              <label>Withdrawal Method</label>
-              <div class="payment-methods">
-                <button v-for="m in paymentMethods" :key="m.id" class="pm-btn" :class="{ active: selectedWithdraw === m.id }" @click="selectedWithdraw = m.id">
-                  <span class="pm-icon">{{ m.icon }}</span>
-                  <span class="pm-name">{{ m.name }}</span>
-                </button>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Phone / Account Number</label>
-              <input v-model="withdrawPhone" type="tel" placeholder="e.g. 0700000000" class="pf-input" />
-            </div>
-            <button class="pf-submit withdraw-btn" @click="handleWithdraw" :disabled="!withdrawAmount || withdrawAmount < 1000 || withdrawAmount > (currentUser?.balance ?? 0)">
-              Withdraw UGX {{ withdrawAmount ? withdrawAmount.toLocaleString() : '0' }}
+            <button class="ov-btn wdr" @click="openWalletModal('withdraw')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg>
+              Withdraw
             </button>
-            <div v-if="walletMsg" class="wallet-msg" :class="walletMsgType">{{ walletMsg }}</div>
+            <button class="ov-btn bets" @click="activeTab='bets'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              My Bets
+            </button>
           </div>
         </section>
 
-        <!-- ═══ MY BETS ═══ -->
-        <section v-else-if="activeTab === 'bets'" class="tab-section">
-          <div class="section-title">My Bets</div>
-          <div class="bet-filters">
-            <button v-for="f in betFilters" :key="f" class="bf-btn" :class="{ active: betFilter === f }" @click="betFilter = f">{{ f }}</button>
-          </div>
-          <div v-if="filteredBets.length === 0" class="empty-state">No {{ betFilter.toLowerCase() }} bets yet.</div>
-          <div class="bets-list">
-            <div v-for="b in filteredBets" :key="b.id" class="ticket-card" @click="openTicket(b)">
-              <div class="tc-top">
-                <div class="tc-id">
-                  <span class="ticket-icon">🎫</span>
-                  TICKET #{{ b.id }}
-                </div>
-                <span class="status-badge" :class="b.status">{{ b.status.toUpperCase() }}</span>
-              </div>
-              <div class="tc-picks">{{ b.type.toUpperCase() }} · {{ b.selections.length }} pick{{ b.selections.length > 1 ? 's' : '' }} · Odds {{ b.combinedOdds.toFixed(2) }}</div>
-              <div class="tc-matches">
-                <span v-for="(s, i) in b.selections.slice(0,2)" :key="s.key" class="tc-match-pill">{{ s.matchName }}</span>
-                <span v-if="b.selections.length > 2" class="tc-match-more">+{{ b.selections.length - 2 }} more</span>
-              </div>
-              <div class="tc-bottom">
-                <div class="tc-stake"><span class="tc-lbl">Stake</span><span class="tc-val">UGX {{ b.stake.toLocaleString() }}</span></div>
-                <div class="tc-potential"><span class="tc-lbl">Potential Win</span><span class="tc-val green">UGX {{ b.potentialReturn.toLocaleString() }}</span></div>
-              </div>
-              <div class="tc-arrow">›</div>
+        <!-- WALLET -->
+        <section v-else-if="activeTab==='wallet'" class="tab-sec">
+          <div class="sec-title">Wallet</div>
+          <div class="wallet-hero">
+            <div class="wh-info">
+              <div class="wh-lbl">Available Balance</div>
+              <div class="wh-amt">UGX {{ currentUser?.balance.toLocaleString() }}</div>
             </div>
-          </div>
-        </section>
-
-        <!-- ═══ TRANSACTIONS ═══ -->
-        <section v-else-if="activeTab === 'transactions'" class="tab-section">
-          <div class="section-title">Transactions</div>
-          <div class="bet-filters">
-            <button v-for="f in txFilters" :key="f" class="bf-btn" :class="{ active: txFilter === f }" @click="txFilter = f">{{ f }}</button>
-          </div>
-          <div class="tx-list">
-            <div v-for="tx in filteredTx" :key="tx.id" class="tx-row">
-              <div class="tx-icon-wrap" :class="tx.type">{{ tx.icon }}</div>
-              <div class="tx-body">
-                <div class="tx-name">{{ tx.name }}</div>
-                <div class="tx-date">{{ fmtDate(tx.date) }}</div>
-              </div>
-              <div class="tx-amount" :class="tx.positive ? 'positive' : 'negative'">
-                {{ tx.positive ? '+' : '-' }}UGX {{ tx.amount.toLocaleString() }}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ═══ ACCOUNT ═══ -->
-        <section v-else-if="activeTab === 'account'" class="tab-section">
-          <div class="section-title">Account</div>
-          <div class="account-avatar-row">
-            <div class="acc-avatar">{{ avatarLetter }}</div>
-            <div>
-              <div class="acc-name-big">{{ currentUser?.name }}</div>
-              <div class="acc-member">Member since June 2026</div>
-            </div>
-          </div>
-          <div class="form-card">
-            <div class="form-card-title">Personal Information</div>
-            <div class="form-group">
-              <label>Full Name</label>
-              <input v-model="accName" type="text" class="pf-input" />
-            </div>
-            <div class="form-group">
-              <label>Phone Number</label>
-              <input v-model="accPhone" type="tel" class="pf-input" />
-            </div>
-            <div class="form-group">
-              <label>Email Address</label>
-              <input v-model="accEmail" type="email" class="pf-input" placeholder="you@email.com" />
-            </div>
-            <div class="form-group">
-              <label>Date of Birth</label>
-              <input v-model="accDob" type="date" class="pf-input" />
-            </div>
-            <button class="pf-submit" @click="saveAccount">Save Changes</button>
-            <div v-if="accMsg" class="wallet-msg success">{{ accMsg }}</div>
-          </div>
-          <div class="form-card" style="margin-top: 16px;">
-            <div class="form-card-title">Change Password</div>
-            <div class="form-group">
-              <label>Current Password</label>
-              <input type="password" class="pf-input" placeholder="••••••••" />
-            </div>
-            <div class="form-group">
-              <label>New Password</label>
-              <input type="password" class="pf-input" placeholder="••••••••" />
-            </div>
-            <div class="form-group">
-              <label>Confirm New Password</label>
-              <input type="password" class="pf-input" placeholder="••••••••" />
-            </div>
-            <button class="pf-submit" @click="accMsg = 'Password updated!'">Update Password</button>
-          </div>
-        </section>
-
-        <!-- ═══ SETTINGS ═══ -->
-        <section v-else-if="activeTab === 'settings'" class="tab-section">
-          <div class="section-title">Settings</div>
-          <div class="form-card">
-            <div class="form-card-title">Notifications</div>
-            <div v-for="n in notifications" :key="n.id" class="setting-row">
-              <div class="sr-label">{{ n.icon }} {{ n.label }}</div>
-              <button class="toggle-btn" :class="{ on: n.enabled }" @click="n.enabled = !n.enabled">
-                <span class="toggle-knob"></span>
+            <div class="wh-btns">
+              <button class="wh-btn dep" @click="openWalletModal('deposit')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+                Deposit
+              </button>
+              <button class="wh-btn wdr" @click="openWalletModal('withdraw')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg>
+                Withdraw
               </button>
             </div>
           </div>
-          <div class="form-card" style="margin-top:16px;">
-            <div class="form-card-title">Display</div>
-            <div class="setting-row">
-              <div class="sr-label">📊 Odds Format</div>
-              <div class="seg-control">
-                <button v-for="o in ['Decimal','Fractional','American']" :key="o" class="seg-btn" :class="{ active: oddsFormat === o }" @click="oddsFormat = o">{{ o }}</button>
-              </div>
+          <div class="sub-title">Transaction History</div>
+          <div class="tx-list">
+            <div v-for="tx in transactions" :key="tx.id" class="tx-row">
+              <div class="tx-dot" :class="tx.positive?'pos':'neg'"></div>
+              <div class="tx-body"><div class="tx-name">{{ tx.name }}</div><div class="tx-date">{{ fmtDate(tx.date) }}</div></div>
+              <div class="tx-amt" :class="tx.positive?'pos':'neg'">{{ tx.positive?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</div>
             </div>
-            <div class="setting-row">
-              <div class="sr-label">🌙 Theme</div>
-              <div class="seg-control">
-                <button class="seg-btn active">Dark</button>
-                <button class="seg-btn" @click="">Light</button>
+          </div>
+        </section>
+
+        <!-- MY BETS -->
+        <section v-else-if="activeTab==='bets'" class="tab-sec">
+          <div class="sec-title">My Bets</div>
+          <div class="filters">
+            <button v-for="f in betFilters" :key="f" class="fbtn" :class="{active:betFilter===f}" @click="betFilter=f">{{ f }}</button>
+          </div>
+          <div v-if="!filteredBets.length" class="empty-msg">No {{ betFilter.toLowerCase() }} bets yet.</div>
+          <div class="bets-list">
+            <div v-for="b in filteredBets" :key="b.id" class="tkt-card" @click="openTicket(b)">
+              <div class="tkt-l">
+                <div class="tkt-top">
+                  <span class="tkt-id">TICKET #{{ b.id }}</span>
+                  <span class="tkt-type">{{ b.type.toUpperCase() }} · {{ b.selections.length }} picks · {{ b.combinedOdds.toFixed(2) }}x</span>
+                </div>
+                <div class="tkt-matches">{{ b.selections.slice(0,2).map(s=>s.matchName).join(' · ') }}{{ b.selections.length>2?` +${b.selections.length-2}`:'' }}</div>
+              </div>
+              <div class="tkt-r">
+                <span class="sbadge" :class="b.status">{{ statusLabel(b.status) }}</span>
+                <div class="tkt-pot">UGX {{ b.potentialReturn.toLocaleString() }}</div>
               </div>
             </div>
           </div>
-          <div class="form-card" style="margin-top:16px;">
-            <div class="form-card-title">Responsible Gambling</div>
-            <div class="form-group">
-              <label>Daily Deposit Limit (UGX)</label>
-              <input v-model.number="dailyLimit" type="number" class="pf-input" placeholder="e.g. 100,000" />
+        </section>
+
+        <!-- TRANSACTIONS -->
+        <section v-else-if="activeTab==='transactions'" class="tab-sec">
+          <div class="sec-title">Transactions</div>
+          <div class="filters">
+            <button v-for="f in txFilters" :key="f" class="fbtn" :class="{active:txFilter===f}" @click="txFilter=f">{{ f }}</button>
+          </div>
+          <div class="tx-list">
+            <div v-for="tx in filteredTx" :key="tx.id" class="tx-row">
+              <div class="tx-dot" :class="tx.positive?'pos':'neg'"></div>
+              <div class="tx-body"><div class="tx-name">{{ tx.name }}</div><div class="tx-date">{{ fmtDate(tx.date) }}</div></div>
+              <div class="tx-amt" :class="tx.positive?'pos':'neg'">{{ tx.positive?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</div>
             </div>
-            <button class="pf-submit" @click="accMsg2='Limit saved!'">Save Limit</button>
-            <div v-if="accMsg2" class="wallet-msg success" style="margin-top:8px;">{{ accMsg2 }}</div>
-            <div class="rg-warning">
-              <span>⚠️</span>
-              <div>
-                <div class="rg-w-title">Self Exclusion</div>
-                <div class="rg-w-sub">Temporarily or permanently restrict your account from betting.</div>
+          </div>
+        </section>
+
+        <!-- ACCOUNT -->
+        <section v-else-if="activeTab==='account'" class="tab-sec">
+          <div class="sec-title">Account</div>
+          <div class="acc-hero">
+            <div class="acc-av">{{ avatarLetter }}</div>
+            <div><div class="acc-name">{{ currentUser?.name }}</div><div class="acc-since">Member since June 2026</div></div>
+          </div>
+          <div class="fc">
+            <div class="fc-title">Personal Information</div>
+            <div class="fg"><label>Full Name</label><input v-model="accName" class="pi" type="text"/></div>
+            <div class="fg"><label>Phone</label><input v-model="accPhone" class="pi" type="tel"/></div>
+            <div class="fg"><label>Email</label><input v-model="accEmail" class="pi" type="email" placeholder="you@email.com"/></div>
+            <div class="fg"><label>Date of Birth</label><input v-model="accDob" class="pi" type="date"/></div>
+            <button class="ps-btn" @click="saveAccount">Save Changes</button>
+            <div v-if="accMsg" class="pmsg ok">{{ accMsg }}</div>
+          </div>
+          <div class="fc" style="margin-top:10px">
+            <div class="fc-title">Change Password</div>
+            <div class="fg"><label>Current Password</label><input class="pi" type="password" placeholder="••••••••"/></div>
+            <div class="fg"><label>New Password</label><input class="pi" type="password" placeholder="••••••••"/></div>
+            <div class="fg"><label>Confirm Password</label><input class="pi" type="password" placeholder="••••••••"/></div>
+            <button class="ps-btn" @click="accMsg='Password updated!'">Update Password</button>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section v-else-if="activeTab==='settings'" class="tab-sec">
+          <div class="sec-title">Settings</div>
+          <div class="fc">
+            <div class="fc-title">Notifications</div>
+            <div v-for="n in notifications" :key="n.id" class="setting-row">
+              <span class="sr-lbl">{{ n.label }}</span>
+              <button class="tgl" :class="{on:n.enabled}" @click="n.enabled=!n.enabled"><span class="tgl-k"></span></button>
+            </div>
+          </div>
+          <div class="fc" style="margin-top:10px">
+            <div class="fc-title">Display</div>
+            <div class="setting-row">
+              <span class="sr-lbl">Odds Format</span>
+              <div class="seg">
+                <button v-for="o in ['Decimal','Fractional','American']" :key="o" class="seg-b" :class="{active:oddsFormat===o}" @click="oddsFormat=o">{{ o }}</button>
               </div>
             </div>
-            <button class="pf-submit" style="background:#e84c6b; margin-top:10px;">Request Self Exclusion</button>
+            <div class="setting-row">
+              <span class="sr-lbl">Theme</span>
+              <div class="seg"><button class="seg-b active">Dark</button><button class="seg-b">Light</button></div>
+            </div>
+          </div>
+          <div class="fc" style="margin-top:10px">
+            <div class="fc-title">Responsible Gambling</div>
+            <div class="fg"><label>Daily Deposit Limit (UGX)</label><input v-model.number="dailyLimit" class="pi" type="number" placeholder="e.g. 100,000"/></div>
+            <button class="ps-btn" @click="accMsg2='Limit saved!'">Save Limit</button>
+            <div v-if="accMsg2" class="pmsg ok" style="margin-top:6px">{{ accMsg2 }}</div>
+            <div class="rg-warn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#e84c6b" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div><div class="rg-title">Self Exclusion</div><div class="rg-sub">Restrict your account from betting temporarily or permanently.</div></div>
+            </div>
+            <button class="ps-btn danger">Request Self Exclusion</button>
           </div>
         </section>
 
       </main>
     </div>
 
-    <!-- ═══ BET TICKET DETAIL MODAL ═══ -->
-    <transition name="modal-fade">
-      <div v-if="selectedTicket" class="ticket-backdrop" @click.self="selectedTicket = null">
-        <div class="ticket-modal">
-          <div class="tm-header">
-            <div>
-              <div class="tm-id">🎫 TICKET #{{ selectedTicket.id }}</div>
-              <div class="tm-date">{{ fmtDate(selectedTicket.timestamp) }}</div>
+    <!-- ═══ WALLET FLOAT MODAL ═══ -->
+    <teleport to="body">
+      <transition name="wm-fade">
+        <div v-if="walletModal" class="wm-backdrop" @click.self="walletModal=null">
+          <div class="wm-card">
+            <div class="wm-hdr">
+              <div class="wm-tabs">
+                <button :class="{active:walletModal==='deposit'}" @click="walletModal='deposit'">Deposit</button>
+                <button :class="{active:walletModal==='withdraw'}" @click="walletModal='withdraw'">Withdraw</button>
+              </div>
+              <button class="wm-x" @click="walletModal=null">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
-            <div class="tm-header-right">
-              <span class="status-badge lg" :class="selectedTicket.status">{{ selectedTicket.status.toUpperCase() }}</span>
-              <button class="tm-close" @click="selectedTicket = null">✕</button>
+            <div class="wm-body">
+              <!-- DEPOSIT -->
+              <template v-if="walletModal==='deposit'">
+                <div class="wm-bal-row">Balance: <strong>UGX {{ currentUser?.balance.toLocaleString() }}</strong></div>
+                <div class="fg"><label>Amount (UGX)</label><input v-model.number="depositAmount" class="pi" type="number" placeholder="Min 1,000"/></div>
+                <div class="wm-quick">
+                  <button v-for="a in [5000,10000,20000,50000,100000]" :key="a" class="wm-qa" @click="depositAmount=a">{{ a>=1000?(a/1000)+'K':a }}</button>
+                </div>
+                <div class="fg">
+                  <label>Payment Method</label>
+                  <div class="wm-methods">
+                    <button v-for="m in paymentMethods" :key="m.id" class="wm-mth" :class="{active:selectedPayment===m.id}" @click="selectedPayment=m.id">{{ m.name }}</button>
+                  </div>
+                </div>
+                <div class="fg" v-if="selectedPayment!=='card'"><label>Phone Number</label><input v-model="depositPhone" class="pi" type="tel" placeholder="07XXXXXXXX"/></div>
+                <div class="fg" v-else><label>Card Number</label><input v-model="cardNumber" class="pi" type="text" placeholder="0000 0000 0000 0000"/></div>
+                <button class="wm-submit dep" @click="handleDeposit" :disabled="!depositAmount||depositAmount<1000">
+                  Deposit UGX {{ depositAmount ? depositAmount.toLocaleString() : '0' }}
+                </button>
+              </template>
+              <!-- WITHDRAW -->
+              <template v-else>
+                <div class="wm-bal-row">Balance: <strong>UGX {{ currentUser?.balance.toLocaleString() }}</strong></div>
+                <div class="fg"><label>Amount (UGX)</label><input v-model.number="withdrawAmount" class="pi" type="number" placeholder="Min 1,000" :max="currentUser?.balance"/></div>
+                <div class="wm-quick">
+                  <button v-for="a in [5000,10000,20000,50000]" :key="a" class="wm-qa" @click="withdrawAmount=a">{{ a>=1000?(a/1000)+'K':a }}</button>
+                </div>
+                <div class="fg">
+                  <label>Method</label>
+                  <div class="wm-methods">
+                    <button v-for="m in paymentMethods" :key="m.id" class="wm-mth" :class="{active:selectedWithdraw===m.id}" @click="selectedWithdraw=m.id">{{ m.name }}</button>
+                  </div>
+                </div>
+                <div class="fg"><label>Phone / Account</label><input v-model="withdrawPhone" class="pi" type="tel" placeholder="07XXXXXXXX"/></div>
+                <button class="wm-submit wdr" @click="handleWithdraw" :disabled="!withdrawAmount||withdrawAmount<1000||withdrawAmount>(currentUser?.balance??0)">
+                  Withdraw UGX {{ withdrawAmount ? withdrawAmount.toLocaleString() : '0' }}
+                </button>
+              </template>
+              <div v-if="walletMsg" class="pmsg" :class="walletMsgType">{{ walletMsg }}</div>
             </div>
           </div>
+        </div>
+      </transition>
+    </teleport>
 
-          <div class="tm-body">
-            <!-- Selections -->
-            <div class="tm-section-title">Selections</div>
-            <div class="tm-selections">
-              <div v-for="(sel, i) in selectedTicket.selections" :key="sel.key" class="tms-row">
-                <div class="tms-match">
-                  <div class="tms-match-name">{{ sel.matchName }}</div>
-                  <div class="tms-market">{{ sel.market }}</div>
+    <!-- ═══ BET TICKET MODAL ═══ -->
+    <transition name="modal-fade">
+      <div v-if="selectedTicket" class="tm-backdrop" @click.self="selectedTicket=null">
+        <div class="tm-modal">
+          <!-- Header bar -->
+          <div class="tm-hdr">
+            <div class="tm-hdr-l">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M2 20h.01M7 20v-4"/><path d="M12 20V10"/><path d="M17 20V4"/><path d="M22 20v-8"/></svg>
+              {{ betTypeLabel(selectedTicket) }} | COMBO {{ selectedTicket.selections.length }} EVENTS
+            </div>
+            <button class="tm-x" @click="selectedTicket=null">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <!-- Body: two columns -->
+          <div class="tm-cols">
+            <!-- Left: match list -->
+            <div class="tm-left">
+              <div v-for="(sel, i) in selectedTicket.selections" :key="sel.key" class="tmm-row">
+                <div class="tmm-meta">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="10" height="10"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {{ fmtDateShort(selectedTicket.timestamp) }}
                 </div>
-                <div class="tms-right">
-                  <div class="tms-label">{{ sel.label }}</div>
-                  <div class="tms-odds">{{ sel.odds }}</div>
+                <div class="tmm-teams">{{ formatMatchName(sel.matchName) }}</div>
+                <div class="tmm-pick-row">
+                  <span class="tmm-pick">{{ sel.market }} : <strong>{{ sel.label }}</strong></span>
+                  <span class="tmm-odds">{{ sel.odds }}</span>
                 </div>
-                <div class="tms-status">
-                  <span class="sel-status-dot" :class="selectedTicket.selectionResults[i]?.status ?? 'pending'"></span>
-                  <span class="sel-status-txt" :class="selectedTicket.selectionResults[i]?.status ?? 'pending'">
-                    {{ (selectedTicket.selectionResults[i]?.status ?? 'pending').toUpperCase() }}
-                  </span>
+                <div class="tmm-sel-st" :class="selectedTicket.selectionResults[i]?.status??'pending'">
+                  {{ statusLabel(selectedTicket.selectionResults[i]?.status??'pending') }}
                 </div>
               </div>
             </div>
-
-            <!-- Financials -->
-            <div class="tm-financials">
-              <div class="tmf-row"><span>Type</span><span>{{ selectedTicket.type.toUpperCase() }}</span></div>
-              <div class="tmf-row"><span>Combined Odds</span><span class="tmf-odds">{{ selectedTicket.combinedOdds.toFixed(2) }}</span></div>
-              <div class="tmf-row"><span>Stake</span><span>UGX {{ selectedTicket.stake.toLocaleString() }}</span></div>
-              <div v-if="selectedTicket.bonusPct > 0" class="tmf-row bonus"><span>Bonus Applied</span><span class="green">+{{ selectedTicket.bonusPct }}%</span></div>
-              <div class="tmf-row total"><span>Potential Win</span><span class="green big">UGX {{ selectedTicket.potentialReturn.toLocaleString() }}</span></div>
-            </div>
-
-            <!-- Actions -->
-            <div class="tm-actions">
-              <button v-if="selectedTicket.status === 'pending'" class="tma-btn cashout" @click="showCashout = !showCashout">
-                💵 Cashout
-              </button>
-              <button class="tma-btn share" @click="shareTicket">
-                📤 Share
-              </button>
-              <button class="tma-btn reuse" @click="reuseBet(selectedTicket)">
-                🔁 Reuse Bet
-              </button>
-            </div>
-
-            <!-- Cashout panel -->
-            <transition name="slide-down">
-              <div v-if="showCashout && selectedTicket.status === 'pending'" class="cashout-panel">
-                <div class="cp-title">Early Cashout</div>
-                <div class="cp-amount">UGX {{ Math.round(selectedTicket.stake * 0.85).toLocaleString() }}</div>
-                <div class="cp-note">Secure {{ Math.round((selectedTicket.stake * 0.85 / selectedTicket.potentialReturn) * 100) }}% of your potential win now</div>
-                <button class="cp-confirm" @click="confirmCashout">Confirm Cashout</button>
+            <!-- Right: info panel -->
+            <div class="tm-right">
+              <div class="tm-stub">
+                <svg viewBox="0 0 64 48" fill="none" width="56" height="42">
+                  <rect x="1" y="1" width="62" height="46" rx="4" fill="#1a1d2e" stroke="#2e3355"/>
+                  <line x1="18" y1="1" x2="18" y2="47" stroke="#2e3355" stroke-dasharray="4 3"/>
+                  <circle cx="9" cy="24" r="4" fill="#0f1120"/>
+                  <line x1="22" y1="12" x2="58" y2="12" stroke="#3a4260"/>
+                  <line x1="22" y1="20" x2="58" y2="20" stroke="#3a4260"/>
+                  <line x1="22" y1="28" x2="58" y2="28" stroke="#3a4260"/>
+                  <line x1="22" y1="36" x2="46" y2="36" stroke="#3a4260"/>
+                  <rect x="4" y="10" width="8" height="4" rx="1" fill="#e84c6b" opacity="0.7"/>
+                  <rect x="4" y="18" width="8" height="4" rx="1" fill="#e84c6b" opacity="0.4"/>
+                  <rect x="4" y="26" width="8" height="4" rx="1" fill="#e84c6b" opacity="0.2"/>
+                </svg>
               </div>
-            </transition>
+              <div class="tm-status-row">
+                <span class="tm-st-lbl">STATUS:</span>
+                <span class="tm-st-val" :class="selectedTicket.status">{{ statusLabel(selectedTicket.status).toUpperCase() }}</span>
+              </div>
+              <div class="tm-info">
+                <div class="tmf"><span>TOTAL ODDS</span><span class="tmf-v odds">{{ selectedTicket.combinedOdds.toFixed(2) }}</span></div>
+                <div class="tmf"><span>STAKE</span><span class="tmf-v">{{ selectedTicket.stake.toLocaleString() }} UGX</span></div>
+                <div v-if="selectedTicket.bonusPct>0" class="tmf bonus"><span>BONUS</span><span class="tmf-v green">+{{ selectedTicket.bonusPct }}%</span></div>
+                <div class="tmf total"><span>POSSIBLE WIN</span><span class="tmf-v green">{{ selectedTicket.potentialReturn.toLocaleString() }} UGX</span></div>
+              </div>
+              <div class="tm-acts">
+                <button v-if="selectedTicket.status==='pending'" class="tma cashout" @click="showCashout=!showCashout">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  Cashout
+                </button>
+                <button class="tma share" @click="shareTicket">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  Share
+                </button>
+                <button class="tma reuse" @click="reuseBet(selectedTicket)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.29"/></svg>
+                  Reuse
+                </button>
+              </div>
+              <transition name="slide-down">
+                <div v-if="showCashout&&selectedTicket.status==='pending'" class="cp">
+                  <div class="cp-lbl">Early Cashout Value</div>
+                  <div class="cp-amt">UGX {{ Math.round(selectedTicket.stake * 0.85).toLocaleString() }}</div>
+                  <div class="cp-note">{{ Math.round((selectedTicket.stake * 0.85 / selectedTicket.potentialReturn)*100) }}% of potential win</div>
+                  <button class="cp-btn" @click="confirmCashout">Confirm Cashout</button>
+                </div>
+              </transition>
+            </div>
           </div>
         </div>
       </div>
@@ -395,27 +380,27 @@ import { useBets, type PlacedBet } from '@/composables/useBets'
 import { useBetSlip } from '@/composables/useBetSlip'
 
 const router = useRouter()
-const { currentUser, addToBalance, logout } = useAuthModal()
-const { bets, addBet } = useBets()
+const { currentUser, addToBalance } = useAuthModal()
+const { bets, addBet: saveBet } = useBets()
 const { addBet: addToBetSlip } = useBetSlip()
 
 if (!currentUser.value) router.push('/')
 
 const activeTab = ref('overview')
-const walletTab = ref('deposit')
 const balVis = ref(true)
 const betFilter = ref('All')
 const txFilter = ref('All')
 const selectedTicket = ref<PlacedBet | null>(null)
 const showCashout = ref(false)
+const walletModal = ref<'deposit' | 'withdraw' | null>(null)
 
 const tabs = [
-  { id: 'overview',      icon: '🏠', label: 'Overview' },
-  { id: 'wallet',        icon: '💰', label: 'Wallet' },
-  { id: 'bets',          icon: '🎫', label: 'My Bets' },
-  { id: 'transactions',  icon: '📋', label: 'Transactions' },
-  { id: 'account',       icon: '👤', label: 'Account' },
-  { id: 'settings',      icon: '⚙️', label: 'Settings' },
+  { id: 'overview',     label: 'Overview' },
+  { id: 'wallet',       label: 'Wallet' },
+  { id: 'bets',         label: 'My Bets' },
+  { id: 'transactions', label: 'Transactions' },
+  { id: 'account',      label: 'Account' },
+  { id: 'settings',     label: 'Settings' },
 ]
 
 const avatarLetter = computed(() => currentUser.value?.name.charAt(0).toUpperCase() ?? '?')
@@ -426,6 +411,23 @@ const winRatePct = computed(() => {
   return Math.round((bets.value.filter(b => b.status === 'won').length / settled.length) * 100)
 })
 
+function statusLabel(s: string) {
+  if (s === 'pending') return 'PREPARING'
+  if (s === 'won') return 'WON'
+  if (s === 'lost') return 'LOST'
+  return s.toUpperCase()
+}
+
+function betTypeLabel(b: PlacedBet) {
+  if (b.type === 'single') return 'SINGLE'
+  if (b.type === 'system') return 'SYSTEM'
+  return 'PREMATCH'
+}
+
+function formatMatchName(name: string) {
+  return name.toUpperCase().replace(/ VS /g, ' - ').replace(/ vs /g, ' - ')
+}
+
 // ── WALLET ──
 const depositAmount = ref<number | null>(null)
 const depositPhone = ref('')
@@ -433,36 +435,41 @@ const cardNumber = ref('')
 const withdrawAmount = ref<number | null>(null)
 const withdrawPhone = ref('')
 const walletMsg = ref('')
-const walletMsgType = ref('success')
+const walletMsgType = ref('ok')
 const selectedPayment = ref('mtn')
 const selectedWithdraw = ref('mtn')
 
 const paymentMethods = [
-  { id: 'mtn', name: 'MTN Money', icon: '📱' },
-  { id: 'airtel', name: 'Airtel Money', icon: '📲' },
-  { id: 'card', name: 'Card', icon: '💳' },
+  { id: 'mtn', name: 'MTN Money' },
+  { id: 'airtel', name: 'Airtel Money' },
+  { id: 'card', name: 'Card' },
 ]
+
+function openWalletModal(type: 'deposit' | 'withdraw') {
+  walletModal.value = type
+  walletMsg.value = ''
+}
 
 function handleDeposit() {
   if (!depositAmount.value || depositAmount.value < 1000) return
   addToBalance(depositAmount.value)
-  walletMsg.value = `✅ UGX ${depositAmount.value.toLocaleString()} deposited successfully!`
-  walletMsgType.value = 'success'
-  transactions.unshift({ id: Date.now(), type: 'deposit', icon: '💰', name: 'Deposit via ' + paymentMethods.find(p=>p.id===selectedPayment.value)?.name, amount: depositAmount.value, positive: true, date: new Date() })
+  walletMsg.value = `UGX ${depositAmount.value.toLocaleString()} deposited successfully!`
+  walletMsgType.value = 'ok'
+  transactions.unshift({ id: Date.now(), type: 'deposit', name: 'Deposit via ' + paymentMethods.find(p => p.id === selectedPayment.value)?.name, amount: depositAmount.value, positive: true, date: new Date() })
   depositAmount.value = null
   depositPhone.value = ''
-  setTimeout(() => { walletMsg.value = '' }, 4000)
+  setTimeout(() => { walletMsg.value = ''; walletModal.value = null }, 2500)
 }
 
 function handleWithdraw() {
   if (!withdrawAmount.value || withdrawAmount.value < 1000 || withdrawAmount.value > (currentUser.value?.balance ?? 0)) return
   addToBalance(-withdrawAmount.value)
-  walletMsg.value = `✅ UGX ${withdrawAmount.value.toLocaleString()} withdrawal requested!`
-  walletMsgType.value = 'success'
-  transactions.unshift({ id: Date.now(), type: 'withdraw', icon: '💸', name: 'Withdrawal to ' + paymentMethods.find(p=>p.id===selectedWithdraw.value)?.name, amount: withdrawAmount.value, positive: false, date: new Date() })
+  walletMsg.value = `UGX ${withdrawAmount.value.toLocaleString()} withdrawal requested!`
+  walletMsgType.value = 'ok'
+  transactions.unshift({ id: Date.now(), type: 'withdraw', name: 'Withdrawal via ' + paymentMethods.find(p => p.id === selectedWithdraw.value)?.name, amount: withdrawAmount.value, positive: false, date: new Date() })
   withdrawAmount.value = null
   withdrawPhone.value = ''
-  setTimeout(() => { walletMsg.value = '' }, 4000)
+  setTimeout(() => { walletMsg.value = ''; walletModal.value = null }, 2500)
 }
 
 // ── MY BETS ──
@@ -479,13 +486,11 @@ function openTicket(b: PlacedBet) {
 }
 
 function shareTicket() {
-  const text = `BetWin Ticket #${selectedTicket.value?.id} — Stake: UGX ${selectedTicket.value?.stake.toLocaleString()} | Potential Win: UGX ${selectedTicket.value?.potentialReturn.toLocaleString()}`
-  if (navigator.share) {
-    navigator.share({ title: 'BetWin Ticket', text })
-  } else {
-    navigator.clipboard?.writeText(text)
-    alert('Ticket details copied to clipboard!')
-  }
+  const t = selectedTicket.value
+  if (!t) return
+  const text = `BetWin Ticket #${t.id} — Stake: UGX ${t.stake.toLocaleString()} | Possible Win: UGX ${t.potentialReturn.toLocaleString()}`
+  if (navigator.share) navigator.share({ title: 'BetWin Ticket', text })
+  else { navigator.clipboard?.writeText(text); alert('Ticket copied to clipboard!') }
 }
 
 function reuseBet(bet: PlacedBet) {
@@ -498,29 +503,28 @@ function confirmCashout() {
   if (!selectedTicket.value) return
   const cashoutAmt = Math.round(selectedTicket.value.stake * 0.85)
   addToBalance(cashoutAmt)
-  transactions.unshift({ id: Date.now(), type: 'cashout', icon: '💵', name: `Cashout Ticket #${selectedTicket.value.id}`, amount: cashoutAmt, positive: true, date: new Date() })
+  transactions.unshift({ id: Date.now(), type: 'cashout', name: `Cashout — Ticket #${selectedTicket.value.id}`, amount: cashoutAmt, positive: true, date: new Date() })
   selectedTicket.value.status = 'lost'
   showCashout.value = false
   selectedTicket.value = null
 }
 
 // ── TRANSACTIONS ──
-interface Tx { id: number; type: string; icon: string; name: string; amount: number; positive: boolean; date: Date }
+interface Tx { id: number; type: string; name: string; amount: number; positive: boolean; date: Date }
 const transactions = reactive<Tx[]>([
-  { id: 1, type: 'deposit', icon: '💰', name: 'Initial Deposit via MTN Money', amount: 250000, positive: true, date: new Date(Date.now() - 3 * 24 * 3600000) },
-  { id: 2, type: 'bet', icon: '🎫', name: 'Bet Placed — Ticket #201', amount: 20000, positive: false, date: new Date(Date.now() - 48 * 3600000) },
-  { id: 3, type: 'bet', icon: '🎫', name: 'Bet Placed — Ticket #287', amount: 10000, positive: false, date: new Date(Date.now() - 26 * 3600000) },
-  { id: 4, type: 'win', icon: '🏆', name: 'Win Payout — Ticket #287', amount: 34500, positive: true, date: new Date(Date.now() - 24 * 3600000) },
-  { id: 5, type: 'bet', icon: '🎫', name: 'Bet Placed — Ticket #332', amount: 5000, positive: false, date: new Date(Date.now() - 2 * 3600000) },
+  { id: 1, type: 'deposit', name: 'Initial Deposit via MTN Money', amount: 250000, positive: true, date: new Date(Date.now() - 3 * 24 * 3600000) },
+  { id: 2, type: 'bet', name: 'Bet Placed — Ticket #201', amount: 20000, positive: false, date: new Date(Date.now() - 48 * 3600000) },
+  { id: 3, type: 'bet', name: 'Bet Placed — Ticket #287', amount: 10000, positive: false, date: new Date(Date.now() - 26 * 3600000) },
+  { id: 4, type: 'win', name: 'Win Payout — Ticket #287', amount: 34500, positive: true, date: new Date(Date.now() - 24 * 3600000) },
+  { id: 5, type: 'bet', name: 'Bet Placed — Ticket #332', amount: 5000, positive: false, date: new Date(Date.now() - 2 * 3600000) },
 ])
 
 const txFilters = ['All', 'Deposits', 'Withdrawals', 'Bets']
 const filteredTx = computed(() => {
   if (txFilter.value === 'All') return transactions
   if (txFilter.value === 'Deposits') return transactions.filter(t => t.type === 'deposit')
-  if (txFilter.value === 'Withdrawals') return transactions.filter(t => t.type === 'withdraw')
-  if (txFilter.value === 'Bets') return transactions.filter(t => t.type === 'bet' || t.type === 'win' || t.type === 'cashout')
-  return transactions
+  if (txFilter.value === 'Withdrawals') return transactions.filter(t => t.type === 'withdraw' || t.type === 'cashout')
+  return transactions.filter(t => t.type === 'bet' || t.type === 'win')
 })
 
 // ── ACCOUNT ──
@@ -533,16 +537,16 @@ const accMsg2 = ref('')
 
 function saveAccount() {
   if (currentUser.value) currentUser.value.name = accName.value
-  accMsg.value = '✅ Profile updated successfully!'
+  accMsg.value = 'Profile updated successfully!'
   setTimeout(() => { accMsg.value = '' }, 3000)
 }
 
 // ── SETTINGS ──
 const notifications = reactive([
-  { id: 'email', icon: '📧', label: 'Email Notifications', enabled: true },
-  { id: 'sms', icon: '📱', label: 'SMS Notifications', enabled: true },
-  { id: 'push', icon: '🔔', label: 'Push Notifications', enabled: false },
-  { id: 'promo', icon: '🎁', label: 'Promotional Offers', enabled: true },
+  { id: 'email', label: 'Email Notifications', enabled: true },
+  { id: 'sms', label: 'SMS Notifications', enabled: true },
+  { id: 'push', label: 'Push Notifications', enabled: false },
+  { id: 'promo', label: 'Promotional Offers', enabled: true },
 ])
 const oddsFormat = ref('Decimal')
 const dailyLimit = ref<number | null>(null)
@@ -550,406 +554,271 @@ const dailyLimit = ref<number | null>(null)
 function fmtDate(d: Date) {
   return new Intl.DateTimeFormat('en-UG', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d))
 }
+
+function fmtDateShort(d: Date) {
+  return new Intl.DateTimeFormat('en-UG', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(d))
+}
 </script>
 
 <style scoped>
-.profile-app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #0f1120;
-  overflow: hidden;
-}
-.profile-layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+/* ── LAYOUT ── */
+.profile-app { display:flex; flex-direction:column; height:100vh; background:#0f1120; overflow:hidden; }
+.profile-layout { display:flex; flex:1; overflow:hidden; }
 
 /* ── SIDEBAR ── */
 .profile-sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: #141624;
-  border-right: 1px solid #1e2235;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 8px;
-  gap: 4px;
-  overflow-y: auto;
+  width: 180px; min-width:180px; background:#141624; border-right:1px solid #1e2235;
+  display:flex; flex-direction:column; padding:10px 6px; gap:3px; overflow-y:auto;
 }
-.ps-user-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 10px;
-  background: #1a1d2e;
-  border-radius: 10px;
-  margin-bottom: 8px;
+.ps-user {
+  display:flex; align-items:center; gap:8px; padding:8px; background:#1a1d2e;
+  border-radius:8px; margin-bottom:6px;
 }
-.ps-avatar {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: linear-gradient(135deg, #e84c6b, #a0284a);
-  color: #fff; font-size: 18px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+.ps-av {
+  width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg,#e84c6b,#a0284a);
+  color:#fff; font-size:14px; font-weight:900;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
-.ps-name { font-size: 12px; font-weight: 700; color: #e2e8f0; }
-.ps-balance { font-size: 11px; color: #4ade80; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.ps-eye { background: none; border: none; color: #7a84a0; cursor: pointer; padding: 0; display: flex; }
-.eye-svg { width: 12px; height: 12px; }
-.ps-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.ps-name { font-size:11px; font-weight:700; color:#e2e8f0; }
+.ps-bal { font-size:10px; color:#4ade80; font-weight:600; display:flex; align-items:center; gap:3px; }
+.ps-bal-hidden { color:#5a6080; }
+.ps-eye { background:none; border:none; color:#7a84a0; cursor:pointer; padding:0; display:flex; }
+.ps-eye svg { width:11px; height:11px; }
+.ps-nav { display:flex; flex-direction:column; gap:1px; flex:1; }
 .psnav-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: none; border-radius: 8px;
-  color: #7a84a0; font-size: 12px; font-weight: 600;
-  padding: 9px 12px; cursor: pointer; text-align: left;
-  transition: background 0.15s, color 0.15s;
+  display:flex; align-items:center; gap:7px; background:none; border:none;
+  border-radius:6px; color:#7a84a0; font-size:11px; font-weight:600;
+  padding:7px 9px; cursor:pointer; text-align:left; transition:all 0.12s;
 }
-.psnav-btn:hover { background: #1a1d2e; color: #c8cfe0; }
-.psnav-btn.active { background: linear-gradient(90deg, rgba(232,76,107,0.15), transparent); color: #e84c6b; border-left: 3px solid #e84c6b; }
-.psnav-icon { font-size: 14px; }
-.ps-back-btn {
-  background: none; border: 1px solid #2e3355; border-radius: 7px;
-  color: #7a84a0; font-size: 11px; font-weight: 600; padding: 8px;
-  cursor: pointer; margin-top: 8px; transition: all 0.15s;
+.psnav-btn svg { width:13px; height:13px; flex-shrink:0; }
+.psnav-btn:hover { background:#1a1d2e; color:#c8cfe0; }
+.psnav-btn.active { background:linear-gradient(90deg,rgba(232,76,107,0.12),transparent); color:#e84c6b; border-left:2px solid #e84c6b; }
+.ps-back {
+  background:none; border:1px solid #2e3355; border-radius:6px;
+  color:#7a84a0; font-size:10px; font-weight:600; padding:6px 8px;
+  cursor:pointer; margin-top:6px; display:flex; align-items:center; gap:5px;
+  transition:all 0.12s;
 }
-.ps-back-btn:hover { border-color: #e84c6b; color: #e84c6b; }
+.ps-back svg { width:12px; height:12px; }
+.ps-back:hover { border-color:#e84c6b; color:#e84c6b; }
 
-/* ── MAIN CONTENT ── */
-.profile-main {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 24px;
-  background: #0f1120;
-}
-.tab-section { max-width: 720px; margin: 0 auto; }
-.section-title {
-  font-size: 20px; font-weight: 900; color: #fff;
-  margin-bottom: 18px; letter-spacing: -0.3px;
-}
-.section-subtitle {
-  font-size: 13px; font-weight: 700; color: #7a84a0;
-  margin: 20px 0 10px; letter-spacing: 0.3px; text-transform: uppercase;
-}
+/* ── MAIN ── */
+.profile-main { flex:1; overflow-y:auto; padding:14px 18px; background:#0f1120; }
+.tab-sec { max-width:680px; margin:0 auto; }
+.sec-title { font-size:15px; font-weight:900; color:#fff; margin-bottom:12px; letter-spacing:-0.2px; }
+.sub-title { font-size:10px; font-weight:700; color:#5a6080; margin:14px 0 7px; text-transform:uppercase; letter-spacing:0.5px; }
 
 /* ── OVERVIEW ── */
-.overview-welcome {
-  display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, #1a2040, #141624);
-  border: 1px solid #252840; border-radius: 12px;
-  padding: 16px; margin-bottom: 18px;
+.ov-hero {
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,#1a2040,#141624); border:1px solid #252840;
+  border-radius:10px; padding:10px 12px; margin-bottom:12px;
 }
-.ow-avatar {
-  width: 52px; height: 52px; border-radius: 50%;
-  background: linear-gradient(135deg, #e84c6b, #a0284a);
-  color: #fff; font-size: 22px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+.ov-av {
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,#e84c6b,#a0284a);
+  color:#fff; font-size:15px; font-weight:900;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
-.ow-name { font-size: 16px; font-weight: 800; color: #fff; }
-.ow-since { font-size: 11px; color: #7a84a0; margin-top: 2px; }
-.stats-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px;
-}
-.stat-card {
-  background: #141624; border: 1px solid #1e2235; border-radius: 10px;
-  padding: 14px 12px; text-align: center;
-}
-.stat-card.won { border-color: rgba(74,222,128,0.2); background: linear-gradient(135deg, #0d2218, #141624); }
-.stat-card.lost { border-color: rgba(232,76,107,0.2); background: linear-gradient(135deg, #2a0d15, #141624); }
-.stat-card.pending { border-color: rgba(251,191,36,0.2); background: linear-gradient(135deg, #2a2010, #141624); }
-.sc-val { font-size: 26px; font-weight: 900; color: #fff; }
-.stat-card.won .sc-val { color: #4ade80; }
-.stat-card.lost .sc-val { color: #e84c6b; }
-.stat-card.pending .sc-val { color: #fbbf24; }
-.sc-label { font-size: 10px; color: #5a6080; font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
-.ov-winrate {
-  display: flex; align-items: center; gap: 10px;
-  background: #141624; border: 1px solid #1e2235; border-radius: 10px;
-  padding: 12px 14px; margin-bottom: 18px;
-}
-.wrl { font-size: 11px; color: #7a84a0; font-weight: 700; white-space: nowrap; }
-.wr-bar-wrap { flex: 1; height: 6px; background: #1e2235; border-radius: 3px; overflow: hidden; }
-.wr-bar { height: 100%; background: linear-gradient(90deg, #22c55e, #4ade80); border-radius: 3px; transition: width 0.5s ease; }
-.wr-pct { font-size: 13px; font-weight: 800; color: #4ade80; white-space: nowrap; }
-.recent-bets { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-.rb-card {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #141624; border: 1px solid #1e2235; border-radius: 8px;
-  padding: 10px 14px; cursor: pointer; transition: border-color 0.15s;
-}
-.rb-card:hover { border-color: #e84c6b; }
-.rb-id { font-size: 12px; font-weight: 700; color: #e2e8f0; }
-.rb-meta { font-size: 10px; color: #5a6080; margin-top: 2px; }
-.quick-actions { display: flex; gap: 10px; margin-top: 4px; }
-.qa-btn {
-  flex: 1; padding: 10px; border: none; border-radius: 8px;
-  font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
-}
-.qa-btn:hover { opacity: 0.85; }
-.qa-btn.deposit { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; }
-.qa-btn.withdraw { background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #fff; }
-.qa-btn.bets { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; }
+.ov-name { font-size:13px; font-weight:800; color:#fff; }
+.ov-since { font-size:10px; color:#5a6080; margin-top:1px; }
+.ov-bal-pill { margin-left:auto; font-size:12px; font-weight:800; color:#4ade80; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:20px; padding:4px 10px; white-space:nowrap; }
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
+.sc { background:#141624; border:1px solid #1e2235; border-radius:8px; padding:8px 6px; text-align:center; }
+.sc.won { border-color:rgba(74,222,128,0.2); }
+.sc.lost { border-color:rgba(232,76,107,0.2); }
+.sc.pend { border-color:rgba(251,191,36,0.2); }
+.sc-v { font-size:20px; font-weight:900; color:#fff; }
+.sc.won .sc-v { color:#4ade80; } .sc.lost .sc-v { color:#e84c6b; } .sc.pend .sc-v { color:#fbbf24; }
+.sc-l { font-size:9px; color:#5a6080; font-weight:600; margin-top:2px; text-transform:uppercase; letter-spacing:0.3px; }
+.ov-wr { display:flex; align-items:center; gap:8px; background:#141624; border:1px solid #1e2235; border-radius:8px; padding:8px 10px; margin-bottom:10px; }
+.wr-lbl { font-size:10px; color:#7a84a0; font-weight:700; white-space:nowrap; }
+.wr-bar { flex:1; height:5px; background:#1e2235; border-radius:3px; overflow:hidden; }
+.wr-fill { height:100%; background:linear-gradient(90deg,#22c55e,#4ade80); border-radius:3px; }
+.wr-v { font-size:11px; font-weight:800; color:#4ade80; }
+.recent-list { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+.rb-row { display:flex; align-items:center; justify-content:space-between; background:#141624; border:1px solid #1e2235; border-radius:6px; padding:7px 10px; cursor:pointer; transition:border-color 0.12s; }
+.rb-row:hover { border-color:#e84c6b; }
+.rb-l { display:flex; flex-direction:column; gap:1px; }
+.rb-id { font-size:11px; font-weight:700; color:#e2e8f0; }
+.rb-meta { font-size:9px; color:#5a6080; }
+.ov-actions { display:flex; gap:6px; }
+.ov-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:5px; padding:8px; border:none; border-radius:7px; font-size:11px; font-weight:700; cursor:pointer; transition:opacity 0.12s; }
+.ov-btn svg { width:13px; height:13px; flex-shrink:0; }
+.ov-btn:hover { opacity:0.85; }
+.ov-btn.dep { background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; }
+.ov-btn.wdr { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
+.ov-btn.bets { background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; }
 
 /* ── WALLET ── */
-.wallet-balance-card {
-  background: linear-gradient(135deg, #1a2d4a, #0d1a2e);
-  border: 1px solid #1e3a5e; border-radius: 14px;
-  padding: 20px; margin-bottom: 16px; text-align: center;
-}
-.wbc-label { font-size: 11px; color: #9ba3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-.wbc-amount { font-size: 28px; font-weight: 900; color: #4ade80; margin: 8px 0; }
-.wbc-actions { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
-.wbc-tab-btn {
-  padding: 7px 20px; border-radius: 6px; border: 1px solid #2e3a5e;
-  background: none; color: #7a84a0; font-size: 12px; font-weight: 700;
-  cursor: pointer; transition: all 0.15s;
-}
-.wbc-tab-btn.active { background: #e84c6b; border-color: #e84c6b; color: #fff; }
-.wallet-form-card {
-  background: #141624; border: 1px solid #1e2235; border-radius: 12px; padding: 18px;
-}
-.wf-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 14px; }
-.quick-amounts { display: flex; gap: 6px; margin: 8px 0 14px; flex-wrap: wrap; }
-.qa-amount {
-  padding: 5px 12px; background: #1e2235; border: 1px solid #2e3355;
-  border-radius: 5px; color: #c8cfe0; font-size: 11px; font-weight: 700;
-  cursor: pointer; transition: all 0.15s;
-}
-.qa-amount:hover { background: #e84c6b; border-color: #e84c6b; color: #fff; }
-.payment-methods { display: flex; gap: 8px; flex-wrap: wrap; }
-.pm-btn {
-  flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center;
-  gap: 4px; padding: 10px 8px; background: #1a1d2e; border: 1.5px solid #252840;
-  border-radius: 8px; cursor: pointer; transition: all 0.15s;
-}
-.pm-btn.active { border-color: #e84c6b; background: rgba(232,76,107,0.08); }
-.pm-icon { font-size: 20px; }
-.pm-name { font-size: 9px; font-weight: 700; color: #9ba3b8; }
-.pm-btn.active .pm-name { color: #e84c6b; }
-.deposit-btn { background: linear-gradient(135deg, #16a34a, #22c55e) !important; }
-.withdraw-btn { background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important; }
-.field-hint { font-size: 10px; color: #5a6080; margin-top: 4px; }
-.wallet-msg {
-  margin-top: 10px; padding: 9px 12px; border-radius: 7px;
-  font-size: 12px; font-weight: 600;
-}
-.wallet-msg.success { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
-.wallet-msg.error { background: rgba(232,76,107,0.1); color: #e84c6b; border: 1px solid rgba(232,76,107,0.2); }
+.wallet-hero { display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg,#1a2d4a,#0d1a2e); border:1px solid #1e3a5e; border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+.wh-lbl { font-size:10px; color:#9ba3b8; text-transform:uppercase; letter-spacing:0.4px; }
+.wh-amt { font-size:20px; font-weight:900; color:#4ade80; margin-top:3px; }
+.wh-btns { display:flex; gap:6px; }
+.wh-btn { display:flex; align-items:center; gap:5px; padding:7px 12px; border:none; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; transition:opacity 0.12s; }
+.wh-btn svg { width:13px; height:13px; }
+.wh-btn:hover { opacity:0.85; }
+.wh-btn.dep { background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; }
+.wh-btn.wdr { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
 
 /* ── MY BETS ── */
-.bet-filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-.bf-btn {
-  padding: 6px 14px; border-radius: 20px; border: 1px solid #2e3355;
-  background: none; color: #7a84a0; font-size: 11px; font-weight: 700;
-  cursor: pointer; transition: all 0.15s;
-}
-.bf-btn.active { background: #e84c6b; border-color: #e84c6b; color: #fff; }
-.bets-list { display: flex; flex-direction: column; gap: 10px; }
-.ticket-card {
-  background: #141624; border: 1px solid #1e2235; border-radius: 12px;
-  padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, transform 0.1s;
-  position: relative;
-}
-.ticket-card:hover { border-color: #e84c6b; transform: translateY(-1px); }
-.tc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-.tc-id { font-size: 13px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
-.ticket-icon { font-size: 14px; }
-.tc-picks { font-size: 10px; color: #5a6080; margin-bottom: 6px; }
-.tc-matches { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-.tc-match-pill {
-  background: #1a1d2e; border: 1px solid #252840; border-radius: 4px;
-  padding: 2px 7px; font-size: 9px; color: #9ba3b8;
-}
-.tc-match-more { font-size: 9px; color: #5a6080; padding: 2px 4px; }
-.tc-bottom { display: flex; justify-content: space-between; }
-.tc-stake, .tc-potential { display: flex; flex-direction: column; gap: 1px; }
-.tc-lbl { font-size: 9px; color: #5a6080; text-transform: uppercase; letter-spacing: 0.3px; }
-.tc-val { font-size: 12px; font-weight: 700; color: #e2e8f0; }
-.tc-val.green { color: #4ade80; }
-.tc-arrow { position: absolute; right: 16px; bottom: 14px; color: #3a4260; font-size: 20px; }
-.empty-state { text-align: center; color: #5a6080; padding: 40px; font-size: 13px; }
+.filters { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; }
+.fbtn { padding:4px 12px; border-radius:20px; border:1px solid #2e3355; background:none; color:#7a84a0; font-size:10px; font-weight:700; cursor:pointer; transition:all 0.12s; }
+.fbtn.active { background:#e84c6b; border-color:#e84c6b; color:#fff; }
+.bets-list { display:flex; flex-direction:column; gap:6px; }
+.tkt-card { display:flex; align-items:center; justify-content:space-between; background:#141624; border:1px solid #1e2235; border-radius:8px; padding:9px 12px; cursor:pointer; transition:border-color 0.12s, transform 0.1s; gap:8px; }
+.tkt-card:hover { border-color:#e84c6b; transform:translateY(-1px); }
+.tkt-l { flex:1; min-width:0; }
+.tkt-top { display:flex; align-items:center; gap:8px; margin-bottom:3px; }
+.tkt-id { font-size:12px; font-weight:800; color:#fff; }
+.tkt-type { font-size:9px; color:#5a6080; }
+.tkt-matches { font-size:10px; color:#9ba3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tkt-r { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+.tkt-pot { font-size:11px; font-weight:700; color:#4ade80; }
+.empty-msg { text-align:center; color:#5a6080; padding:30px; font-size:12px; }
 
 /* ── STATUS BADGES ── */
-.status-badge {
-  padding: 3px 8px; border-radius: 20px; font-size: 9px; font-weight: 800;
-  letter-spacing: 0.5px; text-transform: uppercase;
-}
-.status-badge.pending { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-.status-badge.won { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-.status-badge.lost { background: rgba(232,76,107,0.15); color: #e84c6b; border: 1px solid rgba(232,76,107,0.3); }
-.status-badge.lg { font-size: 11px; padding: 4px 12px; }
+.sbadge { padding:2px 7px; border-radius:20px; font-size:9px; font-weight:800; letter-spacing:0.4px; }
+.sbadge.pending { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
+.sbadge.won { background:rgba(74,222,128,0.12); color:#4ade80; border:1px solid rgba(74,222,128,0.25); }
+.sbadge.lost { background:rgba(232,76,107,0.12); color:#e84c6b; border:1px solid rgba(232,76,107,0.25); }
 
 /* ── TRANSACTIONS ── */
-.tx-list { display: flex; flex-direction: column; gap: 2px; }
-.tx-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border-radius: 8px;
-  transition: background 0.12s;
-}
-.tx-row:hover { background: #141624; }
-.tx-icon-wrap { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; background: #1a1d2e; }
-.tx-body { flex: 1; }
-.tx-name { font-size: 12px; font-weight: 600; color: #c8cfe0; }
-.tx-date { font-size: 10px; color: #5a6080; margin-top: 2px; }
-.tx-amount { font-size: 13px; font-weight: 800; }
-.tx-amount.positive { color: #4ade80; }
-.tx-amount.negative { color: #e84c6b; }
+.tx-list { display:flex; flex-direction:column; }
+.tx-row { display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid #141624; }
+.tx-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.tx-dot.pos { background:#4ade80; } .tx-dot.neg { background:#e84c6b; }
+.tx-body { flex:1; }
+.tx-name { font-size:11px; font-weight:600; color:#c8cfe0; }
+.tx-date { font-size:9px; color:#5a6080; margin-top:1px; }
+.tx-amt { font-size:11px; font-weight:800; }
+.tx-amt.pos { color:#4ade80; } .tx-amt.neg { color:#e84c6b; }
 
 /* ── ACCOUNT ── */
-.account-avatar-row {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+.acc-hero { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.acc-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#e84c6b,#a0284a); color:#fff; font-size:17px; font-weight:900; display:flex; align-items:center; justify-content:center; }
+.acc-name { font-size:14px; font-weight:800; color:#fff; }
+.acc-since { font-size:10px; color:#5a6080; margin-top:2px; }
+
+/* ── FORMS (shared) ── */
+.fc { background:#141624; border:1px solid #1e2235; border-radius:10px; padding:14px; }
+.fc-title { font-size:11px; font-weight:800; color:#fff; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.3px; }
+.fg { display:flex; flex-direction:column; gap:3px; margin-bottom:8px; }
+.fg label { font-size:9px; font-weight:600; color:#7a84a0; letter-spacing:0.3px; text-transform:uppercase; }
+.pi {
+  background:#181b2c; border:1.5px solid #252a42; border-radius:6px;
+  color:#c8cfe0; padding:7px 10px; font-size:12px; outline:none; width:100%;
+  box-sizing:border-box; transition:border-color 0.15s;
 }
-.acc-avatar {
-  width: 60px; height: 60px; border-radius: 50%;
-  background: linear-gradient(135deg, #e84c6b, #a0284a);
-  color: #fff; font-size: 26px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-}
-.acc-name-big { font-size: 18px; font-weight: 800; color: #fff; }
-.acc-member { font-size: 11px; color: #5a6080; margin-top: 3px; }
-.form-card {
-  background: #141624; border: 1px solid #1e2235; border-radius: 12px; padding: 18px;
-}
-.form-card-title { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 14px; }
+.pi:focus { border-color:#e84c6b; }
+.pi::placeholder { color:#3a4260; }
+.ps-btn { background:linear-gradient(135deg,#e84c6b,#c93559); border:none; color:#fff; font-size:11px; font-weight:800; padding:9px; border-radius:7px; cursor:pointer; width:100%; transition:opacity 0.12s; margin-top:2px; }
+.ps-btn:hover { opacity:0.9; }
+.ps-btn.danger { background:linear-gradient(135deg,#991b1b,#e84c6b); margin-top:8px; }
+.pmsg { margin-top:7px; padding:7px 10px; border-radius:6px; font-size:11px; font-weight:600; }
+.pmsg.ok { background:rgba(74,222,128,0.1); color:#4ade80; border:1px solid rgba(74,222,128,0.2); }
+.pmsg.err { background:rgba(232,76,107,0.1); color:#e84c6b; border:1px solid rgba(232,76,107,0.2); }
 
 /* ── SETTINGS ── */
-.setting-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0; border-bottom: 1px solid #1a1d2e;
-}
-.setting-row:last-child { border-bottom: none; }
-.sr-label { font-size: 12px; color: #c8cfe0; font-weight: 600; }
-.toggle-btn {
-  width: 38px; height: 20px; border-radius: 10px; border: none;
-  background: #252840; cursor: pointer; position: relative; transition: background 0.2s;
-}
-.toggle-btn.on { background: #22c55e; }
-.toggle-knob {
-  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
-  background: #fff; border-radius: 50%; transition: transform 0.2s;
-}
-.toggle-btn.on .toggle-knob { transform: translateX(18px); }
-.seg-control { display: flex; gap: 2px; background: #1a1d2e; border-radius: 6px; padding: 2px; }
-.seg-btn {
-  padding: 4px 10px; border: none; border-radius: 4px; background: none;
-  color: #7a84a0; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.15s;
-}
-.seg-btn.active { background: #252840; color: #fff; }
-.rg-warning {
-  display: flex; align-items: flex-start; gap: 10px;
-  background: rgba(232,76,107,0.07); border: 1px solid rgba(232,76,107,0.15);
-  border-radius: 8px; padding: 12px; margin-top: 12px;
-  font-size: 20px;
-}
-.rg-w-title { font-size: 12px; font-weight: 700; color: #e84c6b; }
-.rg-w-sub { font-size: 11px; color: #7a84a0; margin-top: 3px; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1a1d2e; }
+.setting-row:last-child { border-bottom:none; }
+.sr-lbl { font-size:11px; color:#c8cfe0; font-weight:600; }
+.tgl { width:34px; height:18px; border-radius:9px; border:none; background:#252840; cursor:pointer; position:relative; transition:background 0.2s; flex-shrink:0; }
+.tgl.on { background:#22c55e; }
+.tgl-k { position:absolute; top:2px; left:2px; width:14px; height:14px; background:#fff; border-radius:50%; transition:transform 0.2s; }
+.tgl.on .tgl-k { transform:translateX(16px); }
+.seg { display:flex; gap:1px; background:#1a1d2e; border-radius:5px; padding:2px; }
+.seg-b { padding:3px 8px; border:none; border-radius:3px; background:none; color:#7a84a0; font-size:9px; font-weight:700; cursor:pointer; transition:all 0.12s; }
+.seg-b.active { background:#252840; color:#fff; }
+.rg-warn { display:flex; align-items:flex-start; gap:8px; background:rgba(232,76,107,0.06); border:1px solid rgba(232,76,107,0.12); border-radius:7px; padding:10px; margin-top:10px; }
+.rg-title { font-size:11px; font-weight:700; color:#e84c6b; }
+.rg-sub { font-size:10px; color:#7a84a0; margin-top:2px; line-height:1.4; }
 
-/* ── SHARED FORM ── */
-.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-.form-group label { font-size: 10px; font-weight: 600; color: #8a94b0; letter-spacing: 0.3px; }
-.pf-input {
-  background: linear-gradient(135deg, #181b2c, #1e2238);
-  border: 1.5px solid #2a3050; border-radius: 9px; color: #e2e8f0;
-  padding: 10px 13px; font-size: 13px; outline: none; width: 100%;
-  box-sizing: border-box; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.pf-input:focus {
-  border-color: #e84c6b;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.15), 0 0 0 2px rgba(232,76,107,0.12);
-}
-.pf-submit {
-  background: linear-gradient(135deg, #e84c6b, #c93559); border: none; color: #fff;
-  font-size: 13px; font-weight: 800; padding: 12px; border-radius: 9px;
-  cursor: pointer; letter-spacing: 0.5px; width: 100%; transition: opacity 0.15s;
-}
-.pf-submit:hover { opacity: 0.9; }
-.pf-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+/* ── WALLET FLOAT MODAL ── */
+.wm-backdrop { position:fixed; inset:0; z-index:8000; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:16px; }
+.wm-card { background:#141624; border:1px solid #2e3355; border-radius:12px; width:100%; max-width:340px; box-shadow:0 16px 48px rgba(0,0,0,0.6); overflow:hidden; }
+.wm-hdr { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-bottom:1px solid #1e2235; background:#1a1d2e; }
+.wm-tabs { display:flex; gap:2px; background:#252840; border-radius:5px; padding:2px; }
+.wm-tabs button { padding:4px 14px; border:none; border-radius:4px; background:none; color:#7a84a0; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.12s; }
+.wm-tabs button.active { background:#e84c6b; color:#fff; }
+.wm-x { background:none; border:none; color:#7a84a0; cursor:pointer; padding:2px; display:flex; transition:color 0.12s; }
+.wm-x:hover { color:#e84c6b; }
+.wm-x svg { width:14px; height:14px; }
+.wm-body { padding:14px; }
+.wm-bal-row { font-size:11px; color:#9ba3b8; margin-bottom:10px; }
+.wm-bal-row strong { color:#4ade80; }
+.wm-quick { display:flex; gap:4px; margin:6px 0 10px; flex-wrap:wrap; }
+.wm-qa { padding:4px 10px; background:#1e2235; border:1px solid #2e3355; border-radius:4px; color:#c8cfe0; font-size:10px; font-weight:700; cursor:pointer; transition:all 0.12s; }
+.wm-qa:hover { background:#e84c6b; border-color:#e84c6b; color:#fff; }
+.wm-methods { display:flex; gap:4px; flex-wrap:wrap; }
+.wm-mth { flex:1; min-width:70px; padding:6px; background:#1a1d2e; border:1.5px solid #252840; border-radius:6px; color:#9ba3b8; font-size:10px; font-weight:700; cursor:pointer; transition:all 0.12s; text-align:center; }
+.wm-mth.active { border-color:#e84c6b; color:#e84c6b; background:rgba(232,76,107,0.06); }
+.wm-submit { width:100%; padding:9px; border:none; border-radius:7px; font-size:12px; font-weight:800; cursor:pointer; margin-top:10px; transition:opacity 0.12s; }
+.wm-submit:hover { opacity:0.9; }
+.wm-submit:disabled { opacity:0.35; cursor:not-allowed; }
+.wm-submit.dep { background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; }
+.wm-submit.wdr { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
+.wm-fade-enter-active,.wm-fade-leave-active { transition:all 0.2s; }
+.wm-fade-enter-from,.wm-fade-leave-to { opacity:0; }
+.wm-fade-enter-from .wm-card,.wm-fade-leave-to .wm-card { transform:scale(0.95) translateY(8px); }
 
 /* ── TICKET MODAL ── */
-.ticket-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.78);
-  z-index: 9000; display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px); padding: 16px;
-}
-.ticket-modal {
-  background: #141624; border: 1px solid #2e3355; border-radius: 16px;
-  width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
-}
-.tm-header {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 18px 18px 14px; border-bottom: 1px solid #1e2235;
-}
-.tm-id { font-size: 16px; font-weight: 900; color: #fff; }
-.tm-date { font-size: 10px; color: #5a6080; margin-top: 3px; }
-.tm-header-right { display: flex; align-items: center; gap: 10px; }
-.tm-close {
-  background: #252840; border: none; color: #9ba3b8;
-  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
-  font-size: 12px; display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, color 0.15s;
-}
-.tm-close:hover { background: #e84c6b; color: #fff; }
-.tm-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 16px; }
-.tm-section-title { font-size: 10px; font-weight: 700; color: #5a6080; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-.tm-selections { display: flex; flex-direction: column; gap: 8px; }
-.tms-row {
-  display: flex; align-items: center; gap: 10px;
-  background: #1a1d2e; border: 1px solid #252840; border-radius: 8px; padding: 10px 12px;
-}
-.tms-match { flex: 1; }
-.tms-match-name { font-size: 12px; font-weight: 700; color: #e2e8f0; }
-.tms-market { font-size: 9px; color: #5a6080; margin-top: 2px; }
-.tms-right { text-align: right; }
-.tms-label { font-size: 10px; color: #9ba3b8; }
-.tms-odds { font-size: 14px; font-weight: 900; color: #e84c6b; }
-.tms-status { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
-.sel-status-dot { width: 8px; height: 8px; border-radius: 50%; }
-.sel-status-dot.pending { background: #fbbf24; }
-.sel-status-dot.won { background: #4ade80; }
-.sel-status-dot.lost { background: #e84c6b; }
-.sel-status-txt { font-size: 8px; font-weight: 700; letter-spacing: 0.3px; }
-.sel-status-txt.pending { color: #fbbf24; }
-.sel-status-txt.won { color: #4ade80; }
-.sel-status-txt.lost { color: #e84c6b; }
-.tm-financials {
-  background: #1a1d2e; border: 1px solid #252840; border-radius: 10px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 7px;
-}
-.tmf-row { display: flex; justify-content: space-between; font-size: 12px; color: #7a84a0; }
-.tmf-row.bonus { color: #4ade80; }
-.tmf-row.total { font-weight: 700; color: #c8cfe0; font-size: 13px; padding-top: 7px; border-top: 1px solid #252840; }
-.tmf-odds { font-weight: 800; color: #e84c6b; }
-.green { color: #4ade80; }
-.big { font-size: 15px; font-weight: 900; }
-.tm-actions { display: flex; gap: 8px; }
-.tma-btn {
-  flex: 1; padding: 10px 6px; border: none; border-radius: 8px;
-  font-size: 11px; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
-}
-.tma-btn.cashout { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; }
-.tma-btn.share { background: #1e2235; color: #9ba3b8; border: 1px solid #2e3355; }
-.tma-btn.reuse { background: linear-gradient(135deg, #5b21b6, #7c3aed); color: #fff; }
-.tma-btn:hover { opacity: 0.85; }
-.cashout-panel {
-  background: linear-gradient(135deg, #0d2218, #12291e);
-  border: 1px solid #2a5a3a; border-radius: 10px; padding: 14px 16px; text-align: center;
-}
-.cp-title { font-size: 11px; color: #6dbf90; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
-.cp-amount { font-size: 24px; font-weight: 900; color: #4ade80; margin: 6px 0; }
-.cp-note { font-size: 11px; color: #5a8070; margin-bottom: 12px; }
-.cp-confirm {
-  background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff;
-  padding: 10px 24px; border-radius: 8px; font-size: 12px; font-weight: 800;
-  cursor: pointer; transition: opacity 0.15s;
-}
-.cp-confirm:hover { opacity: 0.85; }
+.tm-backdrop { position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.82); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; padding:12px; }
+.tm-modal { background:#141624; border:1px solid #1e2235; border-radius:12px; width:100%; max-width:640px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 24px 64px rgba(0,0,0,0.7); overflow:hidden; }
+.tm-hdr { background:linear-gradient(135deg,#c93030,#e84c30); display:flex; align-items:center; justify-content:space-between; padding:10px 14px; flex-shrink:0; }
+.tm-hdr-l { font-size:11px; font-weight:800; color:#fff; letter-spacing:0.3px; display:flex; align-items:center; gap:6px; }
+.tm-x { background:rgba(0,0,0,0.25); border:none; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.12s; flex-shrink:0; }
+.tm-x:hover { background:rgba(0,0,0,0.45); }
+.tm-x svg { width:11px; height:11px; }
+.tm-cols { display:flex; flex:1; overflow:hidden; }
+/* Left: match list */
+.tm-left { flex:1; overflow-y:auto; border-right:1px solid #1e2235; }
+.tmm-row { padding:10px 14px; border-bottom:1px solid #1e2235; }
+.tmm-row:last-child { border-bottom:none; }
+.tmm-meta { font-size:9px; color:#7a84a0; display:flex; align-items:center; gap:4px; margin-bottom:4px; }
+.tmm-teams { font-size:12px; font-weight:800; color:#e2e8f0; margin-bottom:3px; letter-spacing:0.2px; }
+.tmm-pick-row { display:flex; justify-content:space-between; align-items:center; }
+.tmm-pick { font-size:10px; color:#9ba3b8; }
+.tmm-pick strong { color:#e2e8f0; }
+.tmm-odds { font-size:13px; font-weight:900; color:#e84c6b; }
+.tmm-sel-st { font-size:9px; font-weight:700; margin-top:4px; letter-spacing:0.4px; }
+.tmm-sel-st.pending { color:#fbbf24; }
+.tmm-sel-st.won { color:#4ade80; }
+.tmm-sel-st.lost { color:#e84c6b; }
+/* Right: info panel */
+.tm-right { width:190px; flex-shrink:0; background:#1a1d2e; display:flex; flex-direction:column; padding:12px; overflow-y:auto; gap:10px; }
+.tm-stub { display:flex; justify-content:center; }
+.tm-status-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.tm-st-lbl { font-size:9px; color:#7a84a0; font-weight:700; letter-spacing:0.5px; }
+.tm-st-val { font-size:11px; font-weight:900; padding:3px 8px; border-radius:4px; letter-spacing:0.3px; }
+.tm-st-val.pending { background:rgba(251,191,36,0.15); color:#fbbf24; }
+.tm-st-val.won { background:rgba(74,222,128,0.15); color:#4ade80; }
+.tm-st-val.lost { background:rgba(232,76,107,0.15); color:#e84c6b; }
+.tm-info { display:flex; flex-direction:column; gap:0; border:1px solid #252840; border-radius:6px; overflow:hidden; }
+.tmf { display:flex; justify-content:space-between; align-items:center; padding:7px 8px; font-size:9px; color:#7a84a0; font-weight:700; border-bottom:1px solid #252840; letter-spacing:0.3px; }
+.tmf:last-child { border-bottom:none; }
+.tmf.total { background:rgba(74,222,128,0.05); }
+.tmf.bonus { background:rgba(74,222,128,0.03); }
+.tmf-v { font-size:11px; font-weight:800; color:#e2e8f0; text-align:right; }
+.tmf-v.odds { color:#e84c6b; }
+.tmf-v.green { color:#4ade80; }
+.tm-acts { display:flex; gap:4px; }
+.tma { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 4px; border:none; border-radius:6px; font-size:9px; font-weight:700; cursor:pointer; transition:opacity 0.12s; }
+.tma svg { width:13px; height:13px; }
+.tma:hover { opacity:0.85; }
+.tma.cashout { background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; }
+.tma.share { background:#252840; color:#9ba3b8; }
+.tma.reuse { background:linear-gradient(135deg,#5b21b6,#7c3aed); color:#fff; }
+.cp { background:linear-gradient(135deg,#0d2218,#12291e); border:1px solid #2a5a3a; border-radius:7px; padding:10px; text-align:center; }
+.cp-lbl { font-size:9px; color:#6dbf90; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+.cp-amt { font-size:18px; font-weight:900; color:#4ade80; margin:4px 0; }
+.cp-note { font-size:9px; color:#5a8070; margin-bottom:8px; }
+.cp-btn { background:linear-gradient(135deg,#16a34a,#22c55e); border:none; color:#fff; padding:7px 14px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer; width:100%; }
 
 /* ── TRANSITIONS ── */
-.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
-.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; transform: scale(0.96); }
-.slide-down-enter-active, .slide-down-leave-active { transition: all 0.25s ease; }
-.slide-down-enter-from, .slide-down-leave-to { opacity: 0; transform: translateY(-8px); }
+.modal-fade-enter-active,.modal-fade-leave-active { transition:opacity 0.2s; }
+.modal-fade-enter-from,.modal-fade-leave-to { opacity:0; }
+.slide-down-enter-active,.slide-down-leave-active { transition:all 0.2s ease; }
+.slide-down-enter-from,.slide-down-leave-to { opacity:0; transform:translateY(-6px); }
 </style>

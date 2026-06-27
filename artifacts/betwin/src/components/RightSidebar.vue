@@ -193,13 +193,18 @@
       <div v-if="betSuccess" class="bsm-backdrop" @click.self="betSuccess = false">
         <div class="bsm-card">
           <div class="bsm-glow"></div>
-          <div class="bsm-checkmark">✅</div>
+          <div class="bsm-checkmark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="36" height="36">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
           <div class="bsm-title">Bet Placed!</div>
           <div class="bsm-id-wrap">
-            <div class="bsm-id-label">BET TICKET ID</div>
+            <div class="bsm-id-label">TICKET ID</div>
             <div class="bsm-id">#{{ betId }}</div>
           </div>
-          <div class="bsm-sub">Good luck! Your bet is now pending.</div>
+          <div class="bsm-sub">Good luck! Bet is now pending.</div>
           <button class="bsm-close-btn" @click="betSuccess = false">Close</button>
         </div>
       </div>
@@ -245,7 +250,7 @@ function placeBet() {
   if (!currentUser.value || !stake.value || stake.value <= 0) return
   if (stake.value > currentUser.value.balance) return
   const stakeVal = stake.value
-  const combinedOdds = activeSlipTab.value === 'MULTI' ? multiTotalOdds.value : parseFloat(singleItem.value?.odds ?? '1')
+  const combinedOdds = activeSlipTab.value === 'MULTI' ? parseFloat(totalOdds.value) : parseFloat(singleItem.value?.odds ?? '1')
   const bonusPct = activeSlipTab.value === 'MULTI' ? currentBonus.value : 0
   const baseReturn = Math.round(stakeVal * combinedOdds)
   const potentialReturn = Math.round(baseReturn * (1 + bonusPct / 100))
@@ -707,65 +712,65 @@ const systemMaxReturn = computed(() => {
   position: relative;
   background: linear-gradient(160deg, #141c2e 0%, #1a2540 100%);
   border: 1px solid #2e4a7a;
-  border-radius: 20px;
-  padding: 32px 36px;
+  border-radius: 14px;
+  padding: 20px 24px;
   text-align: center;
-  min-width: 280px;
-  max-width: 340px;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 40px rgba(34,197,94,0.08);
+  min-width: 220px;
+  max-width: 260px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7);
   overflow: hidden;
 }
 .bsm-glow {
   position: absolute;
-  top: -40px; left: 50%; transform: translateX(-50%);
-  width: 160px; height: 160px;
-  background: radial-gradient(circle, rgba(74,222,128,0.18) 0%, transparent 70%);
+  top: -30px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(74,222,128,0.15) 0%, transparent 70%);
   pointer-events: none;
 }
-.bsm-checkmark { font-size: 48px; margin-bottom: 10px; }
+.bsm-checkmark { margin-bottom: 8px; display: flex; justify-content: center; }
 .bsm-title {
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 900;
   color: #4ade80;
-  letter-spacing: -0.5px;
-  margin-bottom: 14px;
+  letter-spacing: -0.3px;
+  margin-bottom: 10px;
 }
 .bsm-id-wrap {
   background: rgba(74,222,128,0.08);
   border: 1px solid rgba(74,222,128,0.2);
-  border-radius: 12px;
-  padding: 12px 20px;
-  margin-bottom: 12px;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
 }
 .bsm-id-label {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   color: #6dbf90;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .bsm-id {
-  font-size: 36px;
+  font-size: 26px;
   font-weight: 900;
   color: #fff;
   letter-spacing: -1px;
   font-variant-numeric: tabular-nums;
 }
 .bsm-sub {
-  font-size: 11px;
+  font-size: 10px;
   color: #6a8090;
-  margin-bottom: 20px;
-  line-height: 1.5;
+  margin-bottom: 14px;
+  line-height: 1.4;
 }
 .bsm-close-btn {
   background: linear-gradient(135deg, #22c55e, #16a34a);
   border: none;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
-  padding: 11px 36px;
-  border-radius: 10px;
+  padding: 9px 28px;
+  border-radius: 8px;
   cursor: pointer;
   letter-spacing: 0.3px;
   transition: opacity 0.15s, transform 0.1s;

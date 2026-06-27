@@ -54,10 +54,14 @@
           </div>
         </div>
       </div>
+      <!-- Recommendation: encourage multi -->
+      <div v-if="slipItems.length >= 1" class="bonus-tip single-tip">
+        🎯 Add {{ 2 - slipItems.length > 0 ? 2 - slipItems.length + ' more selection' : '1 more selection' }} to unlock <strong>3% Multi Bonus!</strong>
+      </div>
       <div class="stake-section">
         <div class="stake-row">
-          <span class="stake-label">STAKE</span>
-          <input type="number" class="stake-input" v-model.number="stake" placeholder="0.00" min="0" />
+          <span class="stake-label">STAKE (UGX)</span>
+          <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
@@ -85,17 +89,44 @@
           <div class="sel-meta">{{ sel.matchName }}</div>
         </div>
       </div>
+
+      <!-- Bonus badge -->
+      <div v-if="slipItems.length >= 2" class="bonus-badge">
+        <span class="bonus-icon">🎁</span>
+        <div class="bonus-info">
+          <span class="bonus-label">ACCUMULATOR BONUS</span>
+          <span class="bonus-pct">+{{ currentBonus }}%</span>
+        </div>
+        <div class="bonus-bar-wrap">
+          <div class="bonus-bar" :style="{ width: bonusBarPct + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- Recommendation tip -->
+      <div v-if="nextBonusTip" class="bonus-tip">
+        {{ nextBonusTip.icon }} Add <strong>{{ nextBonusTip.add }} more</strong> selection{{ nextBonusTip.add > 1 ? 's' : '' }} to boost bonus <strong>{{ currentBonus }}% → {{ nextBonusTip.nextPct }}%</strong>
+      </div>
+      <div v-else-if="slipItems.length >= 2" class="bonus-tip bonus-max">
+        🏆 Max 500% bonus unlocked!
+      </div>
+
       <div v-if="slipItems.length >= 2" class="total-odds-row">
         <span class="to-label">Combined Odds</span>
         <span class="to-val">{{ totalOdds }}</span>
       </div>
       <div class="stake-section">
         <div class="stake-row">
-          <span class="stake-label">STAKE</span>
-          <input type="number" class="stake-input" v-model.number="stake" placeholder="0.00" min="0" />
+          <span class="stake-label">STAKE (UGX)</span>
+          <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
+          <div v-if="slipItems.length >= 2 && currentBonus > 0" class="total-row">
+            <span>Base Returns</span><span>{{ multiBaseReturn }}</span>
+          </div>
+          <div v-if="slipItems.length >= 2 && currentBonus > 0" class="total-row bonus-row">
+            <span>Bonus (+{{ currentBonus }}%)</span><span class="bonus-amount">+{{ multiBonusAmount }}</span>
+          </div>
           <div class="total-row potential"><span>Potential Returns:</span><span class="potential-val">{{ multiPotential }}</span></div>
         </div>
         <button class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
@@ -133,8 +164,8 @@
       </div>
       <div class="stake-section">
         <div class="stake-row">
-          <span class="stake-label">STAKE PER BET</span>
-          <input type="number" class="stake-input" v-model.number="stake" placeholder="0.00" min="0" />
+          <span class="stake-label">STAKE PER BET (UGX)</span>
+          <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(systemTotalStake) }}</span></div>
@@ -185,18 +216,80 @@ function handleTabClick(tab: string) {
 const singleItem = computed(() => slipItems.value[slipItems.value.length - 1] ?? { key: '', label: '', odds: '0', matchName: '', market: '' })
 
 function fmtMoney(v: number | null) {
-  if (!v || v <= 0) return '$ 0.00'
-  return `$ ${v.toFixed(2)}`
+  if (!v || v <= 0) return 'UGX 0'
+  return `UGX ${Math.round(v).toLocaleString()}`
 }
 
+// ── BONUS TABLE ──
+// Bonus percentage per number of selections (Multi/accumulator only)
+const BONUS_TABLE: { min: number; pct: number }[] = [
+  { min: 2,  pct: 3   },
+  { min: 3,  pct: 5   },
+  { min: 4,  pct: 8   },
+  { min: 5,  pct: 12  },
+  { min: 6,  pct: 17  },
+  { min: 7,  pct: 25  },
+  { min: 8,  pct: 35  },
+  { min: 9,  pct: 50  },
+  { min: 10, pct: 75  },
+  { min: 11, pct: 100 },
+  { min: 12, pct: 150 },
+  { min: 13, pct: 200 },
+  { min: 14, pct: 300 },
+  { min: 15, pct: 400 },
+  { min: 16, pct: 500 },
+]
+
+function getBonusForCount(n: number): number {
+  let bonus = 0
+  for (const tier of BONUS_TABLE) {
+    if (n >= tier.min) bonus = tier.pct
+  }
+  return bonus
+}
+
+const currentBonus = computed(() => getBonusForCount(slipItems.value.length))
+
+// Progress bar: how far we are toward max 500%
+const bonusBarPct = computed(() => Math.min((currentBonus.value / 500) * 100, 100))
+
+// ── RECOMMENDATION ──
+// Find the next bonus milestone and how many more picks to add
+const nextBonusTip = computed(() => {
+  const n = slipItems.value.length
+  if (n < 2) return null
+  // Find the next tier above current
+  const nextTier = BONUS_TABLE.find(t => t.min > n)
+  if (!nextTier) return null // already at max
+  return {
+    add: nextTier.min - n,
+    nextPct: nextTier.pct,
+    icon: nextTier.pct >= 100 ? '🚀' : nextTier.pct >= 50 ? '⚡' : '💡',
+  }
+})
+
+// ── POTENTIALS ──
 const singlePotential = computed(() => {
-  if (!stake.value || stake.value <= 0 || !singleItem.value.odds) return '$ 0.00'
+  if (!stake.value || stake.value <= 0 || !singleItem.value.odds) return 'UGX 0'
   return fmtMoney(stake.value * parseFloat(singleItem.value.odds))
 })
 
-const multiPotential = computed(() => {
-  if (!stake.value || stake.value <= 0) return '$ 0.00'
+const multiBaseReturn = computed(() => {
+  if (!stake.value || stake.value <= 0) return 'UGX 0'
   return fmtMoney(stake.value * parseFloat(totalOdds.value))
+})
+
+const multiBonusAmount = computed(() => {
+  if (!stake.value || stake.value <= 0) return 'UGX 0'
+  const base = stake.value * parseFloat(totalOdds.value)
+  return fmtMoney(base * (currentBonus.value / 100))
+})
+
+const multiPotential = computed(() => {
+  if (!stake.value || stake.value <= 0) return 'UGX 0'
+  const base = stake.value * parseFloat(totalOdds.value)
+  const withBonus = base + base * (currentBonus.value / 100)
+  return fmtMoney(withBonus)
 })
 
 // SYSTEM options based on number of selections
@@ -224,7 +317,7 @@ const systemTotalStake = computed(() => {
 })
 
 const systemMinReturn = computed(() => {
-  if (!stake.value || stake.value <= 0) return '$ 0.00'
+  if (!stake.value || stake.value <= 0) return 'UGX 0'
   const minOdds = slipItems.value.map(s => parseFloat(s.odds)).sort((a, b) => a - b)
   const k = parseInt(selectedSystem.value.split('/')[0]) || 2
   const lowestK = minOdds.slice(0, k).reduce((a, b) => a * b, 1)
@@ -232,7 +325,7 @@ const systemMinReturn = computed(() => {
 })
 
 const systemMaxReturn = computed(() => {
-  if (!stake.value || stake.value <= 0) return '$ 0.00'
+  if (!stake.value || stake.value <= 0) return 'UGX 0'
   const allOdds = slipItems.value.map(s => parseFloat(s.odds)).sort((a, b) => b - a)
   const k = parseInt(selectedSystem.value.split('/')[0]) || 2
   const highestK = allOdds.slice(0, k).reduce((a, b) => a * b, 1)
@@ -367,6 +460,77 @@ const systemMaxReturn = computed(() => {
 .ret-label { font-size: 9px; color: #5a6080; }
 .ret-value { font-size: 10px; font-weight: 700; color: #e2e8f0; }
 
+/* ── BONUS BADGE ── */
+.bonus-badge {
+  margin: 6px 6px 0;
+  background: linear-gradient(135deg, #1a3a1a 0%, #0d2a1a 100%);
+  border: 1px solid #2a5a2a;
+  border-radius: 6px;
+  padding: 7px 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bonus-icon { font-size: 14px; }
+.bonus-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bonus-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: #6dbf6d;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.bonus-pct {
+  font-size: 16px;
+  font-weight: 900;
+  color: #4ade80;
+  line-height: 1;
+}
+.bonus-bar-wrap {
+  height: 3px;
+  background: #1e3a1e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bonus-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ── RECOMMENDATION TIP ── */
+.bonus-tip {
+  margin: 5px 6px 0;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-left: 3px solid #eab308;
+  border-radius: 0 5px 5px 0;
+  padding: 5px 7px;
+  font-size: 9px;
+  color: #d4a80a;
+  line-height: 1.45;
+}
+.bonus-tip strong { color: #fbbf24; }
+.bonus-tip.single-tip {
+  border-left-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+  border-left-color: #3b82f6;
+  color: #93c5fd;
+}
+.bonus-tip.single-tip strong { color: #60a5fa; }
+.bonus-tip.bonus-max {
+  border-left-color: #a855f7;
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+}
+
 /* Total odds row */
 .total-odds-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -405,6 +569,8 @@ const systemMaxReturn = computed(() => {
 }
 .total-row.potential { color: #c8cfe0; font-weight: 600; }
 .potential-val { color: #4ade80; font-weight: 800; }
+.total-row.bonus-row { color: #4ade80; }
+.bonus-amount { font-weight: 700; color: #4ade80; }
 .stake-notice { font-size: 9px; color: #5a6080; text-align: center; }
 .login-bet-btn {
   background: #e84c6b; border: none; color: #fff;

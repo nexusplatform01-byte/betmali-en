@@ -2,7 +2,7 @@
   <div class="users-page">
     <div class="page-header">
       <div class="search-bar">
-        <span>🔍</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:#555;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input v-model="search" placeholder="Search name, phone, email..." />
       </div>
       <select v-model="statusFilter">
@@ -33,7 +33,7 @@
             <td><span :class="['sp', u.status]">{{ u.status }}</span></td>
             <td class="muted">{{ formatDate(u.lastVisit) }}</td>
             <td class="muted">{{ formatDate(u.createdAt) }}</td>
-            <td @click.stop><button class="vb" @click="$router.push('/admin/users/'+u.id)">View →</button></td>
+            <td @click.stop><button class="vb" @click="$router.push('/admin/users/'+u.id)">View &#8594;</button></td>
           </tr>
           <tr v-if="!filtered.length"><td colspan="9" class="empty">No users found</td></tr>
         </tbody>

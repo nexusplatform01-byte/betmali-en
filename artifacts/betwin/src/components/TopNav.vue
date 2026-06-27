@@ -2,9 +2,7 @@
   <header class="top-bar">
     <!-- Coming soon toast -->
     <transition name="toast-fade">
-      <div v-if="showToast" class="coming-soon-toast">
-        🔴 Coming Soon
-      </div>
+      <div v-if="showToast" class="coming-soon-toast">Coming Soon</div>
     </transition>
 
     <!-- Upper bar -->
@@ -20,7 +18,7 @@
           </button>
         </div>
 
-        <!-- ── LOGGED OUT ── -->
+        <!-- Logged out -->
         <template v-if="!currentUser">
           <button class="btn-register" @click="openRegister">
             <img src="https://cdn3d.iconscout.com/3d/premium/thumb/sign-up-3d-icon-png-download-12826539.png" class="btn-icon-img" alt="register" loading="eager" fetchpriority="high" />
@@ -32,15 +30,14 @@
           </button>
         </template>
 
-        <!-- ── LOGGED IN ── -->
+        <!-- Logged in -->
         <template v-else>
           <div class="user-widget">
-            <!-- Balance pill -->
             <div class="balance-pill">
               <span class="balance-label">BAL</span>
               <span class="balance-amount">
-                <span v-if="balanceVisible">UGX {{ currentUser.balance.toLocaleString() }}</span>
-                <span v-else class="balance-hidden">UGX ••••••</span>
+                <span v-if="balanceVisible">UGX {{ totalBalance.toLocaleString() }}</span>
+                <span v-else class="balance-hidden">UGX &#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;</span>
               </span>
               <button class="eye-btn" @click="balanceVisible = !balanceVisible">
                 <svg v-if="balanceVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
@@ -53,8 +50,6 @@
                 </svg>
               </button>
             </div>
-
-            <!-- Avatar → navigates to profile -->
             <div class="avatar-wrap" @click="goToProfile">
               <div class="avatar">{{ avatarLetter }}</div>
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -86,7 +81,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthModal } from '@/composables/useAuthModal'
+import { useAuthModal, totalBalance } from '@/composables/useAuthModal'
 
 const router = useRouter()
 const activeTab = ref('BETTING')
@@ -98,9 +93,7 @@ const { openLogin, openRegister, currentUser } = useAuthModal()
 
 const avatarLetter = computed(() => currentUser.value?.name.charAt(0).toUpperCase() ?? '?')
 
-function goToProfile() {
-  router.push('/profile')
-}
+function goToProfile() { router.push('/profile') }
 
 function fireToast() {
   if (toastTimer) clearTimeout(toastTimer)
@@ -159,8 +152,6 @@ const navTabs = [
 }
 .btn-login:hover { background: #c93559; }
 .btn-icon-img { width: 20px; height: 20px; object-fit: contain; }
-
-/* User widget */
 .user-widget { display: flex; align-items: center; gap: 6px; }
 .balance-pill {
   display: flex; align-items: center; gap: 5px;
@@ -183,8 +174,6 @@ const navTabs = [
 }
 .avatar-wrap:hover .avatar { border-color: #e84c6b; }
 .chevron { width: 12px; height: 12px; color: #7a84a0; }
-
-/* Nav */
 .lower-nav { display: flex; align-items: center; overflow-x: auto; background: #1a1d2e; scrollbar-width: none; }
 .lower-nav::-webkit-scrollbar { display: none; }
 .nav-tab {

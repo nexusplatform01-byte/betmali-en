@@ -10,7 +10,10 @@
 
     <!-- Filters -->
     <div class="filters-row">
-      <div class="search-bar"><span>🔍</span><input v-model="search" placeholder="Search ticket, match, user..." /></div>
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:#555;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input v-model="search" placeholder="Search ticket, match, user..." />
+      </div>
       <div class="ftabs">
         <button v-for="f in ['All','Pending','Won','Lost']" :key="f" :class="['ftab', {active: sf===f}]" @click="sf=f">{{ f }}</button>
       </div>
@@ -30,8 +33,11 @@
         <div class="tkt-right">
           <span :class="['sp', b.status]">{{ b.status }}</span>
           <div class="tkt-stake">UGX {{ b.stake.toLocaleString() }}</div>
-          <div class="tkt-win">→ UGX {{ b.potentialWin.toLocaleString() }}</div>
-          <div class="tkt-user">👤 {{ getUserName(b.userId) }}</div>
+          <div class="tkt-win">&#8594; UGX {{ b.potentialWin.toLocaleString() }}</div>
+          <div class="tkt-user">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {{ getUserName(b.userId) }}
+          </div>
         </div>
       </div>
       <div v-if="!filtered.length" class="empty">No bets found</div>
@@ -43,8 +49,13 @@
         <div v-if="selectedBet" class="backdrop" @click.self="selectedBet=null">
           <div class="tm-modal">
             <div class="tm-hdr">
-              <div class="tm-hdr-l">🎯 {{ selectedBet.ticketId }} · 1 EVENT</div>
-              <button class="tm-x" @click="selectedBet=null">✕</button>
+              <div class="tm-hdr-l">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="16 8 12 12 8 8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+                {{ selectedBet.ticketId }} · 1 EVENT
+              </div>
+              <button class="tm-x" @click="selectedBet=null">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <div class="tm-body">
               <div class="tm-left">
@@ -80,12 +91,19 @@
                 </div>
                 <div class="tm-manage" v-if="selectedBet.status==='pending'">
                   <div class="manage-label">Manage Ticket</div>
-                  <div class="manage-btns">
-                    <button class="mb won" @click="selectedBet!.status='won'; selectedBet=null">✓ Mark Won</button>
-                    <button class="mb lost" @click="selectedBet!.status='lost'; selectedBet=null">✗ Mark Lost</button>
+                  <div v-if="settling" class="settling-msg">Processing...</div>
+                  <div v-else class="manage-btns">
+                    <button class="mb won" @click="markBet('won')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+                      Mark Won
+                    </button>
+                    <button class="mb lost" @click="markBet('lost')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      Mark Lost
+                    </button>
                   </div>
                 </div>
-                <button class="view-user-btn" @click="$router.push('/admin/users/'+selectedBet!.userId); selectedBet=null">View User Profile →</button>
+                <button class="view-user-btn" @click="$router.push('/admin/users/'+selectedBet!.userId); selectedBet=null">View User Profile</button>
               </div>
             </div>
           </div>
@@ -97,10 +115,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { bets, users, formatFullDate, type Bet } from '../../stores/adminData'
+import { bets, users, settleBet, formatFullDate, type Bet } from '../../stores/adminData'
 
 const search = ref(''); const sf = ref('All')
 const selectedBet = ref<Bet|null>(null)
+const settling = ref(false)
 
 const pendingBets = computed(() => bets.filter(b=>b.status==='pending'))
 const wonBets = computed(() => bets.filter(b=>b.status==='won'))
@@ -118,7 +137,18 @@ const filtered = computed(() => bets.filter(b => {
 }).sort((a,b)=>new Date(b.placedAt).getTime()-new Date(a.placedAt).getTime()))
 
 function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
-function openTicket(b: Bet) { selectedBet.value = b }
+function openTicket(b: Bet) { selectedBet.value = { ...b } }
+
+async function markBet(status: 'won' | 'lost') {
+  if (!selectedBet.value || settling.value) return
+  settling.value = true
+  try {
+    await settleBet(selectedBet.value.id, status)
+    selectedBet.value = null
+  } finally {
+    settling.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -156,15 +186,13 @@ function openTicket(b: Bet) { selectedBet.value = b }
 .sp.lost { background: rgba(239,68,68,0.15); color: #ef4444; }
 .tkt-stake { font-size: 12px; font-weight: 700; color: #fff; }
 .tkt-win { font-size: 10px; color: #22c55e; }
-.tkt-user { font-size: 10px; color: #666; }
+.tkt-user { font-size: 10px; color: #666; display: flex; align-items: center; gap: 3px; }
 .empty { text-align: center; color: #444; padding: 40px; }
-
-/* Modal */
 .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: flex; align-items: center; justify-content: center; }
 .tm-modal { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; width: 680px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
 .tm-hdr { padding: 12px 16px; border-bottom: 1px solid #1e2240; display: flex; justify-content: space-between; align-items: center; background: #1a1f38; border-radius: 12px 12px 0 0; }
-.tm-hdr-l { font-size: 12px; font-weight: 700; color: #a78bfa; }
-.tm-x { background: transparent; border: none; color: #888; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+.tm-hdr-l { font-size: 12px; font-weight: 700; color: #a78bfa; display: flex; align-items: center; gap: 6px; }
+.tm-x { background: transparent; border: none; color: #888; cursor: pointer; padding: 4px; border-radius: 4px; display: flex; }
 .tm-x:hover { color: #fff; background: #252840; }
 .tm-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .tm-left { padding: 14px; border-right: 1px solid #1e2240; }
@@ -198,8 +226,9 @@ function openTicket(b: Bet) { selectedBet.value = b }
 .tm-st-val.pending { color: #f5a623; } .tm-st-val.won { color: #22c55e; } .tm-st-val.lost { color: #ef4444; }
 .tm-manage { background: rgba(255,255,255,0.02); border: 1px solid #1e2240; border-radius: 8px; padding: 10px; }
 .manage-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+.settling-msg { font-size: 12px; color: #888; text-align: center; padding: 8px; }
 .manage-btns { display: flex; gap: 8px; }
-.mb { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.mb { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
 .mb.won { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
 .mb.won:hover { background: rgba(34,197,94,0.25); }
 .mb.lost { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }

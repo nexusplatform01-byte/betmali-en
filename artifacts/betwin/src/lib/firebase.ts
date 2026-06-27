@@ -3,14 +3,14 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: 'AIzaSyA5mDQx2A20wPRyPk-M3sBOyGFHqaGq8hI',
+  authDomain: 'bet-mali.firebaseapp.com',
+  databaseURL: 'https://bet-mali-default-rtdb.firebaseio.com',
+  projectId: 'bet-mali',
+  storageBucket: 'bet-mali.firebasestorage.app',
+  messagingSenderId: '752891870014',
+  appId: '1:752891870014:web:c4c7236bddadd8e1150a6f',
+  measurementId: 'G-LJEY3Y799M',
 }
 
 const app = initializeApp(firebaseConfig)

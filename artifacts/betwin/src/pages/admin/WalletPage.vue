@@ -3,16 +3,23 @@
     <!-- Balance cards -->
     <div class="balance-grid">
       <div class="bc primary">
-        <div class="bc-icon">🏦</div>
+        <div class="bc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="20" height="20"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
         <div class="bc-body">
           <div class="bc-label">Real Site Balance</div>
           <div class="bc-val">UGX {{ siteSettings.siteBalance.toLocaleString() }}</div>
           <div class="bc-sub">Gross account balance</div>
         </div>
-        <button class="withdraw-btn" @click="openWithdraw">Withdraw ↑</button>
+        <button class="withdraw-btn" @click="openWithdraw">
+          Withdraw
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="11" height="11"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
       </div>
       <div class="bc users">
-        <div class="bc-icon">👥</div>
+        <div class="bc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
         <div class="bc-body">
           <div class="bc-label">All Users Wallets</div>
           <div class="bc-val">UGX {{ totalUsersWallet.toLocaleString() }}</div>
@@ -20,7 +27,9 @@
         </div>
       </div>
       <div class="bc pend">
-        <div class="bc-icon">🎯</div>
+        <div class="bc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
         <div class="bc-body">
           <div class="bc-label">Pending Bets at Risk</div>
           <div class="bc-val">UGX {{ pendingBetsTotal.toLocaleString() }}</div>
@@ -28,7 +37,9 @@
         </div>
       </div>
       <div class="bc net">
-        <div class="bc-icon">💵</div>
+        <div class="bc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="20" height="20"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
         <div class="bc-body">
           <div class="bc-label">Site (minus users)</div>
           <div class="bc-val" :class="{red: siteMinusUsers<0}">UGX {{ siteMinusUsers.toLocaleString() }}</div>
@@ -36,9 +47,11 @@
         </div>
       </div>
       <div class="bc net2">
-        <div class="bc-icon">📊</div>
+        <div class="bc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
         <div class="bc-body">
-          <div class="bc-label">Site (minus users & pending)</div>
+          <div class="bc-label">Site (minus users &amp; pending)</div>
           <div class="bc-val" :class="{red: siteMinusUsersPending<0}">UGX {{ siteMinusUsersPending.toLocaleString() }}</div>
           <div class="bc-sub">True free balance</div>
         </div>
@@ -110,8 +123,10 @@
         <div v-if="showWithdraw" class="backdrop" @click.self="showWithdraw=false">
           <div class="wm-card">
             <div class="wm-hdr">
-              <div class="wm-title">↑ Withdraw from Site Balance</div>
-              <button class="wm-x" @click="showWithdraw=false">✕</button>
+              <div class="wm-title">Withdraw from Site Balance</div>
+              <button class="wm-x" @click="showWithdraw=false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <div class="wm-body">
               <div class="wm-bal-row">Site Balance: <strong>UGX {{ siteSettings.siteBalance.toLocaleString() }}</strong></div>
@@ -126,8 +141,8 @@
               </div>
               <div class="fg"><label>Account / Phone</label><input v-model="wdPhone" class="pi" type="text" placeholder="Account number or phone" /></div>
               <div class="fg"><label>Note (optional)</label><input v-model="wdNote" class="pi" type="text" placeholder="Reason for withdrawal" /></div>
-              <button class="wm-submit" @click="doWithdraw" :disabled="!wdAmt||wdAmt<=0||wdAmt>siteSettings.siteBalance">
-                Withdraw UGX {{ wdAmt ? wdAmt.toLocaleString() : '0' }}
+              <button class="wm-submit" @click="doWithdraw" :disabled="!wdAmt||wdAmt<=0||wdAmt>siteSettings.siteBalance||wdLoading">
+                {{ wdLoading ? 'Processing...' : 'Withdraw UGX ' + (wdAmt ? wdAmt.toLocaleString() : '0') }}
               </button>
               <div v-if="wdMsg" :class="['pmsg', wdOk?'ok':'err']">{{ wdMsg }}</div>
             </div>
@@ -140,7 +155,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { users, bets, siteSettings, transactions } from '../../stores/adminData'
+import { users, bets, siteSettings, withdrawSiteBalance, saveSiteSettings } from '../../stores/adminData'
 
 const pendingBets = computed(() => bets.filter(b=>b.status==='pending'))
 const pendingBetsTotal = computed(() => pendingBets.value.reduce((s,b)=>s+b.stake,0))
@@ -161,10 +176,17 @@ function pct(val: number) { return Math.min(100, Math.round((val / (siteSettings
 function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
 
 const adjAmt = ref(0); const adjNote = ref(''); const adjMsg = ref('')
-function doAdj(type: 'add'|'deduct') {
+
+async function doAdj(type: 'add'|'deduct') {
   if (adjAmt.value<=0) return
-  if (type==='add') { siteSettings.siteBalance+=adjAmt.value; adjMsg.value='✅ Added UGX '+adjAmt.value.toLocaleString() }
-  else { siteSettings.siteBalance=Math.max(0,siteSettings.siteBalance-adjAmt.value); adjMsg.value='✅ Deducted UGX '+adjAmt.value.toLocaleString() }
+  const newBal = type==='add'
+    ? siteSettings.siteBalance + adjAmt.value
+    : Math.max(0, siteSettings.siteBalance - adjAmt.value)
+  adjMsg.value = type==='add'
+    ? `Added UGX ${adjAmt.value.toLocaleString()}`
+    : `Deducted UGX ${adjAmt.value.toLocaleString()}`
+  await saveSiteSettings({ siteBalance: newBal })
+  siteSettings.siteBalance = newBal
   adjAmt.value=0; adjNote.value=''
   setTimeout(()=>{ adjMsg.value='' },3000)
 }
@@ -172,23 +194,23 @@ function doAdj(type: 'add'|'deduct') {
 // Withdraw modal
 const showWithdraw = ref(false)
 const wdAmt = ref(0); const wdMethod = ref('Mobile Money'); const wdPhone = ref('')
-const wdNote = ref(''); const wdMsg = ref(''); const wdOk = ref(false)
+const wdNote = ref(''); const wdMsg = ref(''); const wdOk = ref(false); const wdLoading = ref(false)
 const methods = ['Mobile Money', 'Bank Transfer', 'Cash']
 
 function openWithdraw() { showWithdraw.value=true; wdMsg.value=''; wdAmt.value=0 }
 
-function doWithdraw() {
+async function doWithdraw() {
   if (!wdAmt.value||wdAmt.value<=0) { wdMsg.value='Enter a valid amount'; wdOk.value=false; return }
   if (wdAmt.value>siteSettings.siteBalance) { wdMsg.value='Insufficient site balance'; wdOk.value=false; return }
-  siteSettings.siteBalance -= wdAmt.value
-  transactions.unshift({
-    id: 'tx'+Date.now(), userId: 'admin', type: 'withdrawal', amount: wdAmt.value,
-    method: wdMethod.value, status: 'completed', reference: 'SITE-'+Date.now(), createdAt: new Date().toISOString()
-  })
-  wdMsg.value='✅ Withdrawn UGX '+wdAmt.value.toLocaleString()+' via '+wdMethod.value
-  wdOk.value=true
-  wdAmt.value=0; wdPhone.value=''; wdNote.value=''
-  setTimeout(()=>{ showWithdraw.value=false; wdMsg.value='' },2000)
+  wdLoading.value = true
+  try {
+    await withdrawSiteBalance(wdAmt.value, wdMethod.value)
+    wdMsg.value='Withdrawn UGX '+wdAmt.value.toLocaleString()+' via '+wdMethod.value
+    wdOk.value=true
+    wdAmt.value=0; wdPhone.value=''; wdNote.value=''
+    setTimeout(()=>{ showWithdraw.value=false; wdMsg.value='' },2000)
+  } catch { wdMsg.value='Failed. Try again.'; wdOk.value=false }
+  finally { wdLoading.value=false }
 }
 </script>
 
@@ -201,12 +223,16 @@ function doWithdraw() {
 .bc.pend { border-color: rgba(245,166,35,0.4); }
 .bc.net { border-color: rgba(34,197,94,0.3); }
 .bc.net2 { border-color: rgba(20,184,166,0.3); }
-.bc-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.bc-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(124,58,237,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #a78bfa; }
+.bc.users .bc-icon { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.bc.pend .bc-icon { background: rgba(245,166,35,0.15); color: #f5a623; }
+.bc.net .bc-icon { background: rgba(34,197,94,0.15); color: #22c55e; }
+.bc.net2 .bc-icon { background: rgba(20,184,166,0.15); color: #2dd4bf; }
 .bc-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .bc-val { font-size: 15px; font-weight: 900; color: #fff; margin-top: 4px; }
 .bc-val.red { color: #ef4444; }
 .bc-sub { font-size: 10px; color: #555; margin-top: 3px; }
-.withdraw-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #a78bfa; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; }
+.withdraw-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #a78bfa; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .withdraw-btn:hover { background: rgba(124,58,237,0.25); }
 .panel { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; overflow: hidden; }
 .ph { padding: 8px 12px; border-bottom: 1px solid #1e2240; font-size: 12px; font-weight: 700; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
@@ -244,13 +270,11 @@ function doWithdraw() {
 .adj-btn.g { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
 .adj-btn.r { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
 .adj-msg { font-size: 11px; color: #22c55e; font-weight: 600; }
-
-/* Withdraw Modal */
 .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center; }
 .wm-card { background: #13172b; border: 1px solid #252840; border-radius: 14px; width: 400px; max-width: 95vw; }
 .wm-hdr { padding: 14px 18px; border-bottom: 1px solid #1e2240; display: flex; justify-content: space-between; align-items: center; background: #1a1f38; border-radius: 14px 14px 0 0; }
 .wm-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
-.wm-x { background: transparent; border: none; color: #888; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+.wm-x { background: transparent; border: none; color: #888; cursor: pointer; padding: 4px 6px; border-radius: 4px; display: flex; align-items: center; }
 .wm-x:hover { color: #fff; background: #252840; }
 .wm-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
 .wm-bal-row { font-size: 12px; color: #888; background: #0d0f1e; padding: 8px 12px; border-radius: 8px; }

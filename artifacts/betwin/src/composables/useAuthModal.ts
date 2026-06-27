@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -21,6 +21,7 @@ export interface AuthUser {
   phone: string
   email: string
   balance: number
+  bonusBalance: number
 }
 
 export interface UserTx {
@@ -52,6 +53,7 @@ async function syncUserProfile(uid: string) {
       phone: d.phone || '',
       email: d.email || '',
       balance: d.balance || 0,
+      bonusBalance: d.bonusBalance || 0,
     }
     updateDoc(doc(db, 'users', uid), { lastVisit: new Date().toISOString() }).catch(() => {})
     if (unsubTransactions) unsubTransactions()
@@ -76,6 +78,10 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     userTransactions.splice(0)
   }
 })
+
+export const totalBalance = computed(() =>
+  (currentUser.value?.balance ?? 0) + (currentUser.value?.bonusBalance ?? 0)
+)
 
 export function useAuthModal() {
   function openLogin() { modalType.value = 'login' }
@@ -105,11 +111,28 @@ export function useAuthModal() {
       const uid = cred.user.uid
       const now = new Date().toISOString()
       const profile = {
-        uid, name, phone, email, balance: 0, status: 'active',
-        createdAt: now, lastVisit: now, country: 'Uganda', currency: 'UGX',
+        uid, name, phone, email,
+        balance: 0,
+        bonusBalance: 1000,
+        status: 'active',
+        createdAt: now,
+        lastVisit: now,
+        country: 'Uganda',
+        currency: 'UGX',
       }
       await setDoc(doc(db, 'users', uid), profile)
-      currentUser.value = { uid, name, phone, email, balance: 0 }
+      currentUser.value = { uid, name, phone, email, balance: 0, bonusBalance: 1000 }
+      await addDoc(collection(db, 'transactions'), {
+        userId: uid,
+        type: 'bonus',
+        name: 'Welcome Bonus',
+        amount: 1000,
+        positive: true,
+        date: now,
+        method: 'System',
+        status: 'completed',
+        reference: 'BONUS-' + uid.slice(0, 8),
+      }).catch(() => {})
       closeModal()
       return null
     } catch (e: any) {
@@ -131,16 +154,42 @@ export function useAuthModal() {
       if (!snap.exists()) {
         const now = new Date().toISOString()
         const profile = {
-          uid, name: cred.user.displayName || 'User', phone: '',
-          email: cred.user.email || '', balance: 0, status: 'active',
-          createdAt: now, lastVisit: now, country: 'Uganda', currency: 'UGX',
+          uid,
+          name: cred.user.displayName || 'User',
+          phone: '',
+          email: cred.user.email || '',
+          balance: 0,
+          bonusBalance: 1000,
+          status: 'active',
+          createdAt: now,
+          lastVisit: now,
+          country: 'Uganda',
+          currency: 'UGX',
         }
         await setDoc(doc(db, 'users', uid), profile)
-        currentUser.value = { uid, name: profile.name, phone: '', email: profile.email, balance: 0 }
+        currentUser.value = { uid, name: profile.name, phone: '', email: profile.email, balance: 0, bonusBalance: 1000 }
+        await addDoc(collection(db, 'transactions'), {
+          userId: uid,
+          type: 'bonus',
+          name: 'Welcome Bonus',
+          amount: 1000,
+          positive: true,
+          date: now,
+          method: 'System',
+          status: 'completed',
+          reference: 'BONUS-' + uid.slice(0, 8),
+        }).catch(() => {})
         needsPhone.value = true
       } else {
         const d = snap.data()
-        currentUser.value = { uid, name: d.name, phone: d.phone || '', email: d.email, balance: d.balance || 0 }
+        currentUser.value = {
+          uid,
+          name: d.name,
+          phone: d.phone || '',
+          email: d.email,
+          balance: d.balance || 0,
+          bonusBalance: d.bonusBalance || 0,
+        }
         if (!d.phone) {
           needsPhone.value = true
         } else {
@@ -150,7 +199,7 @@ export function useAuthModal() {
       return null
     } catch (e: any) {
       if (e.code === 'auth/popup-closed-by-user') return null
-      return e.message || 'Google login failed'
+      return e.message || 'Google sign-in failed'
     } finally {
       authLoading.value = false
     }
@@ -169,6 +218,21 @@ export function useAuthModal() {
     currentUser.value = null
   }
 
+  // Deduct stake from bonusBalance first, then real balance
+  async function deductForBet(amount: number) {
+    if (!currentUser.value) return
+    const bonusUsed = Math.min(currentUser.value.bonusBalance, amount)
+    const realUsed = amount - bonusUsed
+    const newBonus = currentUser.value.bonusBalance - bonusUsed
+    const newBal = Math.max(0, currentUser.value.balance - realUsed)
+    currentUser.value.bonusBalance = newBonus
+    currentUser.value.balance = newBal
+    updateDoc(doc(db, 'users', currentUser.value.uid), {
+      balance: newBal,
+      bonusBalance: newBonus,
+    }).catch(() => {})
+  }
+
   async function addToBalance(amount: number) {
     if (!currentUser.value) return
     const newBal = Math.max(0, currentUser.value.balance + amount)
@@ -181,8 +245,8 @@ export function useAuthModal() {
     const newBal = currentUser.value.balance + amount
     currentUser.value.balance = newBal
     const now = new Date().toISOString()
-    updateDoc(doc(db, 'users', currentUser.value.uid), { balance: newBal }).catch(() => {})
-    addDoc(collection(db, 'transactions'), {
+    await updateDoc(doc(db, 'users', currentUser.value.uid), { balance: newBal })
+    await addDoc(collection(db, 'transactions'), {
       userId: currentUser.value.uid,
       type: 'deposit',
       name: `Deposit via ${method}`,
@@ -192,7 +256,7 @@ export function useAuthModal() {
       method,
       status: 'completed',
       reference: 'DEP-' + Date.now(),
-    }).catch(() => {})
+    })
   }
 
   async function withdrawFunds(amount: number, method: string) {
@@ -200,8 +264,8 @@ export function useAuthModal() {
     const newBal = currentUser.value.balance - amount
     currentUser.value.balance = newBal
     const now = new Date().toISOString()
-    updateDoc(doc(db, 'users', currentUser.value.uid), { balance: newBal }).catch(() => {})
-    addDoc(collection(db, 'transactions'), {
+    await updateDoc(doc(db, 'users', currentUser.value.uid), { balance: newBal })
+    await addDoc(collection(db, 'transactions'), {
       userId: currentUser.value.uid,
       type: 'withdrawal',
       name: `Withdrawal via ${method}`,
@@ -209,9 +273,9 @@ export function useAuthModal() {
       positive: false,
       date: now,
       method,
-      status: 'completed',
+      status: 'pending',
       reference: 'WD-' + Date.now(),
-    }).catch(() => {})
+    })
   }
 
   async function cashoutFunds(amount: number, ticketId: string) {
@@ -237,7 +301,7 @@ export function useAuthModal() {
     if (!currentUser.value) return
     currentUser.value.name = name
     currentUser.value.phone = phone
-    updateDoc(doc(db, 'users', currentUser.value.uid), { name, phone }).catch(() => {})
+    await updateDoc(doc(db, 'users', currentUser.value.uid), { name, phone })
   }
 
   function login(user: AuthUser) {
@@ -246,8 +310,9 @@ export function useAuthModal() {
   }
 
   return {
-    modalType, currentUser, needsPhone, authLoading, userTransactions,
-    openLogin, openRegister, closeModal, login, logout, addToBalance,
+    modalType, currentUser, needsPhone, authLoading, userTransactions, totalBalance,
+    openLogin, openRegister, closeModal, login, logout,
+    addToBalance, deductForBet,
     loginWithEmail, registerWithEmail, loginWithGoogle, savePhone,
     depositFunds, withdrawFunds, cashoutFunds, updateProfile,
   }

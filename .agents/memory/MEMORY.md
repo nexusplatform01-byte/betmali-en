@@ -1,0 +1,1 @@
+- [Firebase Auth & Firestore wiring](firebase-auth-firestore.md) — real Firebase Auth (email/pass + Google), bonusBalance, deductForBet, all admin pages wired to real Firestore.

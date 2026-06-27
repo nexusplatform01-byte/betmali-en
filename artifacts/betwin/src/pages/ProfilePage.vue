@@ -10,7 +10,7 @@
           <div class="ps-info">
             <div class="ps-name">{{ currentUser?.name }}</div>
             <div class="ps-bal">
-              <span v-if="balVis">UGX {{ currentUser?.balance.toLocaleString() }}</span>
+              <span v-if="balVis">UGX {{ totalBalance.toLocaleString() }}</span>
               <span v-else class="ps-bal-hidden">UGX ••••••</span>
               <button class="ps-eye" @click="balVis=!balVis">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -51,7 +51,7 @@
           <div class="ov-hero">
             <div class="ov-av">{{ avatarLetter }}</div>
             <div><div class="ov-name">{{ currentUser?.name }}</div><div class="ov-since">Member since June 2026</div></div>
-            <div class="ov-bal-pill">UGX {{ currentUser?.balance.toLocaleString() }}</div>
+            <div class="ov-bal-pill">UGX {{ totalBalance.toLocaleString() }}</div>
           </div>
           <div class="stats-grid">
             <div class="sc"><div class="sc-v">{{ bets.length }}</div><div class="sc-l">Total Bets</div></div>
@@ -96,7 +96,7 @@
           <div class="wallet-hero">
             <div class="wh-info">
               <div class="wh-lbl">Available Balance</div>
-              <div class="wh-amt">UGX {{ currentUser?.balance.toLocaleString() }}</div>
+              <div class="wh-amt">UGX {{ totalBalance.toLocaleString() }}</div>
             </div>
             <div class="wh-btns">
               <button class="wh-btn dep" @click="openWalletModal('deposit')">
@@ -111,11 +111,12 @@
           </div>
           <div class="sub-title">Transaction History</div>
           <div class="tx-list">
-            <div v-for="tx in transactions" :key="tx.id" class="tx-row">
+            <div v-for="tx in userTransactions" :key="tx.id" class="tx-row">
               <div class="tx-dot" :class="tx.positive?'pos':'neg'"></div>
-              <div class="tx-body"><div class="tx-name">{{ tx.name }}</div><div class="tx-date">{{ fmtDate(tx.date) }}</div></div>
+              <div class="tx-body"><div class="tx-name">{{ tx.name }}</div><div class="tx-date">{{ fmtDate(new Date(tx.date)) }}</div></div>
               <div class="tx-amt" :class="tx.positive?'pos':'neg'">{{ tx.positive?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</div>
             </div>
+            <div v-if="!userTransactions.length" class="tx-empty">No transactions yet</div>
           </div>
         </section>
 
@@ -152,7 +153,7 @@
           <div class="tx-list">
             <div v-for="tx in filteredTx" :key="tx.id" class="tx-row">
               <div class="tx-dot" :class="tx.positive?'pos':'neg'"></div>
-              <div class="tx-body"><div class="tx-name">{{ tx.name }}</div><div class="tx-date">{{ fmtDate(tx.date) }}</div></div>
+              <div class="tx-body"><div class="tx-name">{{ tx.name }}</div><div class="tx-date">{{ fmtDate(new Date(tx.date)) }}</div></div>
               <div class="tx-amt" :class="tx.positive?'pos':'neg'">{{ tx.positive?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</div>
             </div>
           </div>
@@ -380,7 +381,7 @@ import { useBets, type PlacedBet } from '@/composables/useBets'
 import { useBetSlip } from '@/composables/useBetSlip'
 
 const router = useRouter()
-const { currentUser, addToBalance } = useAuthModal()
+const { currentUser, depositFunds, withdrawFunds, cashoutFunds, userTransactions, totalBalance, updateProfile } = useAuthModal()
 const { bets, addBet: saveBet } = useBets()
 const { addBet: addToBetSlip } = useBetSlip()
 
@@ -450,23 +451,23 @@ function openWalletModal(type: 'deposit' | 'withdraw') {
   walletMsg.value = ''
 }
 
-function handleDeposit() {
+async function handleDeposit() {
   if (!depositAmount.value || depositAmount.value < 1000) return
-  addToBalance(depositAmount.value)
-  walletMsg.value = `UGX ${depositAmount.value.toLocaleString()} deposited successfully!`
+  const method = paymentMethods.find(p => p.id === selectedPayment.value)?.name ?? 'Mobile Money'
+  walletMsg.value = `UGX ${depositAmount.value.toLocaleString()} deposited!`
   walletMsgType.value = 'ok'
-  transactions.unshift({ id: Date.now(), type: 'deposit', name: 'Deposit via ' + paymentMethods.find(p => p.id === selectedPayment.value)?.name, amount: depositAmount.value, positive: true, date: new Date() })
+  await depositFunds(depositAmount.value, method)
   depositAmount.value = null
   depositPhone.value = ''
   setTimeout(() => { walletMsg.value = ''; walletModal.value = null }, 2500)
 }
 
-function handleWithdraw() {
+async function handleWithdraw() {
   if (!withdrawAmount.value || withdrawAmount.value < 1000 || withdrawAmount.value > (currentUser.value?.balance ?? 0)) return
-  addToBalance(-withdrawAmount.value)
+  const method = paymentMethods.find(p => p.id === selectedWithdraw.value)?.name ?? 'Mobile Money'
   walletMsg.value = `UGX ${withdrawAmount.value.toLocaleString()} withdrawal requested!`
   walletMsgType.value = 'ok'
-  transactions.unshift({ id: Date.now(), type: 'withdraw', name: 'Withdrawal via ' + paymentMethods.find(p => p.id === selectedWithdraw.value)?.name, amount: withdrawAmount.value, positive: false, date: new Date() })
+  await withdrawFunds(withdrawAmount.value, method)
   withdrawAmount.value = null
   withdrawPhone.value = ''
   setTimeout(() => { walletMsg.value = ''; walletModal.value = null }, 2500)
@@ -499,44 +500,34 @@ function reuseBet(bet: PlacedBet) {
   router.push('/')
 }
 
-function confirmCashout() {
+async function confirmCashout() {
   if (!selectedTicket.value) return
   const cashoutAmt = Math.round(selectedTicket.value.stake * 0.85)
-  addToBalance(cashoutAmt)
-  transactions.unshift({ id: Date.now(), type: 'cashout', name: `Cashout — Ticket #${selectedTicket.value.id}`, amount: cashoutAmt, positive: true, date: new Date() })
+  await cashoutFunds(cashoutAmt, `Ticket #${selectedTicket.value.id}`)
   selectedTicket.value.status = 'lost'
   showCashout.value = false
   selectedTicket.value = null
 }
 
 // ── TRANSACTIONS ──
-interface Tx { id: number; type: string; name: string; amount: number; positive: boolean; date: Date }
-const transactions = reactive<Tx[]>([
-  { id: 1, type: 'deposit', name: 'Initial Deposit via MTN Money', amount: 250000, positive: true, date: new Date(Date.now() - 3 * 24 * 3600000) },
-  { id: 2, type: 'bet', name: 'Bet Placed — Ticket #201', amount: 20000, positive: false, date: new Date(Date.now() - 48 * 3600000) },
-  { id: 3, type: 'bet', name: 'Bet Placed — Ticket #287', amount: 10000, positive: false, date: new Date(Date.now() - 26 * 3600000) },
-  { id: 4, type: 'win', name: 'Win Payout — Ticket #287', amount: 34500, positive: true, date: new Date(Date.now() - 24 * 3600000) },
-  { id: 5, type: 'bet', name: 'Bet Placed — Ticket #332', amount: 5000, positive: false, date: new Date(Date.now() - 2 * 3600000) },
-])
-
 const txFilters = ['All', 'Deposits', 'Withdrawals', 'Bets']
 const filteredTx = computed(() => {
-  if (txFilter.value === 'All') return transactions
-  if (txFilter.value === 'Deposits') return transactions.filter(t => t.type === 'deposit')
-  if (txFilter.value === 'Withdrawals') return transactions.filter(t => t.type === 'withdraw' || t.type === 'cashout')
-  return transactions.filter(t => t.type === 'bet' || t.type === 'win')
+  if (txFilter.value === 'All') return userTransactions
+  if (txFilter.value === 'Deposits') return userTransactions.filter(t => t.type === 'deposit' || t.type === 'bonus')
+  if (txFilter.value === 'Withdrawals') return userTransactions.filter(t => t.type === 'withdrawal' || t.type === 'cashout')
+  return userTransactions.filter(t => t.type === 'bet' || t.type === 'win')
 })
 
 // ── ACCOUNT ──
 const accName = ref(currentUser.value?.name ?? '')
 const accPhone = ref(currentUser.value?.phone ?? '')
-const accEmail = ref('')
+const accEmail = ref(currentUser.value?.email ?? '')
 const accDob = ref('')
 const accMsg = ref('')
 const accMsg2 = ref('')
 
-function saveAccount() {
-  if (currentUser.value) currentUser.value.name = accName.value
+async function saveAccount() {
+  await updateProfile(accName.value, accPhone.value)
   accMsg.value = 'Profile updated successfully!'
   setTimeout(() => { accMsg.value = '' }, 3000)
 }

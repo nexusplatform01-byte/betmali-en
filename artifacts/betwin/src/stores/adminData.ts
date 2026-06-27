@@ -18,6 +18,7 @@ export interface User {
   phone: string
   email: string
   walletBalance: number
+  bonusBalance: number
   status: 'active' | 'suspended' | 'banned'
   lastVisit: string
   createdAt: string
@@ -43,7 +44,7 @@ export interface Bet {
 export interface Transaction {
   id: string
   userId: string
-  type: 'deposit' | 'withdrawal' | 'bet' | 'win' | 'cashout'
+  type: 'deposit' | 'withdrawal' | 'bet' | 'win' | 'cashout' | 'bonus'
   amount: number
   method: string
   status: 'completed' | 'pending' | 'failed'
@@ -123,6 +124,7 @@ function startAdminSubscriptions() {
         phone: data.phone || '',
         email: data.email || '',
         walletBalance: data.balance || data.walletBalance || 0,
+        bonusBalance: data.bonusBalance || 0,
         status: data.status || 'active',
         lastVisit: data.lastVisit || data.createdAt || new Date().toISOString(),
         createdAt: data.createdAt || new Date().toISOString(),
@@ -198,12 +200,10 @@ export async function adminLogin(username: string, password: string): Promise<bo
 
   adminAuth.loading = true
   try {
-    // Load siteSettings to get current admin password
     await loadSiteSettings()
 
     if (password !== siteSettings.adminPassword) return false
 
-    // Sign into Firebase Auth for Firestore access
     try {
       await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password)
     } catch (e: any) {
@@ -214,7 +214,6 @@ export async function adminLogin(username: string, password: string): Promise<bo
       }
     }
 
-    // Reload siteSettings now that we're authenticated
     await loadSiteSettings()
 
     adminAuth.isLoggedIn = true
@@ -281,13 +280,42 @@ export async function updateUserStatus(userId: string, status: 'active' | 'suspe
   await updateDoc(doc(db, 'users', userId), { status })
 }
 
-export async function updateBetStatus(betId: string, status: 'pending' | 'won' | 'lost'): Promise<void> {
+// Settle a bet: update status in Firestore, credit user balance if won
+export async function settleBet(betId: string, status: 'won' | 'lost'): Promise<void> {
   const bet = bets.find(b => b.id === betId)
   if (!bet) return
-  bet.status = status
-  const updates: Record<string, string> = { status }
-  if (status !== 'pending') updates.settledAt = new Date().toISOString()
+  const now = new Date().toISOString()
+  const updates: Record<string, string> = { status, settledAt: now }
   await updateDoc(doc(db, 'bets', betId), updates)
+  bet.status = status
+  bet.settledAt = now
+
+  if (status === 'won') {
+    const user = users.find(u => u.id === bet.userId)
+    if (user) {
+      const newBalance = user.walletBalance + bet.potentialWin
+      user.walletBalance = newBalance
+      await Promise.all([
+        updateDoc(doc(db, 'users', bet.userId), { balance: newBalance }),
+        addDoc(collection(db, 'transactions'), {
+          userId: bet.userId,
+          type: 'win',
+          name: `Win Payout — ${bet.ticketId}`,
+          amount: bet.potentialWin,
+          positive: true,
+          date: now,
+          method: 'Win Payout',
+          status: 'completed',
+          reference: bet.ticketId,
+        }),
+      ])
+    }
+  }
+}
+
+export async function updateBetStatus(betId: string, status: 'pending' | 'won' | 'lost'): Promise<void> {
+  if (status === 'pending') return
+  await settleBet(betId, status as 'won' | 'lost')
 }
 
 export async function updateTransactionStatus(txId: string, status: 'completed' | 'pending' | 'failed'): Promise<void> {
@@ -295,6 +323,18 @@ export async function updateTransactionStatus(txId: string, status: 'completed' 
   if (!tx) return
   tx.status = status
   await updateDoc(doc(db, 'transactions', txId), { status })
+
+  // If a deposit is approved, credit the user balance
+  if (status === 'completed' && tx.type === 'deposit') {
+    const user = users.find(u => u.id === tx.userId)
+    if (user) {
+      // Check if balance was already credited (avoid double-crediting)
+      // Only credit if transaction was previously pending
+      const newBalance = user.walletBalance + tx.amount
+      user.walletBalance = newBalance
+      await updateDoc(doc(db, 'users', tx.userId), { balance: newBalance })
+    }
+  }
 }
 
 export async function saveSiteSettings(updates: Partial<typeof siteSettings>): Promise<void> {

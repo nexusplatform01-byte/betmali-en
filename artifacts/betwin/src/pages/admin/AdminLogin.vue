@@ -16,7 +16,10 @@
           <input v-model="password" type="password" placeholder="Enter password" autocomplete="current-password" />
         </div>
         <div v-if="error" class="error-msg">{{ error }}</div>
-        <button type="submit" class="login-btn">Login to Dashboard</button>
+        <button type="submit" class="login-btn" :disabled="loading">
+          <span v-if="loading" class="spinner"></span>
+          <span v-else>Login to Dashboard</span>
+        </button>
       </form>
       <div class="hint">Default: admin / admin123</div>
     </div>
@@ -32,18 +35,26 @@ const router = useRouter()
 const username = ref('')
 const password = ref('')
 const error = ref('')
+const loading = ref(false)
 
-function handleLogin() {
+async function handleLogin() {
   error.value = ''
   if (!username.value || !password.value) {
     error.value = 'Please enter username and password'
     return
   }
-  const ok = adminLogin(username.value, password.value)
-  if (ok) {
-    router.push('/admin/dashboard')
-  } else {
-    error.value = 'Invalid username or password'
+  loading.value = true
+  try {
+    const ok = await adminLogin(username.value, password.value)
+    if (ok) {
+      router.push('/admin/dashboard')
+    } else {
+      error.value = 'Invalid username or password'
+    }
+  } catch (e: any) {
+    error.value = e.message || 'Login failed'
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -110,9 +121,7 @@ function handleLogin() {
   outline: none;
   transition: border-color 0.2s;
 }
-.field input:focus {
-  border-color: #7c3aed;
-}
+.field input:focus { border-color: #7c3aed; }
 .error-msg {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
@@ -132,8 +141,22 @@ function handleLogin() {
   cursor: pointer;
   margin-top: 4px;
   transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
 }
-.login-btn:hover { opacity: 0.9; }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-btn:not(:disabled):hover { opacity: 0.9; }
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 .hint {
   font-size: 11px;
   color: #555;

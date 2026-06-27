@@ -2,7 +2,10 @@
   <div class="user-detail" v-if="user">
     <!-- Header -->
     <div class="detail-hdr">
-      <button class="back-btn" @click="$router.push('/admin/users')">← Users</button>
+      <button class="back-btn" @click="$router.push('/admin/users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><polyline points="15 18 9 12 15 6"/></svg>
+        Users
+      </button>
       <div class="uhdr-info">
         <div class="uhdr-av">{{ user.name.charAt(0) }}</div>
         <div>
@@ -12,7 +15,7 @@
         </div>
         <div class="uhdr-right">
           <span :class="['sp', user.status]">{{ user.status }}</span>
-          <select v-model="user.status" class="ss">
+          <select :value="user.status" @change="changeStatus(($event.target as HTMLSelectElement).value)" class="ss">
             <option value="active">Set Active</option>
             <option value="suspended">Suspend</option>
             <option value="banned">Ban</option>
@@ -56,20 +59,26 @@
       </div>
       <div class="two-col">
         <div class="panel">
-          <div class="ph g">➕ Add Money</div>
+          <div class="ph g">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add Money
+          </div>
           <div class="padded">
             <div class="field"><label>Amount (UGX)</label><input v-model.number="addAmount" type="number" min="0" placeholder="Enter amount" /></div>
             <div class="field"><label>Reason</label><input v-model="addNote" placeholder="e.g. Bonus, Correction..." /></div>
-            <button class="abtn g" @click="doAdd">Add to Wallet</button>
+            <button class="abtn g" @click="doAdd" :disabled="addLoading">{{ addLoading ? 'Processing...' : 'Add to Wallet' }}</button>
             <div v-if="addMsg" class="msg g">{{ addMsg }}</div>
           </div>
         </div>
         <div class="panel">
-          <div class="ph r">➖ Deduct Money</div>
+          <div class="ph r">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Deduct Money
+          </div>
           <div class="padded">
             <div class="field"><label>Amount (UGX)</label><input v-model.number="deductAmount" type="number" min="0" placeholder="Enter amount" /></div>
             <div class="field"><label>Reason</label><input v-model="deductNote" placeholder="e.g. Penalty, Correction..." /></div>
-            <button class="abtn r" @click="doDeduct">Deduct from Wallet</button>
+            <button class="abtn r" @click="doDeduct" :disabled="deductLoading">{{ deductLoading ? 'Processing...' : 'Deduct from Wallet' }}</button>
             <div v-if="deductMsg" class="msg r">{{ deductMsg }}</div>
           </div>
         </div>
@@ -82,7 +91,7 @@
             <tr v-for="tx in userTxs" :key="tx.id">
               <td class="mono">{{ tx.reference }}</td>
               <td><span :class="['tp', tx.type]">{{ tx.type }}</span></td>
-              <td :class="tx.type==='deposit'?'green':'red'">{{ tx.type==='deposit'?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</td>
+              <td :class="tx.type==='deposit'||tx.type==='win'||tx.type==='bonus'?'green':'red'">{{ tx.type==='deposit'||tx.type==='win'||tx.type==='bonus'?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</td>
               <td class="muted">{{ tx.method }}</td>
               <td><span :class="['sp', tx.status]">{{ tx.status }}</span></td>
               <td class="muted">{{ formatFullDate(tx.createdAt) }}</td>
@@ -112,8 +121,8 @@
             <div class="tkt-right">
               <span :class="['sp', b.status]">{{ b.status }}</span>
               <div class="tkt-stake">UGX {{ b.stake.toLocaleString() }}</div>
-              <div class="tkt-win">→ UGX {{ b.potentialWin.toLocaleString() }}</div>
-              <select v-if="b.status==='pending'" v-model="b.status" class="is">
+              <div class="tkt-win">&#8594; UGX {{ b.potentialWin.toLocaleString() }}</div>
+              <select v-if="b.status==='pending'" :value="b.status" @change="changeBetStatus(b.id, ($event.target as HTMLSelectElement).value)" class="is">
                 <option value="pending">Pending</option>
                 <option value="won">Mark Won</option>
                 <option value="lost">Mark Lost</option>
@@ -136,7 +145,7 @@
             <tr v-for="tx in userTxs" :key="tx.id">
               <td class="mono">{{ tx.reference }}</td>
               <td><span :class="['tp', tx.type]">{{ tx.type }}</span></td>
-              <td :class="tx.type==='deposit'?'green':'red'">UGX {{ tx.amount.toLocaleString() }}</td>
+              <td :class="tx.type==='deposit'||tx.type==='win'||tx.type==='bonus'?'green':'red'">UGX {{ tx.amount.toLocaleString() }}</td>
               <td class="muted">{{ tx.method }}</td>
               <td><span :class="['sp', tx.status]">{{ tx.status }}</span></td>
               <td class="muted">{{ formatFullDate(tx.createdAt) }}</td>
@@ -165,31 +174,35 @@
         <div class="panel">
           <div class="ph">Account Information</div>
           <div class="padded">
-            <div class="field"><label>Full Name</label><input v-model="user.name" /></div>
-            <div class="field"><label>Phone Number</label><input v-model="user.phone" /></div>
-            <div class="field"><label>Email Address</label><input v-model="user.email" /></div>
-            <div class="field"><label>Country</label><input v-model="user.country" /></div>
-            <button class="abtn p" @click="savedMsg='Saved!'">Save Changes</button>
+            <div class="field"><label>Full Name</label><input v-model="editName" /></div>
+            <div class="field"><label>Phone Number</label><input v-model="editPhone" /></div>
+            <div class="field"><label>Email Address</label><input v-model="editEmail" /></div>
+            <div class="field"><label>Country</label><input v-model="editCountry" /></div>
+            <button class="abtn p" @click="saveUserInfo" :disabled="saveLoading">{{ saveLoading ? 'Saving...' : 'Save Changes' }}</button>
             <div v-if="savedMsg" class="msg g">{{ savedMsg }}</div>
           </div>
         </div>
         <div class="panel">
-          <div class="ph">Account Status & Danger Zone</div>
+          <div class="ph">Account Status &amp; Danger Zone</div>
           <div class="padded">
-            <div class="field"><label>Status</label>
-              <select v-model="user.status">
+            <div class="field">
+              <label>Status</label>
+              <select :value="user.status" @change="changeStatus(($event.target as HTMLSelectElement).value)">
                 <option value="active">Active</option>
                 <option value="suspended">Suspended</option>
                 <option value="banned">Banned</option>
               </select>
             </div>
-            <div class="field"><label>Currency</label><input v-model="user.currency" /></div>
+            <div class="field"><label>Currency</label><input v-model="editCurrency" /></div>
             <div class="divider"></div>
-            <div class="dzone-label r">⚠️ Danger Zone</div>
+            <div class="dzone-label r">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Danger Zone
+            </div>
             <div class="danger-btns">
-              <button class="dbtn y" @click="user.status='suspended'">Suspend Account</button>
-              <button class="dbtn r" @click="user.status='banned'">Ban Account</button>
-              <button class="dbtn o" @click="user.walletBalance=0">Reset Wallet to Zero</button>
+              <button class="dbtn y" @click="changeStatus('suspended')">Suspend Account</button>
+              <button class="dbtn r" @click="changeStatus('banned')">Ban Account</button>
+              <button class="dbtn o" @click="resetWallet">Reset Wallet to Zero</button>
             </div>
           </div>
         </div>
@@ -200,9 +213,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { users, getUserBets, getUserTransactions, getUserActivities, adjustWallet, formatDate, formatFullDate } from '../../stores/adminData'
+import { users, getUserBets, getUserTransactions, getUserActivities, adjustWallet, updateUserStatus, settleBet, formatDate, formatFullDate } from '../../stores/adminData'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '../../lib/firebase'
 
 const route = useRoute()
 const user = computed(() => users.find(u => u.id === route.params.id))
@@ -212,30 +227,85 @@ const userActivities = computed(() => user.value ? getUserActivities(user.value.
 
 const tabs = ['Overview', 'Wallet', 'Bets', 'Transactions', 'Activities', 'Settings']
 const activeTab = ref('Overview')
-const addAmount = ref(0); const addNote = ref(''); const addMsg = ref('')
-const deductAmount = ref(0); const deductNote = ref(''); const deductMsg = ref('')
-const savedMsg = ref('')
+const addAmount = ref(0); const addNote = ref(''); const addMsg = ref(''); const addLoading = ref(false)
+const deductAmount = ref(0); const deductNote = ref(''); const deductMsg = ref(''); const deductLoading = ref(false)
+const savedMsg = ref(''); const saveLoading = ref(false)
 
-function doAdd() {
-  if (!user.value || addAmount.value <= 0) return
-  adjustWallet(user.value.id, addAmount.value, 'add', addNote.value || 'Admin Credit')
-  addMsg.value = `✅ Added UGX ${addAmount.value.toLocaleString()}`
-  addAmount.value = 0; addNote.value = ''
-  setTimeout(() => { addMsg.value = '' }, 3000)
+const editName = ref('')
+const editPhone = ref('')
+const editEmail = ref('')
+const editCountry = ref('')
+const editCurrency = ref('')
+
+watch(user, (u) => {
+  if (u) {
+    editName.value = u.name
+    editPhone.value = u.phone
+    editEmail.value = u.email
+    editCountry.value = u.country
+    editCurrency.value = u.currency
+  }
+}, { immediate: true })
+
+async function changeStatus(status: string) {
+  if (!user.value) return
+  await updateUserStatus(user.value.id, status as 'active' | 'suspended' | 'banned')
 }
-function doDeduct() {
+
+async function changeBetStatus(betId: string, status: string) {
+  if (status === 'pending') return
+  await settleBet(betId, status as 'won' | 'lost')
+}
+
+async function doAdd() {
+  if (!user.value || addAmount.value <= 0) return
+  addLoading.value = true
+  try {
+    await adjustWallet(user.value.id, addAmount.value, 'add', addNote.value || 'Admin Credit')
+    addMsg.value = `Added UGX ${addAmount.value.toLocaleString()}`
+    addAmount.value = 0; addNote.value = ''
+    setTimeout(() => { addMsg.value = '' }, 3000)
+  } finally { addLoading.value = false }
+}
+
+async function doDeduct() {
   if (!user.value || deductAmount.value <= 0) return
-  adjustWallet(user.value.id, deductAmount.value, 'deduct', deductNote.value || 'Admin Deduction')
-  deductMsg.value = `✅ Deducted UGX ${deductAmount.value.toLocaleString()}`
-  deductAmount.value = 0; deductNote.value = ''
-  setTimeout(() => { deductMsg.value = '' }, 3000)
+  deductLoading.value = true
+  try {
+    await adjustWallet(user.value.id, deductAmount.value, 'deduct', deductNote.value || 'Admin Deduction')
+    deductMsg.value = `Deducted UGX ${deductAmount.value.toLocaleString()}`
+    deductAmount.value = 0; deductNote.value = ''
+    setTimeout(() => { deductMsg.value = '' }, 3000)
+  } finally { deductLoading.value = false }
+}
+
+async function saveUserInfo() {
+  if (!user.value) return
+  saveLoading.value = true
+  try {
+    await updateDoc(doc(db, 'users', user.value.id), {
+      name: editName.value,
+      phone: editPhone.value,
+      email: editEmail.value,
+      country: editCountry.value,
+      currency: editCurrency.value,
+    })
+    savedMsg.value = 'Changes saved!'
+    setTimeout(() => { savedMsg.value = '' }, 3000)
+  } finally { saveLoading.value = false }
+}
+
+async function resetWallet() {
+  if (!user.value) return
+  await adjustWallet(user.value.id, user.value.walletBalance, 'deduct', 'Admin Reset')
 }
 </script>
 
 <style scoped>
 * { box-sizing: border-box; }
 .user-detail { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; }
-.back-btn { background: #1e2240; border: none; color: #a78bfa; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 4px; }
+.back-btn { background: #1e2240; border: none; color: #a78bfa; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+.back-btn:hover { background: #252840; }
 .detail-hdr { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 12px 14px; }
 .uhdr-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 .uhdr-av { width: 44px; height: 44px; background: linear-gradient(135deg,#7c3aed,#5c35c9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; flex-shrink: 0; }
@@ -261,7 +331,7 @@ function doDeduct() {
 .msl { font-size: 9px; color: #666; margin-top: 2px; }
 .ms.g .msv { color: #22c55e; } .ms.y .msv { color: #f5a623; } .ms.r .msv { color: #ef4444; }
 .panel { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; overflow: hidden; }
-.ph { padding: 8px 12px; border-bottom: 1px solid #1e2240; font-size: 12px; font-weight: 700; color: #e2e8f0; }
+.ph { padding: 8px 12px; border-bottom: 1px solid #1e2240; font-size: 12px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 6px; }
 .ph.g { color: #22c55e; } .ph.r { color: #ef4444; }
 .padded { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .arow { display: flex; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #0d0f1e; }
@@ -279,6 +349,7 @@ function doDeduct() {
 .field input, .field select { background: #0d0f1e; border: 1px solid #252840; border-radius: 6px; color: #fff; padding: 7px 10px; font-size: 12px; outline: none; }
 .field input:focus { border-color: #7c3aed; }
 .abtn { padding: 8px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.abtn:disabled { opacity: 0.6; cursor: not-allowed; }
 .abtn.g { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
 .abtn.r { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
 .abtn.p { background: linear-gradient(135deg,#7c3aed,#5c35c9); color: #fff; }
@@ -314,10 +385,10 @@ function doDeduct() {
 .muted { color: #555 !important; font-size: 10px !important; }
 .green { color: #22c55e !important; } .red { color: #ef4444 !important; }
 .tp { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; }
-.tp.deposit { background: rgba(34,197,94,0.15); color: #22c55e; }
-.tp.withdrawal { background: rgba(239,68,68,0.15); color: #ef4444; }
+.tp.deposit,.tp.win,.tp.bonus { background: rgba(34,197,94,0.15); color: #22c55e; }
+.tp.withdrawal,.tp.bet { background: rgba(239,68,68,0.15); color: #ef4444; }
 .divider { height: 1px; background: #1e2240; margin: 4px 0; }
-.dzone-label { font-size: 11px; font-weight: 700; }
+.dzone-label { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
 .dzone-label.r { color: #ef4444; }
 .danger-btns { display: flex; flex-direction: column; gap: 6px; }
 .dbtn { padding: 7px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }

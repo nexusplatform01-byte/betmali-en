@@ -237,7 +237,7 @@ const QUICK_STAKES = [5000, 10000, 20000, 50000]
 const selectedSystem = ref('2/3')
 
 const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
-const { openLogin, currentUser, addToBalance } = useAuthModal()
+const { openLogin, currentUser, deductForBet, totalBalance } = useAuthModal()
 const { addBet: saveBet } = useBets()
 
 const QUICK_STAKE_COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#e84c6b']
@@ -248,7 +248,7 @@ let betTimer: ReturnType<typeof setTimeout> | null = null
 
 function placeBet() {
   if (!currentUser.value || !stake.value || stake.value <= 0) return
-  if (stake.value > currentUser.value.balance) return
+  if (stake.value > totalBalance.value) return
   const stakeVal = stake.value
   const combinedOdds = activeSlipTab.value === 'MULTI' ? parseFloat(totalOdds.value) : parseFloat(singleItem.value?.odds ?? '1')
   const bonusPct = activeSlipTab.value === 'MULTI' ? currentBonus.value : 0
@@ -256,7 +256,7 @@ function placeBet() {
   const potentialReturn = Math.round(baseReturn * (1 + bonusPct / 100))
   const betType = activeSlipTab.value === 'SYSTEM' ? 'system' : activeSlipTab.value === 'MULTI' ? 'multi' : 'single'
   const selections = activeSlipTab.value === 'SINGLE' ? [singleItem.value!] : [...slipItems.value]
-  addToBalance(-stakeVal)
+  deductForBet(stakeVal)
   const newId = saveBet({ stake: stakeVal, potentialReturn, selections, type: betType, bonusPct, combinedOdds })
   betId.value = newId
   betSuccess.value = true

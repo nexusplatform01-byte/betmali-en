@@ -1,22 +1,47 @@
 <template>
   <div class="tx-page">
     <div class="summary-grid">
-      <div class="sc dep"><div class="si">↓</div><div><div class="sv">UGX {{ totalDeposits.toLocaleString() }}</div><div class="sl">Total Deposits</div><div class="ss">{{ transactions.filter(t=>t.type==='deposit').length }} txns</div></div></div>
-      <div class="sc wit"><div class="si">↑</div><div><div class="sv">UGX {{ totalWithdrawals.toLocaleString() }}</div><div class="sl">Total Withdrawals</div><div class="ss">{{ transactions.filter(t=>t.type==='withdrawal').length }} txns</div></div></div>
-      <div class="sc pend"><div class="si">⏳</div><div><div class="sv">{{ transactions.filter(t=>t.status==='pending').length }}</div><div class="sl">Pending</div><div class="ss">UGX {{ transactions.filter(t=>t.status==='pending').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div></div></div>
-      <div class="sc fail"><div class="si">✗</div><div><div class="sv">{{ transactions.filter(t=>t.status==='failed').length }}</div><div class="sl">Failed</div><div class="ss">UGX {{ transactions.filter(t=>t.status==='failed').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div></div></div>
+      <div class="sc dep">
+        <div class="si dep">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        </div>
+        <div><div class="sv">UGX {{ totalDeposits.toLocaleString() }}</div><div class="sl">Total Deposits</div><div class="ss">{{ transactions.filter(t=>t.type==='deposit').length }} txns</div></div>
+      </div>
+      <div class="sc wit">
+        <div class="si wit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </div>
+        <div><div class="sv">UGX {{ totalWithdrawals.toLocaleString() }}</div><div class="sl">Total Withdrawals</div><div class="ss">{{ transactions.filter(t=>t.type==='withdrawal').length }} txns</div></div>
+      </div>
+      <div class="sc pend">
+        <div class="si pend">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div><div class="sv">{{ transactions.filter(t=>t.status==='pending').length }}</div><div class="sl">Pending</div><div class="ss">UGX {{ transactions.filter(t=>t.status==='pending').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div></div>
+      </div>
+      <div class="sc fail">
+        <div class="si fail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+        <div><div class="sv">{{ transactions.filter(t=>t.status==='failed').length }}</div><div class="sl">Failed</div><div class="ss">UGX {{ transactions.filter(t=>t.status==='failed').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div></div>
+      </div>
     </div>
 
     <div class="filters-row">
-      <div class="search-bar"><span>🔍</span><input v-model="search" placeholder="Search ref, user, method..." /></div>
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:#555;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input v-model="search" placeholder="Search ref, user, method..." />
+      </div>
       <div class="dftabs">
         <button v-for="df in dateFilters" :key="df.key" :class="['dft', {active: adf===df.key}]" @click="setDF(df.key)">{{ df.label }}</button>
       </div>
       <div class="cal">
         <input type="date" v-model="dateFrom" class="di" />
-        <span class="ds">→</span>
+        <span class="ds">&#8594;</span>
         <input type="date" v-model="dateTo" class="di" />
-        <button class="clr" @click="clearDates">✕</button>
+        <button class="clr" @click="clearDates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <select v-model="typeF"><option value="">All Types</option><option value="deposit">Deposits</option><option value="withdrawal">Withdrawals</option></select>
       <select v-model="statusF"><option value="">All Status</option><option value="completed">Completed</option><option value="pending">Pending</option><option value="failed">Failed</option></select>
@@ -39,7 +64,11 @@
             <td><span :class="['sp', tx.status]">{{ tx.status }}</span></td>
             <td class="muted">{{ formatFullDate(tx.createdAt) }}</td>
             <td>
-              <select v-if="tx.status==='pending'" v-model="tx.status" class="is"><option value="pending">Pending</option><option value="completed">Approve</option><option value="failed">Reject</option></select>
+              <select v-if="tx.status==='pending'" :value="tx.status" @change="changeStatus(tx.id, ($event.target as HTMLSelectElement).value)" class="is">
+                <option value="pending">Pending</option>
+                <option value="completed">Approve</option>
+                <option value="failed">Reject</option>
+              </select>
               <span v-else class="dash">—</span>
             </td>
           </tr>
@@ -52,7 +81,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { transactions, users, formatFullDate } from '../../stores/adminData'
+import { transactions, users, formatFullDate, updateTransactionStatus } from '../../stores/adminData'
 
 const search = ref(''); const typeF = ref(''); const statusF = ref('')
 const adf = ref('all'); const dateFrom = ref(''); const dateTo = ref('')
@@ -71,6 +100,11 @@ function setDF(key: string) {
   else if (key==='month') { dateFrom.value=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10); dateTo.value=now.toISOString().slice(0,10) }
 }
 function clearDates() { dateFrom.value=''; dateTo.value=''; adf.value='all' }
+
+async function changeStatus(txId: string, newStatus: string) {
+  if (!newStatus || newStatus === 'pending') return
+  await updateTransactionStatus(txId, newStatus as 'completed' | 'pending' | 'failed')
+}
 
 const filtered = computed(() => transactions.filter(tx => {
   const q = search.value.toLowerCase()
@@ -97,11 +131,11 @@ function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
 .tx-page { display: flex; flex-direction: column; gap: 10px; height: 100%; }
 .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
 .sc { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
-.si { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; flex-shrink: 0; }
-.sc.dep .si { background: rgba(34,197,94,0.15); color: #22c55e; }
-.sc.wit .si { background: rgba(239,68,68,0.15); color: #ef4444; }
-.sc.pend .si { background: rgba(245,166,35,0.15); color: #f5a623; }
-.sc.fail .si { background: rgba(100,100,100,0.15); color: #888; }
+.si { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.si.dep { background: rgba(34,197,94,0.15); color: #22c55e; }
+.si.wit { background: rgba(239,68,68,0.15); color: #ef4444; }
+.si.pend { background: rgba(245,166,35,0.15); color: #f5a623; }
+.si.fail { background: rgba(100,100,100,0.15); color: #888; }
 .sv { font-size: 13px; font-weight: 800; color: #fff; }
 .sl { font-size: 10px; color: #888; margin-top: 1px; }
 .ss { font-size: 10px; color: #555; margin-top: 1px; }
@@ -115,7 +149,8 @@ function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
 .cal { display: flex; align-items: center; gap: 4px; }
 .di { background: #13172b; border: 1px solid #1e2240; border-radius: 6px; color: #e2e8f0; padding: 5px 7px; font-size: 10px; outline: none; cursor: pointer; width: 110px; }
 .ds { color: #555; font-size: 10px; }
-.clr { background: #1e2240; border: none; color: #aaa; padding: 5px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; }
+.clr { background: #1e2240; border: none; color: #aaa; padding: 5px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; display: flex; align-items: center; }
+.clr:hover { color: #fff; }
 select { background: #13172b; border: 1px solid #1e2240; border-radius: 6px; color: #e2e8f0; padding: 5px 8px; font-size: 11px; outline: none; cursor: pointer; }
 .panel { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; overflow: auto; flex: 1; }
 .ph { padding: 8px 12px; border-bottom: 1px solid #1e2240; font-size: 11px; color: #666; display: flex; justify-content: space-between; }
@@ -133,6 +168,9 @@ select { background: #13172b; border: 1px solid #1e2240; border-radius: 6px; col
 .tp { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px; text-transform: uppercase; }
 .tp.deposit { background: rgba(34,197,94,0.15); color: #22c55e; }
 .tp.withdrawal { background: rgba(239,68,68,0.15); color: #ef4444; }
+.tp.win { background: rgba(34,197,94,0.15); color: #22c55e; }
+.tp.bonus { background: rgba(124,58,237,0.15); color: #a78bfa; }
+.tp.bet { background: rgba(245,166,35,0.15); color: #f5a623; }
 .sp { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px; text-transform: uppercase; }
 .sp.completed { background: rgba(34,197,94,0.15); color: #22c55e; }
 .sp.pending { background: rgba(245,166,35,0.15); color: #f5a623; }

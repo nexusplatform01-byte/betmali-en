@@ -1,130 +1,48 @@
 <template>
   <div class="dashboard">
-    <!-- Stats Row -->
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon purple">👥</div>
-        <div class="stat-body">
-          <div class="stat-value">{{ users.length }}</div>
-          <div class="stat-label">Total Users</div>
-          <div class="stat-sub green">{{ activeUsers }} active</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon orange">🎯</div>
-        <div class="stat-body">
-          <div class="stat-value">{{ bets.length }}</div>
-          <div class="stat-label">Total Bets</div>
-          <div class="stat-sub yellow">{{ pendingBets }} pending</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon blue">💳</div>
-        <div class="stat-body">
-          <div class="stat-value">{{ fmt(totalDeposits) }}</div>
-          <div class="stat-label">Total Deposits</div>
-          <div class="stat-sub green">UGX</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon red">💸</div>
-        <div class="stat-body">
-          <div class="stat-value">{{ fmt(totalWithdrawals) }}</div>
-          <div class="stat-label">Total Withdrawals</div>
-          <div class="stat-sub">UGX</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green">💰</div>
-        <div class="stat-body">
-          <div class="stat-value">{{ fmt(totalUsersWallet) }}</div>
-          <div class="stat-label">Users Wallet Total</div>
-          <div class="stat-sub">UGX</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon teal">🏦</div>
-        <div class="stat-body">
-          <div class="stat-value">{{ fmt(siteSettings.siteBalance) }}</div>
-          <div class="stat-label">Site Balance</div>
-          <div class="stat-sub">UGX</div>
+      <div class="stat-card" v-for="s in stats" :key="s.label">
+        <div class="si" :style="{background: s.bg}">{{ s.icon }}</div>
+        <div>
+          <div class="sv">{{ s.value }}</div>
+          <div class="sl">{{ s.label }}</div>
+          <div class="ss" :style="{color: s.subColor}">{{ s.sub }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Two columns -->
     <div class="two-col">
-      <!-- Recent Users -->
       <div class="panel">
-        <div class="panel-head">
-          <span>Recent Users</span>
-          <router-link to="/admin/users" class="view-all">View All →</router-link>
-        </div>
-        <div class="panel-body">
-          <div v-for="u in recentUsers" :key="u.id" class="list-row" @click="$router.push('/admin/users/' + u.id)">
-            <div class="user-avatar">{{ u.name.charAt(0) }}</div>
-            <div class="list-info">
-              <div class="list-name">{{ u.name }}</div>
-              <div class="list-sub">{{ u.phone }}</div>
-            </div>
-            <div class="list-right">
-              <div class="list-amount">{{ fmt(u.walletBalance) }}</div>
-              <div :class="['status-pill', u.status]">{{ u.status }}</div>
-            </div>
-          </div>
+        <div class="ph"><span>Recent Users</span><router-link to="/admin/users" class="va">View All →</router-link></div>
+        <div v-for="u in recentUsers" :key="u.id" class="lr" @click="$router.push('/admin/users/'+u.id)">
+          <div class="av">{{ u.name.charAt(0) }}</div>
+          <div class="li"><div class="ln">{{ u.name }}</div><div class="lm">{{ u.phone }}</div></div>
+          <div class="lright"><div class="la">{{ fmt(u.walletBalance) }}</div><span :class="['sp', u.status]">{{ u.status }}</span></div>
         </div>
       </div>
-
-      <!-- Recent Transactions -->
       <div class="panel">
-        <div class="panel-head">
-          <span>Recent Transactions</span>
-          <router-link to="/admin/transactions" class="view-all">View All →</router-link>
-        </div>
-        <div class="panel-body">
-          <div v-for="tx in recentTxs" :key="tx.id" class="list-row">
-            <div :class="['tx-icon', tx.type]">{{ tx.type === 'deposit' ? '↓' : '↑' }}</div>
-            <div class="list-info">
-              <div class="list-name">{{ getUserName(tx.userId) }}</div>
-              <div class="list-sub">{{ tx.method }} · {{ formatDate(tx.createdAt) }}</div>
-            </div>
-            <div class="list-right">
-              <div :class="['tx-amount', tx.type]">{{ tx.type === 'deposit' ? '+' : '-' }}{{ fmt(tx.amount) }}</div>
-              <div :class="['status-pill', tx.status]">{{ tx.status }}</div>
-            </div>
-          </div>
+        <div class="ph"><span>Recent Transactions</span><router-link to="/admin/transactions" class="va">View All →</router-link></div>
+        <div v-for="tx in recentTxs" :key="tx.id" class="lr">
+          <div :class="['ti', tx.type]">{{ tx.type==='deposit'?'↓':'↑' }}</div>
+          <div class="li"><div class="ln">{{ getUserName(tx.userId) }}</div><div class="lm">{{ tx.method }} · {{ formatDate(tx.createdAt) }}</div></div>
+          <div class="lright"><div :class="['ta', tx.type]">{{ tx.type==='deposit'?'+':'-' }}{{ fmt(tx.amount) }}</div><span :class="['sp', tx.status]">{{ tx.status }}</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Recent Bets -->
-    <div class="panel mt">
-      <div class="panel-head">
-        <span>Recent Bets</span>
-        <router-link to="/admin/bets" class="view-all">View All →</router-link>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Ticket</th>
-            <th>User</th>
-            <th>Match</th>
-            <th>Odds</th>
-            <th>Stake</th>
-            <th>Potential Win</th>
-            <th>Status</th>
-            <th>Placed</th>
-          </tr>
-        </thead>
+    <div class="panel">
+      <div class="ph"><span>Recent Bets</span><router-link to="/admin/bets" class="va">View All →</router-link></div>
+      <table class="dt">
+        <thead><tr><th>Ticket</th><th>User</th><th>Match</th><th>Odds</th><th>Stake</th><th>Potential</th><th>Status</th><th>Placed</th></tr></thead>
         <tbody>
           <tr v-for="b in recentBets" :key="b.id">
             <td class="mono">{{ b.ticketId }}</td>
             <td>{{ getUserName(b.userId) }}</td>
-            <td class="match-cell">{{ b.match }}</td>
+            <td class="mc">{{ b.match }}</td>
             <td>{{ b.odds }}</td>
             <td>{{ fmt(b.stake) }}</td>
             <td class="green">{{ fmt(b.potentialWin) }}</td>
-            <td><span :class="['status-pill', b.status]">{{ b.status }}</span></td>
+            <td><span :class="['sp', b.status]">{{ b.status }}</span></td>
             <td class="muted">{{ formatDate(b.placedAt) }}</td>
           </tr>
         </tbody>
@@ -138,117 +56,61 @@ import { computed } from 'vue'
 import { users, bets, transactions, siteSettings, formatDate } from '../../stores/adminData'
 
 const fmt = (n: number) => n.toLocaleString()
-
-const activeUsers = computed(() => users.filter(u => u.status === 'active').length)
-const pendingBets = computed(() => bets.filter(b => b.status === 'pending').length)
-const totalDeposits = computed(() => transactions.filter(t => t.type === 'deposit' && t.status === 'completed').reduce((s, t) => s + t.amount, 0))
-const totalWithdrawals = computed(() => transactions.filter(t => t.type === 'withdrawal' && t.status === 'completed').reduce((s, t) => s + t.amount, 0))
 const totalUsersWallet = computed(() => users.reduce((s, u) => s + u.walletBalance, 0))
 
-const recentUsers = computed(() => [...users].sort((a, b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime()).slice(0, 5))
-const recentTxs = computed(() => [...transactions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5))
-const recentBets = computed(() => [...bets].sort((a, b) => new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime()).slice(0, 6))
+const stats = computed(() => [
+  { icon: '👥', label: 'Total Users', value: users.length, sub: users.filter(u=>u.status==='active').length+' active', bg: 'rgba(124,58,237,0.15)', subColor: '#22c55e' },
+  { icon: '🎯', label: 'Total Bets', value: bets.length, sub: bets.filter(b=>b.status==='pending').length+' pending', bg: 'rgba(245,166,35,0.15)', subColor: '#f5a623' },
+  { icon: '💳', label: 'Deposits', value: fmt(transactions.filter(t=>t.type==='deposit'&&t.status==='completed').reduce((s,t)=>s+t.amount,0)), sub: 'UGX total', bg: 'rgba(59,130,246,0.15)', subColor: '#60a5fa' },
+  { icon: '💸', label: 'Withdrawals', value: fmt(transactions.filter(t=>t.type==='withdrawal'&&t.status==='completed').reduce((s,t)=>s+t.amount,0)), sub: 'UGX total', bg: 'rgba(239,68,68,0.15)', subColor: '#ef4444' },
+  { icon: '💰', label: 'Users Wallet', value: fmt(totalUsersWallet.value), sub: 'UGX combined', bg: 'rgba(34,197,94,0.15)', subColor: '#22c55e' },
+  { icon: '🏦', label: 'Site Balance', value: fmt(siteSettings.siteBalance), sub: 'UGX', bg: 'rgba(20,184,166,0.15)', subColor: '#2dd4bf' },
+])
 
-function getUserName(userId: string) {
-  return users.find(u => u.id === userId)?.name || userId
-}
+const recentUsers = computed(() => [...users].sort((a,b)=>new Date(b.lastVisit).getTime()-new Date(a.lastVisit).getTime()).slice(0,5))
+const recentTxs = computed(() => [...transactions].sort((a,b)=>new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime()).slice(0,5))
+const recentBets = computed(() => [...bets].sort((a,b)=>new Date(b.placedAt).getTime()-new Date(a.placedAt).getTime()).slice(0,5))
+function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
 </script>
 
 <style scoped>
-.dashboard { display: flex; flex-direction: column; gap: 24px; }
-.stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
-.stat-card {
-  background: #13172b;
-  border: 1px solid #1e2240;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.stat-icon {
-  width: 44px; height: 44px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
-}
-.stat-icon.purple { background: rgba(124,58,237,0.15); }
-.stat-icon.orange { background: rgba(245,166,35,0.15); }
-.stat-icon.blue { background: rgba(59,130,246,0.15); }
-.stat-icon.red { background: rgba(239,68,68,0.15); }
-.stat-icon.green { background: rgba(34,197,94,0.15); }
-.stat-icon.teal { background: rgba(20,184,166,0.15); }
-.stat-value { font-size: 20px; font-weight: 800; color: #fff; }
-.stat-label { font-size: 11px; color: #888; margin-top: 2px; }
-.stat-sub { font-size: 11px; color: #666; margin-top: 2px; }
-.stat-sub.green { color: #22c55e; }
-.stat-sub.yellow { color: #f5a623; }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.panel {
-  background: #13172b;
-  border: 1px solid #1e2240;
-  border-radius: 12px;
-  overflow: hidden;
-}
-.panel.mt { margin-top: 0; }
-.panel-head {
-  padding: 16px 20px;
-  border-bottom: 1px solid #1e2240;
-  font-size: 14px;
-  font-weight: 700;
-  color: #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.view-all { font-size: 12px; color: #7c3aed; text-decoration: none; font-weight: 500; }
-.panel-body { padding: 8px 0; }
-.list-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.list-row:hover { background: rgba(255,255,255,0.03); }
-.user-avatar {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, #7c3aed, #5c35c9);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
-}
-.tx-icon {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 700; flex-shrink: 0;
-}
-.tx-icon.deposit { background: rgba(34,197,94,0.15); color: #22c55e; }
-.tx-icon.withdrawal { background: rgba(239,68,68,0.15); color: #ef4444; }
-.list-info { flex: 1; min-width: 0; }
-.list-name { font-size: 13px; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.list-sub { font-size: 11px; color: #666; margin-top: 2px; }
-.list-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.list-amount { font-size: 13px; font-weight: 700; color: #fff; }
-.tx-amount.deposit { color: #22c55e; font-size: 13px; font-weight: 700; }
-.tx-amount.withdrawal { color: #ef4444; font-size: 13px; font-weight: 700; }
-.status-pill {
-  font-size: 10px; font-weight: 700; padding: 2px 8px;
-  border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px;
-}
-.status-pill.active, .status-pill.completed, .status-pill.won { background: rgba(34,197,94,0.15); color: #22c55e; }
-.status-pill.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
-.status-pill.suspended, .status-pill.lost, .status-pill.failed { background: rgba(239,68,68,0.15); color: #ef4444; }
-.status-pill.banned { background: rgba(100,100,100,0.2); color: #888; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table th { padding: 10px 20px; text-align: left; color: #666; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #1e2240; }
-.data-table td { padding: 12px 20px; color: #ccc; border-bottom: 1px solid #0d0f1e; }
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255,255,255,0.02); }
-.mono { font-family: monospace; color: #a78bfa !important; font-size: 12px !important; }
-.match-cell { max-width: 200px; }
+.dashboard { display: flex; flex-direction: column; gap: 12px; }
+.stats-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 10px; }
+.stat-card { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 10px; }
+.si { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.sv { font-size: 15px; font-weight: 800; color: #fff; }
+.sl { font-size: 10px; color: #888; margin-top: 1px; }
+.ss { font-size: 10px; margin-top: 1px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.panel { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; overflow: hidden; }
+.ph { padding: 8px 12px; border-bottom: 1px solid #1e2240; font-size: 12px; font-weight: 700; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+.va { font-size: 11px; color: #7c3aed; text-decoration: none; }
+.lr { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #0d0f1e; }
+.lr:last-child { border-bottom: none; }
+.lr:hover { background: rgba(255,255,255,0.02); }
+.av { width: 28px; height: 28px; background: linear-gradient(135deg,#7c3aed,#5c35c9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.ti { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; flex-shrink: 0; }
+.ti.deposit { background: rgba(34,197,94,0.15); color: #22c55e; }
+.ti.withdrawal { background: rgba(239,68,68,0.15); color: #ef4444; }
+.li { flex: 1; min-width: 0; }
+.ln { font-size: 12px; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lm { font-size: 10px; color: #666; margin-top: 1px; }
+.lright { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.la { font-size: 12px; font-weight: 700; color: #fff; }
+.ta.deposit { font-size: 11px; font-weight: 700; color: #22c55e; }
+.ta.withdrawal { font-size: 11px; font-weight: 700; color: #ef4444; }
+.sp { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; }
+.sp.active,.sp.completed,.sp.won { background: rgba(34,197,94,0.15); color: #22c55e; }
+.sp.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
+.sp.suspended,.sp.lost,.sp.failed { background: rgba(239,68,68,0.15); color: #ef4444; }
+.sp.banned { background: rgba(100,100,100,0.2); color: #888; }
+.dt { width: 100%; border-collapse: collapse; font-size: 11px; }
+.dt th { padding: 6px 12px; text-align: left; color: #555; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; background: #0d0f1e; border-bottom: 1px solid #1e2240; }
+.dt td { padding: 8px 12px; color: #bbb; border-bottom: 1px solid #0d0f1e; }
+.dt tr:last-child td { border-bottom: none; }
+.dt tr:hover td { background: rgba(255,255,255,0.02); }
+.mono { font-family: monospace; color: #a78bfa !important; font-size: 10px !important; }
+.mc { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .green { color: #22c55e !important; }
-.muted { color: #666 !important; font-size: 12px !important; }
+.muted { color: #555 !important; font-size: 10px !important; }
 </style>

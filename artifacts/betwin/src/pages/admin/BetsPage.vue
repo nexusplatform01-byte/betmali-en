@@ -2,164 +2,211 @@
   <div class="bets-page">
     <!-- Totals -->
     <div class="totals-grid">
-      <div class="total-card all">
-        <div class="tc-val">{{ bets.length }}</div>
-        <div class="tc-label">Total Bets</div>
-        <div class="tc-amount">UGX {{ totalStake.toLocaleString() }} staked</div>
-      </div>
-      <div class="total-card pending">
-        <div class="tc-val">{{ pendingBets.length }}</div>
-        <div class="tc-label">Pending</div>
-        <div class="tc-amount">UGX {{ pendingStake.toLocaleString() }} at risk</div>
-      </div>
-      <div class="total-card won">
-        <div class="tc-val">{{ wonBets.length }}</div>
-        <div class="tc-label">Won</div>
-        <div class="tc-amount">UGX {{ wonPayout.toLocaleString() }} paid out</div>
-      </div>
-      <div class="total-card lost">
-        <div class="tc-val">{{ lostBets.length }}</div>
-        <div class="tc-label">Lost</div>
-        <div class="tc-amount">UGX {{ lostStake.toLocaleString() }} collected</div>
-      </div>
+      <div class="tc all"><div class="tv">{{ bets.length }}</div><div class="tl">Total Bets</div><div class="ta">UGX {{ totalStake.toLocaleString() }}</div></div>
+      <div class="tc pending"><div class="tv">{{ pendingBets.length }}</div><div class="tl">Pending</div><div class="ta">UGX {{ pendingStake.toLocaleString() }}</div></div>
+      <div class="tc won"><div class="tv">{{ wonBets.length }}</div><div class="tl">Won</div><div class="ta">UGX {{ wonPayout.toLocaleString() }}</div></div>
+      <div class="tc lost"><div class="tv">{{ lostBets.length }}</div><div class="tl">Lost</div><div class="ta">UGX {{ lostStake.toLocaleString() }}</div></div>
     </div>
 
     <!-- Filters -->
     <div class="filters-row">
-      <div class="search-bar">
-        <span>🔍</span>
-        <input v-model="search" placeholder="Search ticket, match, user..." />
+      <div class="search-bar"><span>🔍</span><input v-model="search" placeholder="Search ticket, match, user..." /></div>
+      <div class="ftabs">
+        <button v-for="f in ['All','Pending','Won','Lost']" :key="f" :class="['ftab', {active: sf===f}]" @click="sf=f">{{ f }}</button>
       </div>
-      <div class="filter-tabs">
-        <button v-for="f in ['All', 'Pending', 'Won', 'Lost']" :key="f" :class="['ftab', { active: statusFilter === f }]" @click="statusFilter = f">{{ f }}</button>
-      </div>
-      <select v-model="sportFilter">
-        <option value="">All Sports</option>
-        <option value="Soccer">Soccer</option>
-        <option value="Basketball">Basketball</option>
-        <option value="Tennis">Tennis</option>
-      </select>
     </div>
 
-    <!-- Table -->
-    <div class="panel">
-      <div class="panel-head">
-        <span>{{ filtered.length }} bets shown</span>
+    <!-- Ticket cards list -->
+    <div class="tickets-list">
+      <div v-for="b in filtered" :key="b.id" class="tkt-card" @click="openTicket(b)">
+        <div class="tkt-left">
+          <div class="tkt-top">
+            <span class="tkt-id">{{ b.ticketId }}</span>
+            <span class="tkt-type">{{ b.sport.toUpperCase() }} · 1 match</span>
+          </div>
+          <div class="tkt-match">{{ b.match }}</div>
+          <div class="tkt-sel">{{ b.selection }} · <span class="odds-val">{{ b.odds }}x</span></div>
+        </div>
+        <div class="tkt-right">
+          <span :class="['sp', b.status]">{{ b.status }}</span>
+          <div class="tkt-stake">UGX {{ b.stake.toLocaleString() }}</div>
+          <div class="tkt-win">→ UGX {{ b.potentialWin.toLocaleString() }}</div>
+          <div class="tkt-user">👤 {{ getUserName(b.userId) }}</div>
+        </div>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Ticket</th>
-            <th>User</th>
-            <th>Match</th>
-            <th>Selection</th>
-            <th>Sport</th>
-            <th>Odds</th>
-            <th>Stake</th>
-            <th>Potential Win</th>
-            <th>Status</th>
-            <th>Placed</th>
-            <th>Manage</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="b in filtered" :key="b.id">
-            <td class="mono">{{ b.ticketId }}</td>
-            <td class="user-link" @click="$router.push('/admin/users/' + b.userId)">{{ getUserName(b.userId) }}</td>
-            <td>{{ b.match }}</td>
-            <td class="muted">{{ b.selection }}</td>
-            <td class="muted">{{ b.sport }}</td>
-            <td class="bold">{{ b.odds }}</td>
-            <td>UGX {{ b.stake.toLocaleString() }}</td>
-            <td class="green">UGX {{ b.potentialWin.toLocaleString() }}</td>
-            <td><span :class="['status-pill', b.status]">{{ b.status }}</span></td>
-            <td class="muted">{{ formatDate(b.placedAt) }}</td>
-            <td>
-              <select v-if="b.status === 'pending'" v-model="b.status" class="inline-select">
-                <option value="pending">Pending</option>
-                <option value="won">Mark Won</option>
-                <option value="lost">Mark Lost</option>
-              </select>
-              <span v-else class="settled">Settled</span>
-            </td>
-          </tr>
-          <tr v-if="filtered.length === 0"><td colspan="11" class="empty">No bets found</td></tr>
-        </tbody>
-      </table>
+      <div v-if="!filtered.length" class="empty">No bets found</div>
     </div>
+
+    <!-- Ticket Detail Modal -->
+    <teleport to="body">
+      <transition name="fade">
+        <div v-if="selectedBet" class="backdrop" @click.self="selectedBet=null">
+          <div class="tm-modal">
+            <div class="tm-hdr">
+              <div class="tm-hdr-l">🎯 {{ selectedBet.ticketId }} · 1 EVENT</div>
+              <button class="tm-x" @click="selectedBet=null">✕</button>
+            </div>
+            <div class="tm-body">
+              <div class="tm-left">
+                <div class="tmm-row">
+                  <div class="tmm-meta">{{ selectedBet.sport }} · {{ formatFullDate(selectedBet.placedAt) }}</div>
+                  <div class="tmm-teams">{{ selectedBet.match }}</div>
+                  <div class="tmm-pick-row">
+                    <span class="tmm-pick">Selection: <strong>{{ selectedBet.selection }}</strong></span>
+                    <span class="tmm-odds">{{ selectedBet.odds }}</span>
+                  </div>
+                  <div :class="['tmm-st', selectedBet.status]">{{ selectedBet.status.toUpperCase() }}</div>
+                </div>
+              </div>
+              <div class="tm-right">
+                <div class="tm-user-info">
+                  <div class="tm-av">{{ getUserName(selectedBet.userId).charAt(0) }}</div>
+                  <div>
+                    <div class="tm-uname">{{ getUserName(selectedBet.userId) }}</div>
+                    <div class="tm-uid muted">{{ selectedBet.userId }}</div>
+                  </div>
+                </div>
+                <div class="tm-info">
+                  <div class="tmf"><span>TICKET ID</span><span class="tmf-v mono">{{ selectedBet.ticketId }}</span></div>
+                  <div class="tmf"><span>TOTAL ODDS</span><span class="tmf-v odds">{{ selectedBet.odds }}</span></div>
+                  <div class="tmf"><span>STAKE</span><span class="tmf-v">UGX {{ selectedBet.stake.toLocaleString() }}</span></div>
+                  <div class="tmf total"><span>POSSIBLE WIN</span><span class="tmf-v green">UGX {{ selectedBet.potentialWin.toLocaleString() }}</span></div>
+                  <div class="tmf"><span>PLACED</span><span class="tmf-v muted">{{ formatFullDate(selectedBet.placedAt) }}</span></div>
+                  <div v-if="selectedBet.settledAt" class="tmf"><span>SETTLED</span><span class="tmf-v muted">{{ formatFullDate(selectedBet.settledAt) }}</span></div>
+                </div>
+                <div class="tm-status-row">
+                  <span class="tm-st-lbl">STATUS</span>
+                  <span :class="['tm-st-val', selectedBet.status]">{{ selectedBet.status.toUpperCase() }}</span>
+                </div>
+                <div class="tm-manage" v-if="selectedBet.status==='pending'">
+                  <div class="manage-label">Manage Ticket</div>
+                  <div class="manage-btns">
+                    <button class="mb won" @click="selectedBet!.status='won'; selectedBet=null">✓ Mark Won</button>
+                    <button class="mb lost" @click="selectedBet!.status='lost'; selectedBet=null">✗ Mark Lost</button>
+                  </div>
+                </div>
+                <button class="view-user-btn" @click="$router.push('/admin/users/'+selectedBet!.userId); selectedBet=null">View User Profile →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { bets, users, formatDate } from '../../stores/adminData'
+import { bets, users, formatFullDate, type Bet } from '../../stores/adminData'
 
-const search = ref('')
-const statusFilter = ref('All')
-const sportFilter = ref('')
+const search = ref(''); const sf = ref('All')
+const selectedBet = ref<Bet|null>(null)
 
-const pendingBets = computed(() => bets.filter(b => b.status === 'pending'))
-const wonBets = computed(() => bets.filter(b => b.status === 'won'))
-const lostBets = computed(() => bets.filter(b => b.status === 'lost'))
-const totalStake = computed(() => bets.reduce((s, b) => s + b.stake, 0))
-const pendingStake = computed(() => pendingBets.value.reduce((s, b) => s + b.stake, 0))
-const wonPayout = computed(() => wonBets.value.reduce((s, b) => s + b.potentialWin, 0))
-const lostStake = computed(() => lostBets.value.reduce((s, b) => s + b.stake, 0))
+const pendingBets = computed(() => bets.filter(b=>b.status==='pending'))
+const wonBets = computed(() => bets.filter(b=>b.status==='won'))
+const lostBets = computed(() => bets.filter(b=>b.status==='lost'))
+const totalStake = computed(() => bets.reduce((s,b)=>s+b.stake,0))
+const pendingStake = computed(() => pendingBets.value.reduce((s,b)=>s+b.stake,0))
+const wonPayout = computed(() => wonBets.value.reduce((s,b)=>s+b.potentialWin,0))
+const lostStake = computed(() => lostBets.value.reduce((s,b)=>s+b.stake,0))
 
-const filtered = computed(() => {
-  return bets.filter(b => {
-    const q = search.value.toLowerCase()
-    const matchSearch = !q || b.ticketId.toLowerCase().includes(q) || b.match.toLowerCase().includes(q) || getUserName(b.userId).toLowerCase().includes(q)
-    const matchStatus = statusFilter.value === 'All' || b.status === statusFilter.value.toLowerCase()
-    const matchSport = !sportFilter.value || b.sport === sportFilter.value
-    return matchSearch && matchStatus && matchSport
-  }).sort((a, b) => new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime())
-})
+const filtered = computed(() => bets.filter(b => {
+  const q = search.value.toLowerCase()
+  const ms = !q || b.ticketId.toLowerCase().includes(q) || b.match.toLowerCase().includes(q) || getUserName(b.userId).toLowerCase().includes(q)
+  const ss = sf.value==='All' || b.status===sf.value.toLowerCase()
+  return ms && ss
+}).sort((a,b)=>new Date(b.placedAt).getTime()-new Date(a.placedAt).getTime()))
 
-function getUserName(userId: string) {
-  return users.find(u => u.id === userId)?.name || userId
-}
+function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
+function openTicket(b: Bet) { selectedBet.value = b }
 </script>
 
 <style scoped>
-.bets-page { display: flex; flex-direction: column; gap: 20px; }
-.totals-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.total-card { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; padding: 20px; }
-.total-card.pending { border-color: rgba(245,166,35,0.3); }
-.total-card.won { border-color: rgba(34,197,94,0.3); }
-.total-card.lost { border-color: rgba(239,68,68,0.3); }
-.tc-val { font-size: 40px; font-weight: 900; color: #fff; }
-.total-card.pending .tc-val { color: #f5a623; }
-.total-card.won .tc-val { color: #22c55e; }
-.total-card.lost .tc-val { color: #ef4444; }
-.tc-label { font-size: 13px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-.tc-amount { font-size: 12px; color: #555; margin-top: 6px; }
-.filters-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.search-bar { display: flex; align-items: center; gap: 10px; background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 200px; }
-.search-bar input { background: transparent; border: none; outline: none; color: #e2e8f0; font-size: 14px; width: 100%; }
-.filter-tabs { display: flex; gap: 4px; background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 4px; }
-.ftab { background: transparent; border: none; color: #888; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.bets-page { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.totals-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.tc { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 12px 14px; }
+.tc.pending { border-color: rgba(245,166,35,0.3); }
+.tc.won { border-color: rgba(34,197,94,0.3); }
+.tc.lost { border-color: rgba(239,68,68,0.3); }
+.tv { font-size: 26px; font-weight: 900; color: #fff; }
+.tc.pending .tv { color: #f5a623; } .tc.won .tv { color: #22c55e; } .tc.lost .tv { color: #ef4444; }
+.tl { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.ta { font-size: 10px; color: #555; margin-top: 3px; }
+.filters-row { display: flex; align-items: center; gap: 8px; }
+.search-bar { display: flex; align-items: center; gap: 8px; background: #13172b; border: 1px solid #1e2240; border-radius: 6px; padding: 6px 10px; flex: 1; }
+.search-bar input { background: transparent; border: none; outline: none; color: #e2e8f0; font-size: 12px; width: 100%; }
+.ftabs { display: flex; gap: 2px; background: #13172b; border: 1px solid #1e2240; border-radius: 6px; padding: 3px; }
+.ftab { background: transparent; border: none; color: #888; padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; }
 .ftab.active { background: rgba(124,58,237,0.2); color: #a78bfa; }
 .ftab:hover:not(.active) { color: #ccc; }
-select { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; color: #e2e8f0; padding: 10px 14px; font-size: 13px; outline: none; cursor: pointer; }
-.panel { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; overflow: hidden; }
-.panel-head { padding: 14px 20px; border-bottom: 1px solid #1e2240; font-size: 13px; color: #666; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table th { padding: 10px 14px; text-align: left; color: #666; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; background: #0d0f1e; border-bottom: 1px solid #1e2240; }
-.data-table td { padding: 12px 14px; color: #ccc; border-bottom: 1px solid #1a1e35; }
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255,255,255,0.02); }
-.mono { font-family: monospace; color: #a78bfa !important; font-size: 12px !important; }
-.muted { color: #666 !important; font-size: 12px !important; }
-.bold { color: #fff; font-weight: 700; }
-.green { color: #22c55e !important; }
-.user-link { color: #a78bfa !important; cursor: pointer; font-weight: 600; }
-.user-link:hover { text-decoration: underline; }
-.status-pill { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; }
-.status-pill.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
-.status-pill.won { background: rgba(34,197,94,0.15); color: #22c55e; }
-.status-pill.lost { background: rgba(239,68,68,0.15); color: #ef4444; }
-.inline-select { background: #1e2240; border: 1px solid #252840; color: #e2e8f0; padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; outline: none; }
-.settled { font-size: 11px; color: #555; }
-.empty { text-align: center; color: #555; padding: 40px !important; }
+.tickets-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
+.tkt-card { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.tkt-card:hover { border-color: #7c3aed; background: rgba(124,58,237,0.04); }
+.tkt-left { flex: 1; min-width: 0; }
+.tkt-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.tkt-id { font-family: monospace; font-size: 11px; color: #a78bfa; font-weight: 700; }
+.tkt-type { font-size: 10px; color: #666; }
+.tkt-match { font-size: 12px; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tkt-sel { font-size: 11px; color: #888; margin-top: 2px; }
+.odds-val { color: #f5a623; font-weight: 700; }
+.tkt-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+.sp { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px; text-transform: uppercase; }
+.sp.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
+.sp.won { background: rgba(34,197,94,0.15); color: #22c55e; }
+.sp.lost { background: rgba(239,68,68,0.15); color: #ef4444; }
+.tkt-stake { font-size: 12px; font-weight: 700; color: #fff; }
+.tkt-win { font-size: 10px; color: #22c55e; }
+.tkt-user { font-size: 10px; color: #666; }
+.empty { text-align: center; color: #444; padding: 40px; }
+
+/* Modal */
+.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.tm-modal { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; width: 680px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.tm-hdr { padding: 12px 16px; border-bottom: 1px solid #1e2240; display: flex; justify-content: space-between; align-items: center; background: #1a1f38; border-radius: 12px 12px 0 0; }
+.tm-hdr-l { font-size: 12px; font-weight: 700; color: #a78bfa; }
+.tm-x { background: transparent; border: none; color: #888; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+.tm-x:hover { color: #fff; background: #252840; }
+.tm-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.tm-left { padding: 14px; border-right: 1px solid #1e2240; }
+.tmm-row { display: flex; flex-direction: column; gap: 6px; }
+.tmm-meta { font-size: 10px; color: #666; }
+.tmm-teams { font-size: 14px; font-weight: 700; color: #fff; }
+.tmm-pick-row { display: flex; justify-content: space-between; align-items: center; }
+.tmm-pick { font-size: 11px; color: #aaa; }
+.tmm-odds { font-size: 13px; font-weight: 800; color: #f5a623; }
+.tmm-st { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 8px; text-transform: uppercase; display: inline-block; margin-top: 4px; }
+.tmm-st.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
+.tmm-st.won { background: rgba(34,197,94,0.15); color: #22c55e; }
+.tmm-st.lost { background: rgba(239,68,68,0.15); color: #ef4444; }
+.tm-right { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.tm-user-info { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #1e2240; }
+.tm-av { width: 34px; height: 34px; background: linear-gradient(135deg,#7c3aed,#5c35c9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.tm-uname { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+.tm-uid { font-size: 10px; }
+.tm-info { display: flex; flex-direction: column; gap: 6px; }
+.tmf { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #888; padding: 4px 0; border-bottom: 1px solid #1e2240; }
+.tmf:last-child { border-bottom: none; }
+.tmf.total { background: rgba(34,197,94,0.06); padding: 6px 8px; border-radius: 6px; margin-top: 2px; }
+.tmf-v { color: #e2e8f0; font-weight: 700; font-size: 12px; }
+.tmf-v.odds { color: #f5a623; }
+.tmf-v.green { color: #22c55e; }
+.tmf-v.mono { font-family: monospace; color: #a78bfa; }
+.tmf-v.muted { color: #666; font-weight: 400; }
+.tm-status-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #0d0f1e; border-radius: 6px; }
+.tm-st-lbl { font-size: 10px; color: #888; font-weight: 600; letter-spacing: 1px; }
+.tm-st-val { font-size: 12px; font-weight: 800; }
+.tm-st-val.pending { color: #f5a623; } .tm-st-val.won { color: #22c55e; } .tm-st-val.lost { color: #ef4444; }
+.tm-manage { background: rgba(255,255,255,0.02); border: 1px solid #1e2240; border-radius: 8px; padding: 10px; }
+.manage-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+.manage-btns { display: flex; gap: 8px; }
+.mb { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.mb.won { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.mb.won:hover { background: rgba(34,197,94,0.25); }
+.mb.lost { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.mb.lost:hover { background: rgba(239,68,68,0.25); }
+.view-user-btn { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); color: #a78bfa; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%; }
+.view-user-btn:hover { background: rgba(124,58,237,0.22); }
+.muted { color: #666; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.15s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

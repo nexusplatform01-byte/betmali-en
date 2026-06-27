@@ -1,18 +1,18 @@
 <template>
   <div class="user-detail" v-if="user">
-    <!-- Back + header -->
-    <div class="detail-header">
-      <button class="back-btn" @click="$router.push('/admin/users')">← Back to Users</button>
-      <div class="user-header-info">
-        <div class="big-avatar">{{ user.name.charAt(0) }}</div>
+    <!-- Header -->
+    <div class="detail-hdr">
+      <button class="back-btn" @click="$router.push('/admin/users')">← Users</button>
+      <div class="uhdr-info">
+        <div class="uhdr-av">{{ user.name.charAt(0) }}</div>
         <div>
-          <div class="user-full-name">{{ user.name }}</div>
-          <div class="user-meta">{{ user.phone }} · {{ user.email }}</div>
-          <div class="user-meta">Joined {{ formatDate(user.createdAt) }} · Last seen {{ formatDate(user.lastVisit) }}</div>
+          <div class="uhdr-name">{{ user.name }}</div>
+          <div class="uhdr-meta">{{ user.phone }} · {{ user.email }}</div>
+          <div class="uhdr-meta">Joined {{ formatDate(user.createdAt) }} · Last seen {{ formatDate(user.lastVisit) }}</div>
         </div>
-        <div class="header-actions">
-          <span :class="['status-pill big', user.status]">{{ user.status }}</span>
-          <select v-model="user.status" class="status-select">
+        <div class="uhdr-right">
+          <span :class="['sp', user.status]">{{ user.status }}</span>
+          <select v-model="user.status" class="ss">
             <option value="active">Set Active</option>
             <option value="suspended">Suspend</option>
             <option value="banned">Ban</option>
@@ -22,232 +22,175 @@
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
-      <button v-for="tab in tabs" :key="tab" :class="['tab', { active: activeTab === tab }]" @click="activeTab = tab">{{ tab }}</button>
+    <div class="tabs-bar">
+      <button v-for="tab in tabs" :key="tab" :class="['tb', { active: activeTab === tab }]" @click="activeTab = tab">{{ tab }}</button>
     </div>
 
     <!-- OVERVIEW -->
-    <div v-if="activeTab === 'Overview'" class="tab-content">
+    <div v-if="activeTab==='Overview'" class="tc">
       <div class="stats-row">
-        <div class="mini-stat">
-          <div class="mini-val">UGX {{ user.walletBalance.toLocaleString() }}</div>
-          <div class="mini-label">Wallet Balance</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-val">{{ userBets.length }}</div>
-          <div class="mini-label">Total Bets</div>
-        </div>
-        <div class="mini-stat green">
-          <div class="mini-val">{{ userBets.filter(b=>b.status==='won').length }}</div>
-          <div class="mini-label">Bets Won</div>
-        </div>
-        <div class="mini-stat yellow">
-          <div class="mini-val">{{ userBets.filter(b=>b.status==='pending').length }}</div>
-          <div class="mini-label">Pending Bets</div>
-        </div>
-        <div class="mini-stat red">
-          <div class="mini-val">{{ userBets.filter(b=>b.status==='lost').length }}</div>
-          <div class="mini-label">Bets Lost</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-val">{{ userTxs.filter(t=>t.type==='deposit').length }}</div>
-          <div class="mini-label">Deposits</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-val">UGX {{ userTxs.filter(t=>t.type==='deposit'&&t.status==='completed').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div>
-          <div class="mini-label">Total Deposited</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-val">UGX {{ userTxs.filter(t=>t.type==='withdrawal'&&t.status==='completed').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div>
-          <div class="mini-label">Total Withdrawn</div>
-        </div>
+        <div class="ms"><div class="msv">UGX {{ user.walletBalance.toLocaleString() }}</div><div class="msl">Balance</div></div>
+        <div class="ms"><div class="msv">{{ userBets.length }}</div><div class="msl">Total Bets</div></div>
+        <div class="ms g"><div class="msv">{{ userBets.filter(b=>b.status==='won').length }}</div><div class="msl">Won</div></div>
+        <div class="ms y"><div class="msv">{{ userBets.filter(b=>b.status==='pending').length }}</div><div class="msl">Pending</div></div>
+        <div class="ms r"><div class="msv">{{ userBets.filter(b=>b.status==='lost').length }}</div><div class="msl">Lost</div></div>
+        <div class="ms"><div class="msv">{{ userTxs.filter(t=>t.type==='deposit').length }}</div><div class="msl">Deposits</div></div>
+        <div class="ms"><div class="msv">{{ userTxs.filter(t=>t.type==='deposit'&&t.status==='completed').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div><div class="msl">Total Deposited</div></div>
+        <div class="ms"><div class="msv">{{ userTxs.filter(t=>t.type==='withdrawal'&&t.status==='completed').reduce((s,t)=>s+t.amount,0).toLocaleString() }}</div><div class="msl">Total Withdrawn</div></div>
       </div>
-      <div class="panel mt">
-        <div class="panel-head">Recent Activities</div>
-        <div v-for="a in userActivities.slice(0,6)" :key="a.id" class="activity-row">
-          <div class="activity-dot"></div>
-          <div class="activity-info">
-            <div class="act-action">{{ a.action }}</div>
-            <div class="act-details">{{ a.details }}</div>
-            <div class="act-meta">{{ a.page }} · {{ a.ip }} · {{ formatFullDate(a.createdAt) }}</div>
-          </div>
+      <div class="panel">
+        <div class="ph">Recent Activities</div>
+        <div v-for="a in userActivities.slice(0,6)" :key="a.id" class="arow">
+          <div class="adot"></div>
+          <div class="ainfo"><div class="aact">{{ a.action }}</div><div class="adet">{{ a.details }}</div><div class="amet">{{ a.page }} · {{ a.ip }} · {{ formatFullDate(a.createdAt) }}</div></div>
         </div>
+        <div v-if="!userActivities.length" class="empty">No activities</div>
       </div>
     </div>
 
     <!-- WALLET -->
-    <div v-if="activeTab === 'Wallet'" class="tab-content">
-      <div class="wallet-balance-card">
-        <div class="wbc-label">Current Wallet Balance</div>
-        <div class="wbc-val">UGX {{ user.walletBalance.toLocaleString() }}</div>
+    <div v-if="activeTab==='Wallet'" class="tc">
+      <div class="wbal-card">
+        <div class="wbl">Current Balance</div>
+        <div class="wbv">UGX {{ user.walletBalance.toLocaleString() }}</div>
       </div>
-      <div class="wallet-actions-grid">
-        <!-- Add Money -->
-        <div class="action-card">
-          <div class="action-title green">➕ Add Money</div>
-          <div class="field">
-            <label>Amount (UGX)</label>
-            <input v-model.number="addAmount" type="number" min="0" placeholder="Enter amount" />
+      <div class="two-col">
+        <div class="panel">
+          <div class="ph g">➕ Add Money</div>
+          <div class="padded">
+            <div class="field"><label>Amount (UGX)</label><input v-model.number="addAmount" type="number" min="0" placeholder="Enter amount" /></div>
+            <div class="field"><label>Reason</label><input v-model="addNote" placeholder="e.g. Bonus, Correction..." /></div>
+            <button class="abtn g" @click="doAdd">Add to Wallet</button>
+            <div v-if="addMsg" class="msg g">{{ addMsg }}</div>
           </div>
-          <div class="field">
-            <label>Reason</label>
-            <input v-model="addNote" placeholder="e.g. Bonus, Correction..." />
-          </div>
-          <button class="action-btn green" @click="doAdd">Add to Wallet</button>
-          <div v-if="addMsg" class="msg green">{{ addMsg }}</div>
         </div>
-        <!-- Deduct Money -->
-        <div class="action-card">
-          <div class="action-title red">➖ Deduct Money</div>
-          <div class="field">
-            <label>Amount (UGX)</label>
-            <input v-model.number="deductAmount" type="number" min="0" placeholder="Enter amount" />
+        <div class="panel">
+          <div class="ph r">➖ Deduct Money</div>
+          <div class="padded">
+            <div class="field"><label>Amount (UGX)</label><input v-model.number="deductAmount" type="number" min="0" placeholder="Enter amount" /></div>
+            <div class="field"><label>Reason</label><input v-model="deductNote" placeholder="e.g. Penalty, Correction..." /></div>
+            <button class="abtn r" @click="doDeduct">Deduct from Wallet</button>
+            <div v-if="deductMsg" class="msg r">{{ deductMsg }}</div>
           </div>
-          <div class="field">
-            <label>Reason</label>
-            <input v-model="deductNote" placeholder="e.g. Penalty, Correction..." />
-          </div>
-          <button class="action-btn red" @click="doDeduct">Deduct from Wallet</button>
-          <div v-if="deductMsg" class="msg red">{{ deductMsg }}</div>
         </div>
       </div>
-      <!-- Wallet Transactions -->
-      <div class="panel mt">
-        <div class="panel-head">Wallet Transactions</div>
-        <table class="data-table">
+      <div class="panel">
+        <div class="ph">Transaction History</div>
+        <table class="dt">
           <thead><tr><th>Ref</th><th>Type</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
           <tbody>
             <tr v-for="tx in userTxs" :key="tx.id">
               <td class="mono">{{ tx.reference }}</td>
-              <td><span :class="['type-pill', tx.type]">{{ tx.type }}</span></td>
-              <td :class="tx.type === 'deposit' ? 'green' : 'red'">{{ tx.type==='deposit'?'+':'-' }}{{ tx.amount.toLocaleString() }}</td>
-              <td>{{ tx.method }}</td>
-              <td><span :class="['status-pill', tx.status]">{{ tx.status }}</span></td>
+              <td><span :class="['tp', tx.type]">{{ tx.type }}</span></td>
+              <td :class="tx.type==='deposit'?'green':'red'">{{ tx.type==='deposit'?'+':'-' }}UGX {{ tx.amount.toLocaleString() }}</td>
+              <td class="muted">{{ tx.method }}</td>
+              <td><span :class="['sp', tx.status]">{{ tx.status }}</span></td>
               <td class="muted">{{ formatFullDate(tx.createdAt) }}</td>
             </tr>
-            <tr v-if="userTxs.length === 0"><td colspan="6" class="empty">No transactions</td></tr>
+            <tr v-if="!userTxs.length"><td colspan="6" class="empty">No transactions</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <!-- BETS -->
-    <div v-if="activeTab === 'Bets'" class="tab-content">
-      <div class="bet-stats">
-        <div class="bs-card pending">
-          <div class="bs-val">{{ userBets.filter(b=>b.status==='pending').length }}</div>
-          <div class="bs-label">Pending</div>
-          <div class="bs-amt">UGX {{ userBets.filter(b=>b.status==='pending').reduce((s,b)=>s+b.stake,0).toLocaleString() }}</div>
-        </div>
-        <div class="bs-card won">
-          <div class="bs-val">{{ userBets.filter(b=>b.status==='won').length }}</div>
-          <div class="bs-label">Won</div>
-          <div class="bs-amt">UGX {{ userBets.filter(b=>b.status==='won').reduce((s,b)=>s+b.potentialWin,0).toLocaleString() }}</div>
-        </div>
-        <div class="bs-card lost">
-          <div class="bs-val">{{ userBets.filter(b=>b.status==='lost').length }}</div>
-          <div class="bs-label">Lost</div>
-          <div class="bs-amt">UGX {{ userBets.filter(b=>b.status==='lost').reduce((s,b)=>s+b.stake,0).toLocaleString() }}</div>
-        </div>
+    <div v-if="activeTab==='Bets'" class="tc">
+      <div class="bs-grid">
+        <div class="bsc y"><div class="bsv">{{ userBets.filter(b=>b.status==='pending').length }}</div><div class="bsl">Pending</div><div class="bsa">UGX {{ userBets.filter(b=>b.status==='pending').reduce((s,b)=>s+b.stake,0).toLocaleString() }}</div></div>
+        <div class="bsc g"><div class="bsv">{{ userBets.filter(b=>b.status==='won').length }}</div><div class="bsl">Won</div><div class="bsa">UGX {{ userBets.filter(b=>b.status==='won').reduce((s,b)=>s+b.potentialWin,0).toLocaleString() }}</div></div>
+        <div class="bsc r"><div class="bsv">{{ userBets.filter(b=>b.status==='lost').length }}</div><div class="bsl">Lost</div><div class="bsa">UGX {{ userBets.filter(b=>b.status==='lost').reduce((s,b)=>s+b.stake,0).toLocaleString() }}</div></div>
       </div>
-      <div class="panel mt">
-        <div class="panel-head">Bet History</div>
-        <table class="data-table">
-          <thead><tr><th>Ticket</th><th>Match</th><th>Selection</th><th>Odds</th><th>Stake</th><th>Potential Win</th><th>Status</th><th>Placed</th><th>Manage</th></tr></thead>
-          <tbody>
-            <tr v-for="b in userBets" :key="b.id">
-              <td class="mono">{{ b.ticketId }}</td>
-              <td>{{ b.match }}</td>
-              <td class="muted">{{ b.selection }}</td>
-              <td>{{ b.odds }}</td>
-              <td>{{ b.stake.toLocaleString() }}</td>
-              <td class="green">{{ b.potentialWin.toLocaleString() }}</td>
-              <td><span :class="['status-pill', b.status]">{{ b.status }}</span></td>
-              <td class="muted">{{ formatDate(b.placedAt) }}</td>
-              <td @click.stop>
-                <select v-if="b.status === 'pending'" v-model="b.status" class="inline-select">
-                  <option value="pending">Pending</option>
-                  <option value="won">Mark Won</option>
-                  <option value="lost">Mark Lost</option>
-                </select>
-                <span v-else class="settled">Settled</span>
-              </td>
-            </tr>
-            <tr v-if="userBets.length === 0"><td colspan="9" class="empty">No bets placed</td></tr>
-          </tbody>
-        </table>
+      <div class="panel">
+        <div class="ph">Bet History</div>
+        <div class="bets-list">
+          <div v-for="b in userBets" :key="b.id" class="tkt-card">
+            <div class="tkt-left">
+              <div class="tkt-top"><span class="tkt-id">{{ b.ticketId }}</span><span class="tkt-type">{{ b.sport }} · 1 match</span></div>
+              <div class="tkt-match">{{ b.match }}</div>
+              <div class="tkt-sel">{{ b.selection }} · <span class="odds-v">{{ b.odds }}x</span></div>
+            </div>
+            <div class="tkt-right">
+              <span :class="['sp', b.status]">{{ b.status }}</span>
+              <div class="tkt-stake">UGX {{ b.stake.toLocaleString() }}</div>
+              <div class="tkt-win">→ UGX {{ b.potentialWin.toLocaleString() }}</div>
+              <select v-if="b.status==='pending'" v-model="b.status" class="is">
+                <option value="pending">Pending</option>
+                <option value="won">Mark Won</option>
+                <option value="lost">Mark Lost</option>
+              </select>
+              <span v-else class="settled">Settled</span>
+            </div>
+          </div>
+          <div v-if="!userBets.length" class="empty">No bets placed</div>
+        </div>
       </div>
     </div>
 
     <!-- TRANSACTIONS -->
-    <div v-if="activeTab === 'Transactions'" class="tab-content">
+    <div v-if="activeTab==='Transactions'" class="tc">
       <div class="panel">
-        <div class="panel-head">All Transactions</div>
-        <table class="data-table">
+        <div class="ph">All Transactions</div>
+        <table class="dt">
           <thead><tr><th>Reference</th><th>Type</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
           <tbody>
             <tr v-for="tx in userTxs" :key="tx.id">
               <td class="mono">{{ tx.reference }}</td>
-              <td><span :class="['type-pill', tx.type]">{{ tx.type }}</span></td>
-              <td :class="tx.type === 'deposit' ? 'green' : 'red'">UGX {{ tx.amount.toLocaleString() }}</td>
-              <td>{{ tx.method }}</td>
-              <td><span :class="['status-pill', tx.status]">{{ tx.status }}</span></td>
+              <td><span :class="['tp', tx.type]">{{ tx.type }}</span></td>
+              <td :class="tx.type==='deposit'?'green':'red'">UGX {{ tx.amount.toLocaleString() }}</td>
+              <td class="muted">{{ tx.method }}</td>
+              <td><span :class="['sp', tx.status]">{{ tx.status }}</span></td>
               <td class="muted">{{ formatFullDate(tx.createdAt) }}</td>
             </tr>
-            <tr v-if="userTxs.length === 0"><td colspan="6" class="empty">No transactions</td></tr>
+            <tr v-if="!userTxs.length"><td colspan="6" class="empty">No transactions</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <!-- ACTIVITIES -->
-    <div v-if="activeTab === 'Activities'" class="tab-content">
+    <div v-if="activeTab==='Activities'" class="tc">
       <div class="panel">
-        <div class="panel-head">User Activity Log ({{ userActivities.length }} events)</div>
-        <div v-for="a in userActivities" :key="a.id" class="activity-row">
-          <div class="activity-dot"></div>
-          <div class="activity-info">
-            <div class="act-action">{{ a.action }}</div>
-            <div class="act-details">{{ a.details }}</div>
-            <div class="act-meta">Page: {{ a.page }} · IP: {{ a.ip }} · {{ formatFullDate(a.createdAt) }}</div>
-          </div>
+        <div class="ph">Activity Log ({{ userActivities.length }} events)</div>
+        <div v-for="a in userActivities" :key="a.id" class="arow">
+          <div class="adot"></div>
+          <div class="ainfo"><div class="aact">{{ a.action }}</div><div class="adet">{{ a.details }}</div><div class="amet">{{ a.page }} · {{ a.ip }} · {{ formatFullDate(a.createdAt) }}</div></div>
         </div>
-        <div v-if="userActivities.length === 0" class="empty p40">No activities recorded</div>
+        <div v-if="!userActivities.length" class="empty">No activities recorded</div>
       </div>
     </div>
 
     <!-- SETTINGS -->
-    <div v-if="activeTab === 'Settings'" class="tab-content">
-      <div class="settings-grid">
-        <div class="settings-card">
-          <div class="settings-title">Account Information</div>
-          <div class="field"><label>Full Name</label><input v-model="user.name" /></div>
-          <div class="field"><label>Phone Number</label><input v-model="user.phone" /></div>
-          <div class="field"><label>Email Address</label><input v-model="user.email" /></div>
-          <div class="field"><label>Country</label><input v-model="user.country" /></div>
-          <button class="save-btn" @click="savedMsg = 'Account info saved!'">Save Changes</button>
-          <div v-if="savedMsg" class="msg green">{{ savedMsg }}</div>
+    <div v-if="activeTab==='Settings'" class="tc">
+      <div class="two-col">
+        <div class="panel">
+          <div class="ph">Account Information</div>
+          <div class="padded">
+            <div class="field"><label>Full Name</label><input v-model="user.name" /></div>
+            <div class="field"><label>Phone Number</label><input v-model="user.phone" /></div>
+            <div class="field"><label>Email Address</label><input v-model="user.email" /></div>
+            <div class="field"><label>Country</label><input v-model="user.country" /></div>
+            <button class="abtn p" @click="savedMsg='Saved!'">Save Changes</button>
+            <div v-if="savedMsg" class="msg g">{{ savedMsg }}</div>
+          </div>
         </div>
-        <div class="settings-card">
-          <div class="settings-title">Account Status</div>
-          <div class="field">
-            <label>Status</label>
-            <select v-model="user.status">
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="banned">Banned</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Currency</label>
-            <input v-model="user.currency" />
-          </div>
-          <div class="divider"></div>
-          <div class="danger-zone">
-            <div class="settings-title red">Danger Zone</div>
-            <button class="danger-btn" @click="user.status = 'suspended'">Suspend Account</button>
-            <button class="danger-btn darker" @click="user.status = 'banned'">Ban Account</button>
-            <button class="danger-btn reset" @click="user.walletBalance = 0">Reset Wallet to Zero</button>
+        <div class="panel">
+          <div class="ph">Account Status & Danger Zone</div>
+          <div class="padded">
+            <div class="field"><label>Status</label>
+              <select v-model="user.status">
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="banned">Banned</option>
+              </select>
+            </div>
+            <div class="field"><label>Currency</label><input v-model="user.currency" /></div>
+            <div class="divider"></div>
+            <div class="dzone-label r">⚠️ Danger Zone</div>
+            <div class="danger-btns">
+              <button class="dbtn y" @click="user.status='suspended'">Suspend Account</button>
+              <button class="dbtn r" @click="user.status='banned'">Ban Account</button>
+              <button class="dbtn o" @click="user.walletBalance=0">Reset Wallet to Zero</button>
+            </div>
           </div>
         </div>
       </div>
@@ -269,131 +212,119 @@ const userActivities = computed(() => user.value ? getUserActivities(user.value.
 
 const tabs = ['Overview', 'Wallet', 'Bets', 'Transactions', 'Activities', 'Settings']
 const activeTab = ref('Overview')
-
-const addAmount = ref(0)
-const addNote = ref('')
-const addMsg = ref('')
-const deductAmount = ref(0)
-const deductNote = ref('')
-const deductMsg = ref('')
+const addAmount = ref(0); const addNote = ref(''); const addMsg = ref('')
+const deductAmount = ref(0); const deductNote = ref(''); const deductMsg = ref('')
 const savedMsg = ref('')
 
 function doAdd() {
   if (!user.value || addAmount.value <= 0) return
   adjustWallet(user.value.id, addAmount.value, 'add', addNote.value || 'Admin Credit')
-  addMsg.value = `✅ Added UGX ${addAmount.value.toLocaleString()} successfully`
+  addMsg.value = `✅ Added UGX ${addAmount.value.toLocaleString()}`
   addAmount.value = 0; addNote.value = ''
   setTimeout(() => { addMsg.value = '' }, 3000)
 }
-
 function doDeduct() {
   if (!user.value || deductAmount.value <= 0) return
   adjustWallet(user.value.id, deductAmount.value, 'deduct', deductNote.value || 'Admin Deduction')
-  deductMsg.value = `✅ Deducted UGX ${deductAmount.value.toLocaleString()} successfully`
+  deductMsg.value = `✅ Deducted UGX ${deductAmount.value.toLocaleString()}`
   deductAmount.value = 0; deductNote.value = ''
   setTimeout(() => { deductMsg.value = '' }, 3000)
 }
 </script>
 
 <style scoped>
-.user-detail { display: flex; flex-direction: column; gap: 20px; }
-.back-btn { background: #1e2240; border: none; color: #a78bfa; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 4px; }
-.back-btn:hover { background: #252a4a; }
-.detail-header { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; padding: 24px; }
-.user-header-info { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
-.big-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, #7c3aed, #5c35c9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; color: #fff; flex-shrink: 0; }
-.user-full-name { font-size: 22px; font-weight: 800; color: #fff; }
-.user-meta { font-size: 13px; color: #666; margin-top: 3px; }
-.header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.status-pill { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; }
-.status-pill.big { font-size: 12px; padding: 6px 16px; }
-.status-pill.active { background: rgba(34,197,94,0.15); color: #22c55e; }
-.status-pill.suspended { background: rgba(245,166,35,0.15); color: #f5a623; }
-.status-pill.banned { background: rgba(239,68,68,0.15); color: #ef4444; }
-.status-pill.completed, .status-pill.won { background: rgba(34,197,94,0.15); color: #22c55e; }
-.status-pill.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
-.status-pill.failed, .status-pill.lost { background: rgba(239,68,68,0.15); color: #ef4444; }
-.status-select { background: #1e2240; border: 1px solid #252840; color: #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; outline: none; }
-.tabs { display: flex; gap: 4px; background: #13172b; border: 1px solid #1e2240; border-radius: 10px; padding: 6px; }
-.tab { background: transparent; border: none; color: #888; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-.tab.active { background: rgba(124,58,237,0.2); color: #a78bfa; }
-.tab:hover:not(.active) { color: #ccc; }
-.tab-content { display: flex; flex-direction: column; gap: 16px; }
-.stats-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
-.mini-stat { background: #13172b; border: 1px solid #1e2240; border-radius: 10px; padding: 16px; text-align: center; }
-.mini-stat.green .mini-val { color: #22c55e; }
-.mini-stat.yellow .mini-val { color: #f5a623; }
-.mini-stat.red .mini-val { color: #ef4444; }
-.mini-val { font-size: 18px; font-weight: 800; color: #fff; }
-.mini-label { font-size: 11px; color: #666; margin-top: 4px; }
-.panel { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; overflow: hidden; }
-.panel.mt { margin-top: 0; }
-.panel-head { padding: 14px 20px; border-bottom: 1px solid #1e2240; font-size: 14px; font-weight: 700; color: #e2e8f0; }
-.activity-row { display: flex; gap: 14px; padding: 14px 20px; border-bottom: 1px solid #0d0f1e; }
-.activity-row:last-child { border-bottom: none; }
-.activity-dot { width: 8px; height: 8px; background: #7c3aed; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-.activity-info { flex: 1; }
-.act-action { font-size: 13px; font-weight: 700; color: #e2e8f0; }
-.act-details { font-size: 13px; color: #aaa; margin-top: 2px; }
-.act-meta { font-size: 11px; color: #555; margin-top: 4px; }
-.wallet-balance-card { background: linear-gradient(135deg, #7c3aed 0%, #5c35c9 100%); border-radius: 12px; padding: 32px; text-align: center; }
-.wbc-label { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-.wbc-val { font-size: 36px; font-weight: 900; color: #fff; margin-top: 8px; }
-.wallet-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.action-card { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
-.action-title { font-size: 15px; font-weight: 700; }
-.action-title.green { color: #22c55e; }
-.action-title.red { color: #ef4444; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 11px; color: #888; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
-.field input, .field select { background: #0d0f1e; border: 1px solid #252840; border-radius: 8px; color: #fff; padding: 10px 12px; font-size: 14px; outline: none; }
+* { box-sizing: border-box; }
+.user-detail { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; }
+.back-btn { background: #1e2240; border: none; color: #a78bfa; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 4px; }
+.detail-hdr { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 12px 14px; }
+.uhdr-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.uhdr-av { width: 44px; height: 44px; background: linear-gradient(135deg,#7c3aed,#5c35c9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; flex-shrink: 0; }
+.uhdr-name { font-size: 15px; font-weight: 800; color: #fff; }
+.uhdr-meta { font-size: 10px; color: #666; margin-top: 2px; }
+.uhdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.sp { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px; text-transform: uppercase; }
+.sp.active { background: rgba(34,197,94,0.15); color: #22c55e; }
+.sp.suspended { background: rgba(245,166,35,0.15); color: #f5a623; }
+.sp.banned { background: rgba(239,68,68,0.15); color: #ef4444; }
+.sp.completed,.sp.won { background: rgba(34,197,94,0.15); color: #22c55e; }
+.sp.pending { background: rgba(245,166,35,0.15); color: #f5a623; }
+.sp.failed,.sp.lost { background: rgba(239,68,68,0.15); color: #ef4444; }
+.ss { background: #1e2240; border: 1px solid #252840; color: #e2e8f0; padding: 5px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; outline: none; }
+.tabs-bar { display: flex; gap: 2px; background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 4px; }
+.tb { background: transparent; border: none; color: #888; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
+.tb.active { background: rgba(124,58,237,0.2); color: #a78bfa; }
+.tb:hover:not(.active) { color: #ccc; }
+.tc { display: flex; flex-direction: column; gap: 10px; }
+.stats-row { display: grid; grid-template-columns: repeat(8,1fr); gap: 8px; }
+.ms { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 10px 8px; text-align: center; }
+.msv { font-size: 14px; font-weight: 800; color: #fff; }
+.msl { font-size: 9px; color: #666; margin-top: 2px; }
+.ms.g .msv { color: #22c55e; } .ms.y .msv { color: #f5a623; } .ms.r .msv { color: #ef4444; }
+.panel { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; overflow: hidden; }
+.ph { padding: 8px 12px; border-bottom: 1px solid #1e2240; font-size: 12px; font-weight: 700; color: #e2e8f0; }
+.ph.g { color: #22c55e; } .ph.r { color: #ef4444; }
+.padded { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.arow { display: flex; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #0d0f1e; }
+.arow:last-child { border-bottom: none; }
+.adot { width: 7px; height: 7px; background: #7c3aed; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.aact { font-size: 12px; font-weight: 700; color: #e2e8f0; }
+.adet { font-size: 11px; color: #aaa; margin-top: 1px; }
+.amet { font-size: 10px; color: #555; margin-top: 2px; }
+.wbal-card { background: linear-gradient(135deg,#7c3aed,#5c35c9); border-radius: 8px; padding: 20px; text-align: center; }
+.wbl { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.wbv { font-size: 26px; font-weight: 900; color: #fff; margin-top: 6px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label { font-size: 10px; color: #888; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.field input, .field select { background: #0d0f1e; border: 1px solid #252840; border-radius: 6px; color: #fff; padding: 7px 10px; font-size: 12px; outline: none; }
 .field input:focus { border-color: #7c3aed; }
-.action-btn { padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
-.action-btn.green { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
-.action-btn.green:hover { background: rgba(34,197,94,0.25); }
-.action-btn.red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-.action-btn.red:hover { background: rgba(239,68,68,0.25); }
-.msg { font-size: 13px; font-weight: 600; }
-.msg.green { color: #22c55e; }
-.msg.red { color: #ef4444; }
-.bet-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-.bs-card { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; padding: 20px; text-align: center; }
-.bs-card.pending { border-color: rgba(245,166,35,0.3); }
-.bs-card.won { border-color: rgba(34,197,94,0.3); }
-.bs-card.lost { border-color: rgba(239,68,68,0.3); }
-.bs-val { font-size: 36px; font-weight: 900; color: #fff; }
-.bs-card.pending .bs-val { color: #f5a623; }
-.bs-card.won .bs-val { color: #22c55e; }
-.bs-card.lost .bs-val { color: #ef4444; }
-.bs-label { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-.bs-amt { font-size: 13px; color: #aaa; margin-top: 6px; font-weight: 600; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table th { padding: 10px 16px; text-align: left; color: #666; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; background: #0d0f1e; border-bottom: 1px solid #1e2240; }
-.data-table td { padding: 12px 16px; color: #ccc; border-bottom: 1px solid #1a1e35; }
-.data-table tr:last-child td { border-bottom: none; }
-.mono { font-family: monospace; color: #a78bfa !important; font-size: 12px !important; }
-.muted { color: #666 !important; font-size: 12px !important; }
-.green { color: #22c55e !important; }
-.red { color: #ef4444 !important; }
-.type-pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-.type-pill.deposit { background: rgba(34,197,94,0.15); color: #22c55e; }
-.type-pill.withdrawal { background: rgba(239,68,68,0.15); color: #ef4444; }
-.inline-select { background: #1e2240; border: 1px solid #252840; color: #e2e8f0; padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; outline: none; }
-.settled { font-size: 11px; color: #555; }
-.empty { text-align: center; color: #555; padding: 32px !important; }
-.p40 { padding: 40px !important; }
-.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.settings-card { background: #13172b; border: 1px solid #1e2240; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-.settings-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
-.settings-title.red { color: #ef4444; }
-.save-btn { background: linear-gradient(135deg, #7c3aed, #5c35c9); color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
-.save-btn:hover { opacity: 0.9; }
-.divider { height: 1px; background: #1e2240; }
-.danger-zone { display: flex; flex-direction: column; gap: 10px; }
-.danger-btn { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #ef4444; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
-.danger-btn:hover { background: rgba(239,68,68,0.2); }
-.danger-btn.darker { background: rgba(239,68,68,0.2); }
-.danger-btn.reset { border-color: rgba(245,166,35,0.3); color: #f5a623; background: rgba(245,166,35,0.1); }
+.abtn { padding: 8px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.abtn.g { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.abtn.r { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.abtn.p { background: linear-gradient(135deg,#7c3aed,#5c35c9); color: #fff; }
+.msg { font-size: 11px; font-weight: 600; }
+.msg.g { color: #22c55e; } .msg.r { color: #ef4444; }
+.bs-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.bsc { background: #13172b; border: 1px solid #1e2240; border-radius: 8px; padding: 14px; text-align: center; }
+.bsc.y { border-color: rgba(245,166,35,0.3); } .bsc.g { border-color: rgba(34,197,94,0.3); } .bsc.r { border-color: rgba(239,68,68,0.3); }
+.bsv { font-size: 28px; font-weight: 900; color: #fff; }
+.bsc.y .bsv { color: #f5a623; } .bsc.g .bsv { color: #22c55e; } .bsc.r .bsv { color: #ef4444; }
+.bsl { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+.bsa { font-size: 10px; color: #aaa; margin-top: 4px; }
+.bets-list { display: flex; flex-direction: column; }
+.tkt-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #1a1e35; }
+.tkt-card:last-child { border-bottom: none; }
+.tkt-left { flex: 1; min-width: 0; }
+.tkt-top { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+.tkt-id { font-family: monospace; font-size: 10px; color: #a78bfa; font-weight: 700; }
+.tkt-type { font-size: 10px; color: #666; }
+.tkt-match { font-size: 12px; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tkt-sel { font-size: 11px; color: #888; margin-top: 1px; }
+.odds-v { color: #f5a623; font-weight: 700; }
+.tkt-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+.tkt-stake { font-size: 11px; font-weight: 700; color: #fff; }
+.tkt-win { font-size: 10px; color: #22c55e; }
+.is { background: #1e2240; border: 1px solid #252840; color: #e2e8f0; padding: 3px 6px; border-radius: 5px; font-size: 10px; cursor: pointer; outline: none; }
+.settled { font-size: 10px; color: #555; }
+.dt { width: 100%; border-collapse: collapse; font-size: 11px; }
+.dt th { padding: 6px 10px; text-align: left; color: #555; font-size: 10px; font-weight: 600; text-transform: uppercase; background: #0d0f1e; border-bottom: 1px solid #1e2240; }
+.dt td { padding: 7px 10px; color: #bbb; border-bottom: 1px solid #1a1e35; white-space: nowrap; }
+.dt tr:last-child td { border-bottom: none; }
+.mono { font-family: monospace; color: #a78bfa !important; font-size: 10px !important; }
+.muted { color: #555 !important; font-size: 10px !important; }
+.green { color: #22c55e !important; } .red { color: #ef4444 !important; }
+.tp { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; }
+.tp.deposit { background: rgba(34,197,94,0.15); color: #22c55e; }
+.tp.withdrawal { background: rgba(239,68,68,0.15); color: #ef4444; }
+.divider { height: 1px; background: #1e2240; margin: 4px 0; }
+.dzone-label { font-size: 11px; font-weight: 700; }
+.dzone-label.r { color: #ef4444; }
+.danger-btns { display: flex; flex-direction: column; gap: 6px; }
+.dbtn { padding: 7px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
+.dbtn.y { background: rgba(245,166,35,0.1); color: #f5a623; border: 1px solid rgba(245,166,35,0.25); }
+.dbtn.r { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+.dbtn.o { background: rgba(245,166,35,0.1); color: #f5a623; border: 1px solid rgba(245,166,35,0.25); }
+.empty { text-align: center; color: #555; padding: 20px; font-size: 11px; }
 .not-found { text-align: center; color: #888; padding: 80px; }
 .not-found a { color: #a78bfa; }
 </style>

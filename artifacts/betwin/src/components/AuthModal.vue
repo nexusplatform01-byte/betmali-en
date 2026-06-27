@@ -70,7 +70,7 @@
 import { ref } from 'vue'
 import { useAuthModal } from '@/composables/useAuthModal'
 
-const { modalType, closeModal } = useAuthModal()
+const { modalType, closeModal, login } = useAuthModal()
 
 const loginPhone = ref('')
 const loginPassword = ref('')
@@ -88,8 +88,7 @@ function handleLogin() {
   loginError.value = ''
   if (loginPhone.value.trim().length < 7) { loginError.value = 'Enter a valid phone number.'; return }
   if (loginPassword.value.length < 4) { loginError.value = 'Password must be at least 4 characters.'; return }
-  alert(`Login successful for ${loginPhone.value}`)
-  closeModal()
+  login({ name: loginPhone.value, phone: loginPhone.value, balance: 250000 })
 }
 
 function handleRegister() {
@@ -98,8 +97,7 @@ function handleRegister() {
   if (regPhone.value.trim().length < 7) { regError.value = 'Enter a valid phone number.'; return }
   if (!regEmail.value.includes('@')) { regError.value = 'Enter a valid email address.'; return }
   if (regPassword.value.length < 4) { regError.value = 'Password must be at least 4 characters.'; return }
-  alert(`Account created for ${regName.value}!`)
-  closeModal()
+  login({ name: regName.value, phone: regPhone.value, balance: 50000 })
 }
 </script>
 

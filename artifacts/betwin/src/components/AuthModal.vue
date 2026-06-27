@@ -181,39 +181,46 @@ function handleRegister() {
 }
 .form-group label {
   font-size: 10px;
-  font-weight: 700;
-  color: #7a84a0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: #8a94b0;
+  letter-spacing: 0.3px;
 }
-.pw-hint { color: #5a6a88; font-weight: 400; text-transform: none; }
+.pw-hint { color: #5a6a88; font-weight: 400; }
 .form-group input {
-  background: #12141f;
-  border: 1px solid #2e3355;
-  border-radius: 7px;
+  background: linear-gradient(135deg, #181b2c 0%, #1e2238 100%);
+  border: 1.5px solid #2a3050;
+  border-radius: 10px;
   color: #e2e8f0;
-  padding: 9px 11px;
-  font-size: 12px;
+  padding: 11px 14px;
+  font-size: 13px;
   outline: none;
   width: 100%;
   box-sizing: border-box;
-  transition: border-color 0.15s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.18);
 }
-.form-group input:focus { border-color: #e84c6b; }
+.form-group input::placeholder { color: #3e4a68; }
+.form-group input:focus {
+  border-color: #e84c6b;
+  background: linear-gradient(135deg, #1d2035 0%, #222640 100%);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 0 0 3px rgba(232,76,107,0.12);
+}
 .input-pw { position: relative; }
-.input-pw input { padding-right: 36px; }
+.input-pw input { padding-right: 40px; }
 .pw-toggle {
   position: absolute;
-  right: 8px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1;
-  color: #7a84a0;
+  color: #5a6a88;
+  transition: color 0.15s;
 }
+.pw-toggle:hover { color: #c8cfe0; }
 .form-error {
   background: rgba(232, 76, 107, 0.12);
   border: 1px solid rgba(232, 76, 107, 0.3);

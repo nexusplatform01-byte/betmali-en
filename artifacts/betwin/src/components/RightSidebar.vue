@@ -70,7 +70,8 @@
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
           <div class="total-row potential"><span>Potential Returns:</span><span class="potential-val">{{ singlePotential }}</span></div>
         </div>
-        <button class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
+        <button v-if="!currentUser" class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
+        <button v-else class="place-bet-btn">PLACE BET</button>
       </div>
     </template>
 
@@ -135,7 +136,8 @@
           </div>
           <div class="total-row potential"><span>Potential Returns:</span><span class="potential-val">{{ multiPotential }}</span></div>
         </div>
-        <button class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
+        <button v-if="!currentUser" class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
+        <button v-else class="place-bet-btn">PLACE BET</button>
       </div>
     </template>
 
@@ -181,7 +183,8 @@
           <div class="total-row potential"><span>Min Returns:</span><span class="potential-val">{{ systemMinReturn }}</span></div>
           <div class="total-row potential"><span>Max Returns:</span><span class="potential-val">{{ systemMaxReturn }}</span></div>
         </div>
-        <button class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
+        <button v-if="!currentUser" class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
+        <button v-else class="place-bet-btn">PLACE BET</button>
       </div>
     </template>
 
@@ -202,6 +205,8 @@ import { ref, computed, watch } from 'vue'
 import { useBetSlip } from '@/composables/useBetSlip'
 import { useAuthModal } from '@/composables/useAuthModal'
 
+
+
 const slipTabs = ['SINGLE', 'MULTI', 'SYSTEM']
 const activeSlipTab = ref('SINGLE')
 const stake = ref<number | null>(1000)
@@ -209,7 +214,7 @@ const QUICK_STAKES = [5000, 10000, 20000, 50000]
 const selectedSystem = ref('2/3')
 
 const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
-const { openLogin } = useAuthModal()
+const { openLogin, currentUser } = useAuthModal()
 
 // Auto-switch tab based on selection count
 watch(() => slipItems.value.length, (n) => {
@@ -614,6 +619,22 @@ const systemMaxReturn = computed(() => {
   transition: background 0.15s; width: 100%;
 }
 .login-bet-btn:hover { background: #c93559; }
+.place-bet-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: opacity 0.15s, transform 0.1s;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(34,197,94,0.25);
+}
+.place-bet-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.place-bet-btn:active { transform: translateY(0); }
 
 /* Promo banner */
 .promo-banner { margin-top: auto; padding: 8px 6px 6px; }

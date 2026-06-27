@@ -66,3 +66,15 @@ externalPort = 80
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VITE_FIREBASE_API_KEY = "AIzaSyA5mDQx2A20wPRyPk-M3sBOyGFHqaGq8hI"
+VITE_FIREBASE_AUTH_DOMAIN = "bet-mali.firebaseapp.com"
+VITE_FIREBASE_DATABASE_URL = "https://bet-mali-default-rtdb.firebaseio.com"
+VITE_FIREBASE_PROJECT_ID = "bet-mali"
+VITE_FIREBASE_STORAGE_BUCKET = "bet-mali.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "752891870014"
+VITE_FIREBASE_APP_ID = "1:752891870014:web:c4c7236bddadd8e1150a6f"
+VITE_FIREBASE_MEASUREMENT_ID = "G-LJEY3Y799M"

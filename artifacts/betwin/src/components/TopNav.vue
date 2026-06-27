@@ -102,7 +102,11 @@ function fireToast() {
 }
 
 function handleTabClick(label: string) {
-  if (label === 'BETTING') { activeTab.value = label; return }
+  if (label === 'BETTING') {
+    activeTab.value = label
+    router.push('/')
+    return
+  }
   fireToast()
 }
 

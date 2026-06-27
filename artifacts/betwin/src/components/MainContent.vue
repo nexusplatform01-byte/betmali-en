@@ -8,15 +8,22 @@
 
     <!-- Sport category icons -->
     <div class="sport-categories">
+      <transition name="cat-toast-fade">
+        <div v-if="comingSoonCat" class="cat-coming-soon">Coming Soon</div>
+      </transition>
       <div
         v-for="cat in sportCategories"
         :key="cat.name"
         class="sport-cat"
         :class="{ active: activeCategory === cat.name }"
-        @click="activeCategory = cat.name"
+        @click="handleCategoryClick(cat.name)"
       >
-        <img :src="cat.icon" :alt="cat.name" class="cat-icon-img" loading="eager" fetchpriority="high" />
+        <div class="cat-icon-wrap">
+          <img :src="cat.icon" :alt="cat.name" class="cat-icon-img" loading="eager" fetchpriority="high" />
+          <span v-if="cat.live" class="cat-live-dot"></span>
+        </div>
         <div class="cat-name">{{ cat.name }}</div>
+        <div class="cat-events">{{ cat.events }}</div>
       </div>
     </div>
 
@@ -226,8 +233,33 @@ function openMatchDetail({ match, league, initialTab }: { match: Match; league: 
 const activeCategory = ref('Soccer')
 
 const sportCategories = [
-  { name: 'Soccer', icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png', events: '1041' },
+  { name: 'Soccer',      icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/soccer-ball-3d-icon-png-download-6655789.png',         events: '1041', live: true },
+  { name: 'Basketball',  icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/basketball-3d-icon-png-download-6655792.png',          events: '312',  live: true },
+  { name: 'Tennis',      icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/tennis-ball-3d-icon-png-download-6655799.png',         events: '198',  live: false },
+  { name: 'Cricket',     icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/cricket-3d-icon-png-download-6796024.png',             events: '87',   live: false },
+  { name: 'Rugby',       icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/rugby-ball-3d-icon-png-download-6655801.png',          events: '54',   live: false },
+  { name: 'Boxing',      icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/boxing-glove-3d-icon-png-download-9073793.png',        events: '23',   live: false },
+  { name: 'Volleyball',  icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/volleyball-3d-icon-png-download-6655803.png',         events: '76',   live: false },
+  { name: 'Table Tennis',icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/table-tennis-3d-icon-png-download-6655794.png',       events: '144',  live: true },
+  { name: 'Ice Hockey',  icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/ice-hockey-3d-icon-png-download-6796021.png',         events: '61',   live: false },
+  { name: 'Esports',     icon: 'https://cdn3d.iconscout.com/3d/premium/thumb/esports-3d-icon-png-download-9073783.png',            events: '39',   live: false },
 ]
+
+function handleCategoryClick(name: string) {
+  activeCategory.value = name
+  if (name !== 'Soccer') {
+    comingSoonCat.value = true
+    if (catTimer) clearTimeout(catTimer)
+    catTimer = setTimeout(() => { comingSoonCat.value = false }, 2000)
+  } else {
+    comingSoonCat.value = false
+    const el = document.querySelector('.content-scroll')
+    if (el) el.scrollTop = 0
+  }
+}
+
+const comingSoonCat = ref(false)
+let catTimer: ReturnType<typeof setTimeout> | null = null
 
 const makeMatches = () => [
   { id: 1, date: '10.01.25', time: '4:00 PM', team1: 'Real Madrid', team2: 'Manchester United', odds1: '1.35', oddsX: '3.10', odds2: '2.31', odds1x: '5.30', oddsX2: '1.16', odds12: '1.36', highlighted: '' },
@@ -352,7 +384,7 @@ const leagueImageCards = [
   overflow-x: auto; flex-shrink: 0;
   scrollbar-width: none; padding: 4px 8px;
   border-radius: 0 0 10px 10px;
-  gap: 2px;
+  gap: 2px; position: relative;
 }
 .sport-categories::-webkit-scrollbar { display: none; }
 .sport-cat {
@@ -365,9 +397,31 @@ const leagueImageCards = [
 }
 .sport-cat:hover { background: #252840; }
 .sport-cat.active { background: #252840; border-color: #e84c6b; }
-.cat-icon-img { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
-.cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; }
+.cat-icon-wrap { position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cat-icon-img { width: 22px; height: 22px; object-fit: contain; }
+.cat-live-dot {
+  position: absolute; top: -2px; right: -2px;
+  width: 6px; height: 6px; background: #e84c6b;
+  border-radius: 50%; border: 1px solid #1a1d2e;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+.cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; white-space: nowrap; }
+.cat-events { font-size: 9px; color: #555; font-weight: 500; }
 .sport-cat.active .cat-name { color: #fff; }
+.sport-cat.active .cat-events { color: #a78bfa; }
+.cat-coming-soon {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  background: #e84c6b; color: #fff; font-size: 11px; font-weight: 700;
+  padding: 4px 14px; border-radius: 20px; white-space: nowrap;
+  z-index: 10; pointer-events: none; letter-spacing: 0.3px;
+  box-shadow: 0 2px 10px rgba(232,76,107,0.4);
+}
+.cat-toast-fade-enter-active, .cat-toast-fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.cat-toast-fade-enter-from, .cat-toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 
 /* Content scroll */
 .content-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }

@@ -330,7 +330,7 @@ const leagueImageCards = [
   object-fit: cover;
   object-position: center;
   z-index: 0;
-  opacity: 0.85;
+  opacity: 1;
 }
 .hero-text { position: relative; z-index: 2; }
 .hero-sport {
@@ -346,7 +346,7 @@ const leagueImageCards = [
 }
 .hero-overlay {
   position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+  background: transparent;
 }
 
 /* Sport categories */

@@ -41,38 +41,52 @@ const needsPhone = ref(false)
 const authLoading = ref(false)
 const userTransactions = reactive<UserTx[]>([])
 
+let unsubUserDoc: (() => void) | null = null
 let unsubTransactions: (() => void) | null = null
 
-async function syncUserProfile(uid: string) {
-  const snap = await getDoc(doc(db, 'users', uid))
-  if (snap.exists()) {
+function syncUserProfile(uid: string) {
+  if (unsubUserDoc) { unsubUserDoc(); unsubUserDoc = null }
+  if (unsubTransactions) { unsubTransactions(); unsubTransactions = null }
+
+  // Live listener on user doc — balance updates immediately when admin settles a bet
+  unsubUserDoc = onSnapshot(doc(db, 'users', uid), (snap) => {
+    if (!snap.exists()) return
     const d = snap.data()
-    currentUser.value = {
-      uid,
-      name: d.name || '',
-      phone: d.phone || '',
-      email: d.email || '',
-      balance: d.balance || 0,
-      bonusBalance: d.bonusBalance || 0,
-    }
-    updateDoc(doc(db, 'users', uid), { lastVisit: new Date().toISOString() }).catch(() => {})
-    if (unsubTransactions) unsubTransactions()
-    unsubTransactions = onSnapshot(
-      query(collection(db, 'transactions'), where('userId', '==', uid)),
-      (snap) => {
-        userTransactions.splice(0)
-        const txs = snap.docs.map(d => ({ id: d.id, ...d.data() } as UserTx))
-        txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        userTransactions.push(...txs)
+    if (currentUser.value && currentUser.value.uid === uid) {
+      currentUser.value.balance = d.balance || 0
+      currentUser.value.bonusBalance = d.bonusBalance || 0
+      currentUser.value.name = d.name || ''
+      currentUser.value.phone = d.phone || ''
+    } else {
+      currentUser.value = {
+        uid,
+        name: d.name || '',
+        phone: d.phone || '',
+        email: d.email || '',
+        balance: d.balance || 0,
+        bonusBalance: d.bonusBalance || 0,
       }
-    )
-  }
+    }
+  })
+
+  updateDoc(doc(db, 'users', uid), { lastVisit: new Date().toISOString() }).catch(() => {})
+
+  unsubTransactions = onSnapshot(
+    query(collection(db, 'transactions'), where('userId', '==', uid)),
+    (snap) => {
+      userTransactions.splice(0)
+      const txs = snap.docs.map(d => ({ id: d.id, ...d.data() } as UserTx))
+      txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      userTransactions.push(...txs)
+    }
+  )
 }
 
 onAuthStateChanged(auth, async (firebaseUser) => {
   if (firebaseUser && firebaseUser.email !== ADMIN_EMAIL) {
-    await syncUserProfile(firebaseUser.uid)
+    syncUserProfile(firebaseUser.uid)
   } else {
+    if (unsubUserDoc) { unsubUserDoc(); unsubUserDoc = null }
     if (unsubTransactions) { unsubTransactions(); unsubTransactions = null }
     currentUser.value = null
     userTransactions.splice(0)

@@ -402,8 +402,8 @@ const systemMaxReturn = computed(() => {
 .right-sidebar {
   width: 220px;
   min-width: 220px;
-  background: #1a1d2e;
-  border-left: 1px solid #252840;
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
   overflow-y: auto;
   flex-shrink: 0;
   font-size: 11px;
@@ -411,9 +411,9 @@ const systemMaxReturn = computed(() => {
   flex-direction: column;
 }
 .betslip-header {
-  background: #141624;
+  background: #f8fafc;
   padding: 8px 8px 0;
-  border-bottom: 1px solid #252840;
+  border-bottom: 1px solid #e2e8f0;
 }
 .betslip-title-row {
   display: flex;
@@ -430,7 +430,7 @@ const systemMaxReturn = computed(() => {
 .betslip-title {
   font-size: 11px;
   font-weight: 800;
-  color: #fff;
+  color: #1a2d4e;
   letter-spacing: 0.5px;
 }
 .betslip-tabs {
@@ -450,18 +450,19 @@ const systemMaxReturn = computed(() => {
   transition: color 0.15s, border-color 0.15s;
   letter-spacing: 0.3px;
 }
-.slip-tab.active { color: #fff; border-bottom-color: #e84c6b; }
-.slip-tab:hover:not(.active) { color: #c8cfe0; }
+.slip-tab { color: #64748b; }
+.slip-tab.active { color: #1a2d4e; border-bottom-color: #e84c6b; }
+.slip-tab:hover:not(.active) { color: #374151; }
 
 .selections-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 6px 8px;
-  background: #12141f;
-  border-bottom: 1px solid #1e2235;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
-.selections-label { color: #7a84a0; font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
+.selections-label { color: #64748b; font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
 .clear-all-btn {
   background: none; border: none; color: #e84c6b;
   font-size: 9px; cursor: pointer; font-weight: 600;
@@ -481,7 +482,7 @@ const systemMaxReturn = computed(() => {
   gap: 8px;
 }
 .slip-empty-img { width: 52px; height: 52px; object-fit: contain; }
-.slip-empty-text { font-size: 10px; color: #5a6080; text-align: center; line-height: 1.5; }
+.slip-empty-text { font-size: 10px; color: #94a3b8; text-align: center; line-height: 1.5; }
 
 /* Warning */
 .single-warning {
@@ -498,8 +499,8 @@ const systemMaxReturn = computed(() => {
 /* Selection items */
 .selections-list { display: flex; flex-direction: column; gap: 4px; padding: 6px 6px 0; }
 .selection-item {
-  background: #12141f;
-  border: 1px solid #1e2235;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 6px 8px;
   display: flex;
@@ -507,22 +508,22 @@ const systemMaxReturn = computed(() => {
   gap: 3px;
 }
 .sel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
-.sel-name { font-size: 11px; font-weight: 700; color: #e2e8f0; flex: 1; line-height: 1.3; }
+.sel-name { font-size: 11px; font-weight: 700; color: #1a202c; flex: 1; line-height: 1.3; }
 .sel-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .sel-odds { font-size: 13px; font-weight: 900; color: #e84c6b; }
 .sel-close {
-  background: none; border: none; color: #5a6a88;
+  background: none; border: none; color: #94a3b8;
   font-size: 11px; cursor: pointer; padding: 0 2px;
   transition: color 0.12s; line-height: 1;
 }
 .sel-close:hover { color: #e84c6b; }
-.sel-match { font-size: 9px; color: #7a84a0; }
+.sel-match { font-size: 9px; color: #64748b; }
 .sel-meta { font-size: 9px; color: #5a6080; line-height: 1.3; }
 .sel-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
 .sel-status { font-size: 9px; color: #5a6080; }
 .sel-returns { display: flex; gap: 4px; align-items: center; }
 .ret-label { font-size: 9px; color: #5a6080; }
-.ret-value { font-size: 10px; font-weight: 700; color: #e2e8f0; }
+.ret-value { font-size: 10px; font-weight: 700; color: #1a202c; }
 
 /* ── BONUS BADGE ── */
 .bonus-badge {
@@ -599,43 +600,42 @@ const systemMaxReturn = computed(() => {
 .total-odds-row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 6px 8px; margin: 4px 6px 0;
-  background: #12141f; border-radius: 6px; border: 1px solid #1e2235;
+  background: #f1f5f9; border-radius: 6px; border: 1px solid #e2e8f0;
 }
-.to-label { font-size: 9px; color: #7a84a0; font-weight: 600; }
+.to-label { font-size: 9px; color: #64748b; font-weight: 600; }
 .to-val { font-size: 14px; font-weight: 900; color: #e84c6b; }
 
 /* System options */
 .system-options { padding: 6px; display: flex; flex-direction: column; gap: 4px; }
-.system-title { font-size: 8px; font-weight: 700; color: #5a6080; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 2px; }
+.system-title { font-size: 8px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 2px; }
 .system-option { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .system-option input[type="radio"] { accent-color: #e84c6b; flex-shrink: 0; }
-.sopt-body { display: flex; align-items: center; gap: 6px; background: #12141f; border: 1px solid #1e2235; border-radius: 5px; padding: 5px 7px; flex: 1; }
+.sopt-body { display: flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 5px 7px; flex: 1; }
 .system-option:has(input:checked) .sopt-body { border-color: #e84c6b; }
-.sopt-label { font-size: 11px; font-weight: 800; color: #e2e8f0; min-width: 28px; }
-.sopt-desc { font-size: 9px; color: #7a84a0; flex: 1; }
-.sopt-bets { font-size: 9px; color: #5a6080; white-space: nowrap; }
+.sopt-label { font-size: 11px; font-weight: 800; color: #1a202c; min-width: 28px; }
+.sopt-desc { font-size: 9px; color: #64748b; flex: 1; }
+.sopt-bets { font-size: 9px; color: #94a3b8; white-space: nowrap; }
 
 /* Stake section */
-.stake-section { padding: 8px 6px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #1e2235; margin-top: 6px; }
+.stake-section { padding: 8px 6px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #e2e8f0; margin-top: 6px; }
 .stake-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.stake-label { font-size: 9px; font-weight: 700; color: #7a84a0; letter-spacing: 0.3px; white-space: nowrap; }
+.stake-label { font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.3px; white-space: nowrap; }
 .stake-input {
-  background: linear-gradient(135deg, #181b2c 0%, #1c2036 100%);
-  border: 1.5px solid #252a42;
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
   border-radius: 7px;
-  color: #c8cfe0;
+  color: #1a202c;
   padding: 6px 8px;
   font-size: 11px;
   width: 80px;
   outline: none;
   text-align: right;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.stake-input::placeholder { color: #3a4260; }
+.stake-input::placeholder { color: #94a3b8; }
 .stake-input:focus {
   border-color: #e84c6b;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.15), 0 0 0 2px rgba(232,76,107,0.15);
+  box-shadow: 0 0 0 2px rgba(232,76,107,0.12);
 }
 .quick-stakes {
   display: flex;
@@ -645,8 +645,8 @@ const systemMaxReturn = computed(() => {
 .qs-btn {
   flex: 1;
   min-width: 0;
-  background: color-mix(in srgb, var(--qs-color) 15%, #12141f);
-  border: 1px solid color-mix(in srgb, var(--qs-color) 40%, transparent);
+  background: color-mix(in srgb, var(--qs-color) 12%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--qs-color) 35%, transparent);
   border-radius: 5px;
   color: var(--qs-color);
   font-size: 9px;
@@ -659,20 +659,20 @@ const systemMaxReturn = computed(() => {
   letter-spacing: 0.2px;
 }
 .qs-btn:hover {
-  background: color-mix(in srgb, var(--qs-color) 30%, #12141f);
+  background: color-mix(in srgb, var(--qs-color) 25%, #ffffff);
   transform: translateY(-1px);
 }
 .qs-btn:active { transform: translateY(0); }
 .stake-totals { display: flex; flex-direction: column; gap: 3px; }
 .total-row {
   display: flex; justify-content: space-between;
-  font-size: 10px; color: #7a84a0;
+  font-size: 10px; color: #64748b;
 }
-.total-row.potential { color: #c8cfe0; font-weight: 600; }
+.total-row.potential { color: #1a202c; font-weight: 600; }
 .potential-val { color: #4ade80; font-weight: 800; }
 .total-row.bonus-row { color: #4ade80; }
 .bonus-amount { font-weight: 700; color: #4ade80; }
-.stake-notice { font-size: 9px; color: #5a6080; text-align: center; }
+.stake-notice { font-size: 9px; color: #94a3b8; text-align: center; }
 .login-bet-btn {
   background: #e84c6b; border: none; color: #fff;
   font-size: 10px; font-weight: 800; padding: 9px;

@@ -23,7 +23,7 @@ import AuthModal from '@/components/AuthModal.vue'
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #12141f;
+  background: #f0f3f7;
   overflow: hidden;
 }
 .main-layout {

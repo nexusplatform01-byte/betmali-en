@@ -54,8 +54,8 @@ const popularOpen = ref(true)
 .left-sidebar {
   width: 175px;
   min-width: 175px;
-  background: #1a1d2e;
-  border-right: 1px solid #252840;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
@@ -63,13 +63,13 @@ const popularOpen = ref(true)
 }
 .sidebar-tabs {
   display: flex;
-  border-bottom: 1px solid #252840;
+  border-bottom: 1px solid #e2e8f0;
 }
 .stab {
   flex: 1;
-  background: #141624;
+  background: #f8fafc;
   border: none;
-  color: #9ba3b8;
+  color: #64748b;
   padding: 8px 4px;
   font-size: 10px;
   font-weight: 700;
@@ -82,8 +82,9 @@ const popularOpen = ref(true)
   transition: background 0.15s;
 }
 .stab.active {
-  background: #252840;
-  color: #fff;
+  background: #fff;
+  color: #1a2d4e;
+  border-bottom: 2px solid #e84c6b;
 }
 .stab-dot {
   width: 6px;
@@ -91,15 +92,16 @@ const popularOpen = ref(true)
   border-radius: 50%;
   display: inline-block;
 }
-.stab-dot.sports { background: #4caf50; }
+.stab-dot.sports { background: #22c55e; }
 .stab-dot.live { background: #e84c6b; }
 .stab-count {
-  background: #3a3f5c;
+  background: #e2e8f0;
+  color: #4a5568;
   border-radius: 8px;
   padding: 0 5px;
   font-size: 9px;
 }
-.stab-count.live-c { background: #e84c6b; }
+.stab-count.live-c { background: #e84c6b; color: #fff; }
 
 .sidebar-tools {
   padding: 6px 6px;
@@ -121,21 +123,22 @@ const popularOpen = ref(true)
 .search-box {
   display: flex;
   align-items: center;
-  background: #252840;
-  border-radius: 3px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
   padding: 3px 6px;
   gap: 4px;
 }
-.search-icon { font-size: 10px; color: #9ba3b8; }
+.search-icon { font-size: 10px; color: #94a3b8; }
 .search-input {
   background: transparent;
   border: none;
   outline: none;
-  color: #e2e8f0;
+  color: #1a202c;
   font-size: 11px;
   width: 100%;
 }
-.search-input::placeholder { color: #5a6080; }
+.search-input::placeholder { color: #94a3b8; }
 
 .section-header {
   display: flex;
@@ -144,14 +147,14 @@ const popularOpen = ref(true)
   padding: 6px 8px;
   font-size: 11px;
   font-weight: 600;
-  color: #9ba3b8;
-  background: #141624;
+  color: #64748b;
+  background: #f8fafc;
   cursor: pointer;
-  border-top: 1px solid #252840;
+  border-top: 1px solid #e2e8f0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
-.section-header:hover { color: #fff; }
+.section-header:hover { color: #1a2d4e; background: #f1f5f9; }
 .chevron {
   font-size: 14px;
   transition: transform 0.2s;

@@ -162,20 +162,6 @@
 
       </div>
 
-      <!-- Second match section -->
-      <MatchSection
-        :league="{ flag: '🇹🇷', sport: 'Soccer', name: 'Turkiye Kupasi' }"
-        :matches="matchesGroup2"
-        @match-click="openMatchDetail"
-      />
-
-      <!-- Third match section -->
-      <MatchSection
-        :league="{ flag: '🇹🇷', sport: 'Soccer', name: 'Turkiye Kupasi' }"
-        :matches="matchesGroup3"
-        @match-click="openMatchDetail"
-      />
-
       <!-- Bottom promo banner -->
       <div class="bottom-promo">
         <div class="bp-left">
@@ -198,7 +184,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import MatchSection from './MatchSection.vue'
 import TopMatchesSection from './TopMatchesSection.vue'
 import MatchDetail from './MatchDetail.vue'
 import { usePopularLeagueMatches } from '@/composables/usePopularLeagueMatches'
@@ -260,18 +245,6 @@ function handleCategoryClick(name: string) {
 
 const comingSoonCat = ref(false)
 let catTimer: ReturnType<typeof setTimeout> | null = null
-
-const makeMatches = () => [
-  { id: 1, date: '10.01.25', time: '4:00 PM', team1: 'Real Madrid', team2: 'Manchester United', odds1: '1.35', oddsX: '3.10', odds2: '2.31', odds1x: '5.30', oddsX2: '1.16', odds12: '1.36', highlighted: '' },
-  { id: 2, date: '10.01.25', time: '4:00 PM', team1: 'Real Madrid', team2: 'Manchester United', odds1: '1.35', oddsX: '3.10', odds2: '2.31', odds1x: '5.30', oddsX2: '1.16', odds12: '1.36', highlighted: 'odds2' },
-  { id: 3, date: '10.01.25', time: '4:05 PM', team1: 'Real Madrid', team2: 'Manchester United', odds1: '1.35', oddsX: '5.10', odds2: '2.31', odds1x: '5.30', oddsX2: '1.16', odds12: '1.36', highlighted: 'oddsX' },
-  { id: 4, date: '10.01.25', time: '4:05 PM', team1: 'Real Madrid', team2: 'Manchester United', odds1: '1.35', oddsX: '3.10', odds2: '2.31', odds1x: '5.30', oddsX2: '1.10', odds12: '1.36', highlighted: '' },
-  { id: 5, date: '10.01.25', time: '4:05 PM', team1: 'Real Madrid', team2: 'Manchester United', odds1: '1.35', oddsX: '3.10', odds2: '2.31', odds1x: '5.30', oddsX2: '1.16', odds12: '1.36', highlighted: 'odds1' },
-]
-
-const matchesGroup1 = makeMatches()
-const matchesGroup2 = makeMatches()
-const matchesGroup3 = makeMatches()
 
 const { cards: leagueMatchCards, loading: leagueLoading, error: leagueError, refresh: leagueRefresh } = usePopularLeagueMatches()
 const { toggleBet, hasBet } = useBetSlip()
@@ -395,24 +368,24 @@ const leagueImageCards = [
   transition: background 0.15s, border-color 0.15s; gap: 6px;
   white-space: nowrap;
 }
-.sport-cat:hover { background: #252840; }
-.sport-cat.active { background: #252840; border-color: #e84c6b; }
+.sport-cat:hover { background: #f1f5f9; }
+.sport-cat.active { background: #e8f0fe; border-color: #e84c6b; }
 .cat-icon-wrap { position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .cat-icon-img { width: 22px; height: 22px; object-fit: contain; }
 .cat-live-dot {
   position: absolute; top: -2px; right: -2px;
   width: 6px; height: 6px; background: #e84c6b;
-  border-radius: 50%; border: 1px solid #1a1d2e;
+  border-radius: 50%; border: 1px solid #ffffff;
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(0.8); }
 }
-.cat-name { font-size: 10px; font-weight: 600; color: #c8cfe0; white-space: nowrap; }
-.cat-events { font-size: 9px; color: #555; font-weight: 500; }
-.sport-cat.active .cat-name { color: #fff; }
-.sport-cat.active .cat-events { color: #a78bfa; }
+.cat-name { font-size: 10px; font-weight: 600; color: #374151; white-space: nowrap; }
+.cat-events { font-size: 9px; color: #94a3b8; font-weight: 500; }
+.sport-cat.active .cat-name { color: #1a2d4e; }
+.sport-cat.active .cat-events { color: #6366f1; }
 .cat-coming-soon {
   position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
   background: #e84c6b; color: #fff; font-size: 11px; font-weight: 700;
@@ -429,7 +402,7 @@ const leagueImageCards = [
 /* ─── Popular Leagues ─────────────────────────────── */
 .popular-leagues-section {
   padding: 14px 0 4px;
-  background: #12141f;
+  background: #f0f3f7;
 }
 
 .section-title { padding: 0 12px 10px; }
@@ -442,7 +415,7 @@ const leagueImageCards = [
   display: flex; align-items: center; gap: 10px;
 }
 .popular-label {
-  font-size: 16px; font-weight: 800; color: #fff;
+  font-size: 16px; font-weight: 800; color: #1a2d4e;
 }
 .ai-badge {
   display: flex; align-items: center; gap: 4px;

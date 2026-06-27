@@ -105,18 +105,6 @@
       </div>
     </div>
 
-    <!-- Site balance adjust -->
-    <div class="panel">
-      <div class="ph">Adjust Site Balance</div>
-      <div class="adj-row">
-        <input v-model.number="adjAmt" type="number" placeholder="Amount (UGX)" class="adj-inp" />
-        <input v-model="adjNote" type="text" placeholder="Reason / Note" class="adj-inp" />
-        <button class="adj-btn g" @click="doAdj('add')">+ Add</button>
-        <button class="adj-btn r" @click="doAdj('deduct')">- Deduct</button>
-        <span v-if="adjMsg" class="adj-msg">{{ adjMsg }}</span>
-      </div>
-    </div>
-
     <!-- WITHDRAW MODAL -->
     <teleport to="body">
       <transition name="fade">
@@ -155,7 +143,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { users, bets, siteSettings, withdrawSiteBalance, saveSiteSettings } from '../../stores/adminData'
+import { users, bets, siteSettings, withdrawSiteBalance } from '../../stores/adminData'
 
 const pendingBets = computed(() => bets.filter(b=>b.status==='pending'))
 const pendingBetsTotal = computed(() => pendingBets.value.reduce((s,b)=>s+b.stake,0))
@@ -174,22 +162,6 @@ const breakdown = computed(() => [
 
 function pct(val: number) { return Math.min(100, Math.round((val / (siteSettings.siteBalance||1)) * 100)) + '%' }
 function getUserName(id: string) { return users.find(u=>u.id===id)?.name||id }
-
-const adjAmt = ref(0); const adjNote = ref(''); const adjMsg = ref('')
-
-async function doAdj(type: 'add'|'deduct') {
-  if (adjAmt.value<=0) return
-  const newBal = type==='add'
-    ? siteSettings.siteBalance + adjAmt.value
-    : Math.max(0, siteSettings.siteBalance - adjAmt.value)
-  adjMsg.value = type==='add'
-    ? `Added UGX ${adjAmt.value.toLocaleString()}`
-    : `Deducted UGX ${adjAmt.value.toLocaleString()}`
-  await saveSiteSettings({ siteBalance: newBal })
-  siteSettings.siteBalance = newBal
-  adjAmt.value=0; adjNote.value=''
-  setTimeout(()=>{ adjMsg.value='' },3000)
-}
 
 // Withdraw modal
 const showWithdraw = ref(false)

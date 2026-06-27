@@ -188,15 +188,20 @@
       </div>
     </template>
 
-    <!-- ── BET SUCCESS TOAST ── -->
-    <transition name="toast-slide">
-      <div v-if="betSuccess" class="bet-success-toast">
-        <div class="bst-icon">✅</div>
-        <div class="bst-body">
-          <div class="bst-title">Bet Placed!</div>
-          <div class="bst-id">Bet ID: <strong>#{{ betId }}</strong></div>
+    <!-- ── BET SUCCESS MODAL (centered) ── -->
+    <transition name="bet-modal">
+      <div v-if="betSuccess" class="bsm-backdrop" @click.self="betSuccess = false">
+        <div class="bsm-card">
+          <div class="bsm-glow"></div>
+          <div class="bsm-checkmark">✅</div>
+          <div class="bsm-title">Bet Placed!</div>
+          <div class="bsm-id-wrap">
+            <div class="bsm-id-label">BET TICKET ID</div>
+            <div class="bsm-id">#{{ betId }}</div>
+          </div>
+          <div class="bsm-sub">Good luck! Your bet is now pending.</div>
+          <button class="bsm-close-btn" @click="betSuccess = false">Close</button>
         </div>
-        <button class="bst-close" @click="betSuccess = false">✕</button>
       </div>
     </transition>
 
@@ -216,6 +221,7 @@
 import { ref, computed, watch } from 'vue'
 import { useBetSlip } from '@/composables/useBetSlip'
 import { useAuthModal } from '@/composables/useAuthModal'
+import { useBets } from '@/composables/useBets'
 
 
 
@@ -227,6 +233,7 @@ const selectedSystem = ref('2/3')
 
 const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
 const { openLogin, currentUser, addToBalance } = useAuthModal()
+const { addBet: saveBet } = useBets()
 
 const QUICK_STAKE_COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#e84c6b']
 
@@ -236,16 +243,21 @@ let betTimer: ReturnType<typeof setTimeout> | null = null
 
 function placeBet() {
   if (!currentUser.value || !stake.value || stake.value <= 0) return
-  if (stake.value > currentUser.value.balance) {
-    // Not enough balance — could show error, for now just ignore
-    return
-  }
-  addToBalance(-stake.value)
-  betId.value = String(Math.floor(100000 + Math.random() * 900000))
+  if (stake.value > currentUser.value.balance) return
+  const stakeVal = stake.value
+  const combinedOdds = activeSlipTab.value === 'MULTI' ? multiTotalOdds.value : parseFloat(singleItem.value?.odds ?? '1')
+  const bonusPct = activeSlipTab.value === 'MULTI' ? currentBonus.value : 0
+  const baseReturn = Math.round(stakeVal * combinedOdds)
+  const potentialReturn = Math.round(baseReturn * (1 + bonusPct / 100))
+  const betType = activeSlipTab.value === 'SYSTEM' ? 'system' : activeSlipTab.value === 'MULTI' ? 'multi' : 'single'
+  const selections = activeSlipTab.value === 'SINGLE' ? [singleItem.value!] : [...slipItems.value]
+  addToBalance(-stakeVal)
+  const newId = saveBet({ stake: stakeVal, potentialReturn, selections, type: betType, bonusPct, combinedOdds })
+  betId.value = newId
   betSuccess.value = true
   clearAll()
   if (betTimer) clearTimeout(betTimer)
-  betTimer = setTimeout(() => { betSuccess.value = false }, 4000)
+  betTimer = setTimeout(() => { betSuccess.value = false }, 6000)
 }
 
 // Auto-switch tab based on selection count
@@ -680,53 +692,91 @@ const systemMaxReturn = computed(() => {
 .place-bet-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 .place-bet-btn:active { transform: translateY(0); }
 
-/* ── BET SUCCESS TOAST ── */
-.bet-success-toast {
+/* ── BET SUCCESS CENTERED MODAL ── */
+.bsm-backdrop {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  inset: 0;
   z-index: 9999;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: linear-gradient(135deg, #14281a 0%, #1a3322 100%);
-  border: 1px solid #2a6040;
-  border-left: 4px solid #22c55e;
-  border-radius: 10px;
-  padding: 12px 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,197,94,0.1);
-  min-width: 200px;
-  max-width: 260px;
+  justify-content: center;
 }
-.bst-icon { font-size: 20px; flex-shrink: 0; }
-.bst-body { flex: 1; }
-.bst-title {
-  font-size: 12px;
-  font-weight: 800;
+.bsm-card {
+  position: relative;
+  background: linear-gradient(160deg, #141c2e 0%, #1a2540 100%);
+  border: 1px solid #2e4a7a;
+  border-radius: 20px;
+  padding: 32px 36px;
+  text-align: center;
+  min-width: 280px;
+  max-width: 340px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 40px rgba(34,197,94,0.08);
+  overflow: hidden;
+}
+.bsm-glow {
+  position: absolute;
+  top: -40px; left: 50%; transform: translateX(-50%);
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(74,222,128,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.bsm-checkmark { font-size: 48px; margin-bottom: 10px; }
+.bsm-title {
+  font-size: 22px;
+  font-weight: 900;
   color: #4ade80;
-  letter-spacing: 0.3px;
+  letter-spacing: -0.5px;
+  margin-bottom: 14px;
 }
-.bst-id {
-  font-size: 10px;
+.bsm-id-wrap {
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 12px;
+}
+.bsm-id-label {
+  font-size: 9px;
+  font-weight: 700;
   color: #6dbf90;
-  margin-top: 2px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
-.bst-id strong { color: #a3e8c0; font-weight: 700; }
-.bst-close {
-  background: none;
-  border: none;
-  color: #4a7060;
+.bsm-id {
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+.bsm-sub {
   font-size: 11px;
-  cursor: pointer;
-  padding: 0 2px;
-  flex-shrink: 0;
-  transition: color 0.15s;
+  color: #6a8090;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
-.bst-close:hover { color: #4ade80; }
-.toast-slide-enter-active { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.toast-slide-leave-active { transition: all 0.2s ease-in; }
-.toast-slide-enter-from { opacity: 0; transform: translateY(16px) scale(0.95); }
-.toast-slide-leave-to { opacity: 0; transform: translateY(8px); }
+.bsm-close-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 11px 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: opacity 0.15s, transform 0.1s;
+  width: 100%;
+}
+.bsm-close-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.bsm-close-btn:active { transform: translateY(0); }
+.bet-modal-enter-active { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.bet-modal-leave-active { transition: all 0.2s ease-in; }
+.bet-modal-enter-from { opacity: 0; transform: scale(0.85); }
+.bet-modal-leave-to { opacity: 0; transform: scale(0.95); }
 
 /* Promo banner */
 .promo-banner { margin-top: auto; padding: 8px 6px 6px; }

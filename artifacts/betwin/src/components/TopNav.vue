@@ -9,7 +9,7 @@
 
     <!-- Upper bar -->
     <div class="upper-bar">
-      <div class="logo">
+      <div class="logo" @click="$router.push('/')" style="cursor:pointer">
         <span class="logo-bet">BET</span><span class="logo-win">WIN</span><span class="logo-dot">.</span>
       </div>
       <div class="upper-right">
@@ -20,7 +20,7 @@
           </button>
         </div>
 
-        <!-- ── LOGGED OUT: Register + Login buttons ── -->
+        <!-- ── LOGGED OUT ── -->
         <template v-if="!currentUser">
           <button class="btn-register" @click="openRegister">
             <img src="https://cdn3d.iconscout.com/3d/premium/thumb/sign-up-3d-icon-png-download-12826539.png" class="btn-icon-img" alt="register" loading="eager" fetchpriority="high" />
@@ -32,7 +32,7 @@
           </button>
         </template>
 
-        <!-- ── LOGGED IN: Avatar + Balance widget ── -->
+        <!-- ── LOGGED IN ── -->
         <template v-else>
           <div class="user-widget">
             <!-- Balance pill -->
@@ -42,10 +42,9 @@
                 <span v-if="balanceVisible">UGX {{ currentUser.balance.toLocaleString() }}</span>
                 <span v-else class="balance-hidden">UGX ••••••</span>
               </span>
-              <button class="eye-btn" @click="balanceVisible = !balanceVisible" :title="balanceVisible ? 'Hide balance' : 'Show balance'">
+              <button class="eye-btn" @click="balanceVisible = !balanceVisible">
                 <svg v-if="balanceVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
                 <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
                   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
@@ -55,39 +54,12 @@
               </button>
             </div>
 
-            <!-- Avatar + dropdown -->
-            <div class="avatar-wrap" @click="menuOpen = !menuOpen" ref="avatarRef">
+            <!-- Avatar → navigates to profile -->
+            <div class="avatar-wrap" @click="goToProfile">
               <div class="avatar">{{ avatarLetter }}</div>
-              <svg class="chevron" :class="{ open: menuOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
-
-              <!-- Dropdown menu -->
-              <transition name="menu-fade">
-                <div v-if="menuOpen" class="user-menu" @click.stop>
-                  <div class="menu-user-info">
-                    <div class="menu-avatar">{{ avatarLetter }}</div>
-                    <div>
-                      <div class="menu-name">{{ currentUser.name }}</div>
-                      <div class="menu-phone">{{ currentUser.phone }}</div>
-                    </div>
-                  </div>
-                  <div class="menu-divider"></div>
-                  <button class="menu-item" @click="menuOpen = false; fireToast()">
-                    <span>💰</span> Deposit
-                  </button>
-                  <button class="menu-item" @click="menuOpen = false; fireToast()">
-                    <span>💸</span> Withdraw
-                  </button>
-                  <button class="menu-item" @click="menuOpen = false; fireToast()">
-                    <span>📋</span> Bet History
-                  </button>
-                  <div class="menu-divider"></div>
-                  <button class="menu-item logout" @click="handleLogout">
-                    <span>🚪</span> Logout
-                  </button>
-                </div>
-              </transition>
             </div>
           </div>
         </template>
@@ -112,27 +84,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthModal } from '@/composables/useAuthModal'
 
+const router = useRouter()
 const activeTab = ref('BETTING')
 const showToast = ref(false)
 const balanceVisible = ref(true)
-const menuOpen = ref(false)
-const avatarRef = ref<HTMLElement | null>(null)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-const { openLogin, openRegister, currentUser, logout } = useAuthModal()
+const { openLogin, openRegister, currentUser } = useAuthModal()
 
-const avatarLetter = computed(() => {
-  if (!currentUser.value) return '?'
-  const name = currentUser.value.name
-  return name.charAt(0).toUpperCase()
-})
+const avatarLetter = computed(() => currentUser.value?.name.charAt(0).toUpperCase() ?? '?')
 
-function handleLogout() {
-  menuOpen.value = false
-  logout()
+function goToProfile() {
+  router.push('/profile')
 }
 
 function fireToast() {
@@ -142,21 +109,9 @@ function fireToast() {
 }
 
 function handleTabClick(label: string) {
-  if (label === 'BETTING') {
-    activeTab.value = label
-    return
-  }
+  if (label === 'BETTING') { activeTab.value = label; return }
   fireToast()
 }
-
-// Close menu when clicking outside
-function onClickOutside(e: MouseEvent) {
-  if (avatarRef.value && !avatarRef.value.contains(e.target as Node)) {
-    menuOpen.value = false
-  }
-}
-onMounted(() => document.addEventListener('click', onClickOutside))
-onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
 const navTabs = [
   { label: 'BETTING',     imgSrc: 'https://cdn3d.iconscout.com/3d/premium/thumb/betting-3d-icon-png-download-9927750.png' },
@@ -171,326 +126,89 @@ const navTabs = [
 
 <style scoped>
 .top-bar {
-  background: #1a1d2e;
-  border-bottom: 1px solid #252840;
-  flex-shrink: 0;
-  position: relative;
+  background: #1a1d2e; border-bottom: 1px solid #252840;
+  flex-shrink: 0; position: relative;
 }
 .upper-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px;
-  background: #141624;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 12px; background: #141624;
 }
-.logo {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
-.logo-bet { color: #fff; }
-.logo-win { color: #e84c6b; }
-.logo-dot { color: #fff; }
-.upper-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.upper-links {
-  display: flex;
-  gap: 4px;
-}
+.logo { font-size: 20px; font-weight: 900; letter-spacing: -1px; }
+.logo-bet { color: #fff; } .logo-win { color: #e84c6b; } .logo-dot { color: #fff; }
+.upper-right { display: flex; align-items: center; gap: 6px; }
+.upper-links { display: flex; gap: 4px; }
 .upper-btn {
-  background: #252840;
-  border: none;
-  color: #9ba3b8;
-  font-size: 9px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  text-align: left;
-  line-height: 1.3;
-  text-transform: uppercase;
-  font-weight: 600;
-  transition: background 0.15s;
+  background: #252840; border: none; color: #9ba3b8; font-size: 9px;
+  padding: 4px 8px; border-radius: 4px; cursor: pointer;
+  display: flex; align-items: center; gap: 5px; text-align: left;
+  line-height: 1.3; text-transform: uppercase; font-weight: 600; transition: background 0.15s;
 }
 .upper-btn:hover { background: #2f3450; }
-.upper-icon-img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
+.upper-icon-img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
 .btn-register {
-  background: transparent;
-  border: 1px solid #e84c6b;
-  color: #e84c6b;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  background: transparent; border: 1px solid #e84c6b; color: #e84c6b;
+  padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
   transition: background 0.15s, color 0.15s;
 }
 .btn-register:hover { background: #e84c6b; color: #fff; }
 .btn-login {
-  background: #e84c6b;
-  border: none;
-  color: #fff;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: background 0.15s;
+  background: #e84c6b; border: none; color: #fff; padding: 4px 12px;
+  border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 5px; transition: background 0.15s;
 }
 .btn-login:hover { background: #c93559; }
-.btn-icon-img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
+.btn-icon-img { width: 20px; height: 20px; object-fit: contain; }
 
-/* ── USER WIDGET ── */
-.user-widget {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Balance pill */
+/* User widget */
+.user-widget { display: flex; align-items: center; gap: 6px; }
 .balance-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: #1e2235;
-  border: 1px solid #2e3355;
-  border-radius: 20px;
-  padding: 4px 10px 4px 8px;
+  display: flex; align-items: center; gap: 5px;
+  background: #1e2235; border: 1px solid #2e3355;
+  border-radius: 20px; padding: 4px 10px 4px 8px;
 }
-.balance-label {
-  font-size: 8px;
-  font-weight: 800;
-  color: #4ade80;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-.balance-amount {
-  font-size: 11px;
-  font-weight: 800;
-  color: #e2e8f0;
-  white-space: nowrap;
-}
-.balance-hidden {
-  color: #5a6080;
-  letter-spacing: 1px;
-}
-.eye-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #7a84a0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  transition: color 0.15s;
-}
+.balance-label { font-size: 8px; font-weight: 800; color: #4ade80; letter-spacing: 0.5px; }
+.balance-amount { font-size: 11px; font-weight: 800; color: #e2e8f0; white-space: nowrap; }
+.balance-hidden { color: #5a6080; letter-spacing: 1px; }
+.eye-btn { background: none; border: none; cursor: pointer; color: #7a84a0; padding: 0; display: flex; transition: color 0.15s; }
 .eye-btn:hover { color: #e2e8f0; }
-.eye-icon {
-  width: 14px;
-  height: 14px;
-}
-
-/* Avatar */
-.avatar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  cursor: pointer;
-  position: relative;
-  user-select: none;
-}
+.eye-icon { width: 14px; height: 14px; }
+.avatar-wrap { display: flex; align-items: center; gap: 3px; cursor: pointer; }
 .avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 30px; height: 30px; border-radius: 50%;
   background: linear-gradient(135deg, #e84c6b, #a0284a);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 2px solid #e84c6b44;
+  color: #fff; font-size: 13px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #e84c6b44; transition: border-color 0.15s;
 }
-.chevron {
-  width: 12px;
-  height: 12px;
-  color: #7a84a0;
-  transition: transform 0.2s;
-}
-.chevron.open { transform: rotate(180deg); }
+.avatar-wrap:hover .avatar { border-color: #e84c6b; }
+.chevron { width: 12px; height: 12px; color: #7a84a0; }
 
-/* Dropdown */
-.user-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: #1a1d2e;
-  border: 1px solid #2e3355;
-  border-radius: 10px;
-  min-width: 190px;
-  z-index: 5000;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-  overflow: hidden;
-}
-.menu-user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-}
-.menu-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #e84c6b, #a0284a);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.menu-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: #e2e8f0;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.menu-phone {
-  font-size: 10px;
-  color: #5a6080;
-  margin-top: 1px;
-}
-.menu-divider {
-  height: 1px;
-  background: #252840;
-  margin: 0 8px;
-}
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  background: none;
-  border: none;
-  color: #c8cfe0;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 9px 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.12s, color 0.12s;
-}
-.menu-item:hover { background: #252840; color: #fff; }
-.menu-item.logout { color: #e84c6b; }
-.menu-item.logout:hover { background: rgba(232,76,107,0.1); }
-
-.menu-fade-enter-active, .menu-fade-leave-active {
-  transition: opacity 0.15s, transform 0.15s;
-}
-.menu-fade-enter-from, .menu-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-
-/* Nav tabs */
-.lower-nav {
-  display: flex;
-  align-items: center;
-  overflow-x: auto;
-  background: #1a1d2e;
-  scrollbar-width: none;
-}
+/* Nav */
+.lower-nav { display: flex; align-items: center; overflow-x: auto; background: #1a1d2e; scrollbar-width: none; }
 .lower-nav::-webkit-scrollbar { display: none; }
 .nav-tab {
-  color: #9ba3b8;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 0 10px;
-  height: 36px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-  text-transform: uppercase;
-  position: relative;
+  color: #9ba3b8; font-size: 10px; font-weight: 600; padding: 0 10px;
+  height: 36px; cursor: pointer; display: flex; flex-direction: row;
+  align-items: center; gap: 5px; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+  text-transform: uppercase; position: relative;
 }
 .nav-tab:hover { color: #fff; }
 .nav-tab.active { color: #fff; border-bottom-color: #e84c6b; }
-.tab-icon-img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
+.tab-icon-img { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
 .live-dot {
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  width: 6px;
-  height: 6px;
-  background: #e84c6b;
-  border-radius: 50%;
-  animation: pulse 1.5s infinite;
+  position: absolute; top: 4px; right: 6px; width: 6px; height: 6px;
+  background: #e84c6b; border-radius: 50%; animation: pulse 1.5s infinite;
 }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-/* Coming Soon toast */
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .coming-soon-toast {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #141624;
-  border: 1px solid #e84c6b;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 10px 24px;
-  border-radius: 8px;
-  z-index: 999;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: #141624; border: 1px solid #e84c6b; color: #fff; font-size: 13px;
+  font-weight: 700; padding: 10px 24px; border-radius: 8px; z-index: 999;
   box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px #e84c6b44;
-  white-space: nowrap;
-  pointer-events: none;
+  white-space: nowrap; pointer-events: none;
 }
-.toast-fade-enter-active, .toast-fade-leave-active {
-  transition: opacity 0.25s, transform 0.25s;
-}
-.toast-fade-enter-from, .toast-fade-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -60%);
-}
+.toast-fade-enter-active, .toast-fade-leave-active { transition: opacity 0.25s, transform 0.25s; }
+.toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translate(-50%, -60%); }
 </style>

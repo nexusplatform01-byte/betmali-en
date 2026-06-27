@@ -63,6 +63,9 @@
           <span class="stake-label">STAKE (UGX)</span>
           <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
+        <div class="quick-stakes">
+          <button v-for="q in QUICK_STAKES" :key="q" class="qs-btn" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
+        </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
           <div class="total-row potential"><span>Potential Returns:</span><span class="potential-val">{{ singlePotential }}</span></div>
@@ -119,6 +122,9 @@
           <span class="stake-label">STAKE (UGX)</span>
           <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
+        <div class="quick-stakes">
+          <button v-for="q in QUICK_STAKES" :key="q" class="qs-btn" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
+        </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
           <div v-if="slipItems.length >= 2 && currentBonus > 0" class="total-row">
@@ -167,6 +173,9 @@
           <span class="stake-label">STAKE PER BET (UGX)</span>
           <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
+        <div class="quick-stakes">
+          <button v-for="q in QUICK_STAKES" :key="q" class="qs-btn" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
+        </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(systemTotalStake) }}</span></div>
           <div class="total-row potential"><span>Min Returns:</span><span class="potential-val">{{ systemMinReturn }}</span></div>
@@ -195,7 +204,8 @@ import { useAuthModal } from '@/composables/useAuthModal'
 
 const slipTabs = ['SINGLE', 'MULTI', 'SYSTEM']
 const activeSlipTab = ref('SINGLE')
-const stake = ref<number | null>(null)
+const stake = ref<number | null>(1000)
+const QUICK_STAKES = [5000, 10000, 20000, 50000]
 const selectedSystem = ref('2/3')
 
 const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
@@ -562,6 +572,31 @@ const systemMaxReturn = computed(() => {
   transition: border-color 0.15s;
 }
 .stake-input:focus { border-color: #e84c6b; }
+.quick-stakes {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.qs-btn {
+  flex: 1;
+  min-width: 0;
+  background: #1e2235;
+  border: 1px solid #2e3355;
+  border-radius: 4px;
+  color: #c8cfe0;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 4px 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.qs-btn:hover {
+  background: #e84c6b;
+  border-color: #e84c6b;
+  color: #fff;
+}
 .stake-totals { display: flex; flex-direction: column; gap: 3px; }
 .total-row {
   display: flex; justify-content: space-between;

@@ -3,10 +3,6 @@
     <!-- Hero banner (hidden in detail view) -->
     <div class="hero-banner" v-if="!selectedMatch">
       <img src="https://www.topbet.ug/ibet/img/b/icimage_18365.jpg" class="hero-bg-img" alt="" loading="eager" fetchpriority="high" />
-      <div class="hero-text">
-        <div class="hero-sport">SPORT</div>
-        <div class="hero-betting">BETTING</div>
-      </div>
       <div class="hero-overlay"></div>
     </div>
 

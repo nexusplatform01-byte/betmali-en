@@ -64,14 +64,14 @@
           <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
         <div class="quick-stakes">
-          <button v-for="q in QUICK_STAKES" :key="q" class="qs-btn" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
+          <button v-for="(q, i) in QUICK_STAKES" :key="q" class="qs-btn" :style="{ '--qs-color': QUICK_STAKE_COLORS[i] }" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
         </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
           <div class="total-row potential"><span>Potential Returns:</span><span class="potential-val">{{ singlePotential }}</span></div>
         </div>
         <button v-if="!currentUser" class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
-        <button v-else class="place-bet-btn">PLACE BET</button>
+        <button v-else class="place-bet-btn" @click="placeBet">PLACE BET</button>
       </div>
     </template>
 
@@ -124,7 +124,7 @@
           <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
         <div class="quick-stakes">
-          <button v-for="q in QUICK_STAKES" :key="q" class="qs-btn" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
+          <button v-for="(q, i) in QUICK_STAKES" :key="q" class="qs-btn" :style="{ '--qs-color': QUICK_STAKE_COLORS[i] }" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
         </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(stake) }}</span></div>
@@ -137,7 +137,7 @@
           <div class="total-row potential"><span>Potential Returns:</span><span class="potential-val">{{ multiPotential }}</span></div>
         </div>
         <button v-if="!currentUser" class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
-        <button v-else class="place-bet-btn">PLACE BET</button>
+        <button v-else class="place-bet-btn" @click="placeBet">PLACE BET</button>
       </div>
     </template>
 
@@ -176,7 +176,7 @@
           <input type="number" class="stake-input" v-model.number="stake" placeholder="0" min="0" />
         </div>
         <div class="quick-stakes">
-          <button v-for="q in QUICK_STAKES" :key="q" class="qs-btn" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
+          <button v-for="(q, i) in QUICK_STAKES" :key="q" class="qs-btn" :style="{ '--qs-color': QUICK_STAKE_COLORS[i] }" @click="stake = q">{{ q >= 1000 ? (q/1000) + 'K' : q }}</button>
         </div>
         <div class="stake-totals">
           <div class="total-row"><span>Total stake</span><span>{{ fmtMoney(systemTotalStake) }}</span></div>
@@ -184,9 +184,21 @@
           <div class="total-row potential"><span>Max Returns:</span><span class="potential-val">{{ systemMaxReturn }}</span></div>
         </div>
         <button v-if="!currentUser" class="login-bet-btn" @click="openLogin">LOGIN TO BET</button>
-        <button v-else class="place-bet-btn">PLACE BET</button>
+        <button v-else class="place-bet-btn" @click="placeBet">PLACE BET</button>
       </div>
     </template>
+
+    <!-- ── BET SUCCESS TOAST ── -->
+    <transition name="toast-slide">
+      <div v-if="betSuccess" class="bet-success-toast">
+        <div class="bst-icon">✅</div>
+        <div class="bst-body">
+          <div class="bst-title">Bet Placed!</div>
+          <div class="bst-id">Bet ID: <strong>#{{ betId }}</strong></div>
+        </div>
+        <button class="bst-close" @click="betSuccess = false">✕</button>
+      </div>
+    </transition>
 
     <!-- Promo banner -->
     <div class="promo-banner">
@@ -214,7 +226,27 @@ const QUICK_STAKES = [5000, 10000, 20000, 50000]
 const selectedSystem = ref('2/3')
 
 const { slipItems, removeBet, clearAll, totalOdds } = useBetSlip()
-const { openLogin, currentUser } = useAuthModal()
+const { openLogin, currentUser, addToBalance } = useAuthModal()
+
+const QUICK_STAKE_COLORS = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#e84c6b']
+
+const betSuccess = ref(false)
+const betId = ref('')
+let betTimer: ReturnType<typeof setTimeout> | null = null
+
+function placeBet() {
+  if (!currentUser.value || !stake.value || stake.value <= 0) return
+  if (stake.value > currentUser.value.balance) {
+    // Not enough balance — could show error, for now just ignore
+    return
+  }
+  addToBalance(-stake.value)
+  betId.value = String(Math.floor(100000 + Math.random() * 900000))
+  betSuccess.value = true
+  clearAll()
+  if (betTimer) clearTimeout(betTimer)
+  betTimer = setTimeout(() => { betSuccess.value = false }, 4000)
+}
 
 // Auto-switch tab based on selection count
 watch(() => slipItems.value.length, (n) => {
@@ -571,12 +603,23 @@ const systemMaxReturn = computed(() => {
 .stake-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .stake-label { font-size: 9px; font-weight: 700; color: #7a84a0; letter-spacing: 0.3px; white-space: nowrap; }
 .stake-input {
-  background: #12141f; border: 1px solid #2e3355; border-radius: 5px;
-  color: #e2e8f0; padding: 5px 7px; font-size: 11px; width: 80px;
-  outline: none; text-align: right;
-  transition: border-color 0.15s;
+  background: linear-gradient(135deg, #181b2c 0%, #1c2036 100%);
+  border: 1.5px solid #252a42;
+  border-radius: 7px;
+  color: #c8cfe0;
+  padding: 6px 8px;
+  font-size: 11px;
+  width: 80px;
+  outline: none;
+  text-align: right;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.stake-input:focus { border-color: #e84c6b; }
+.stake-input::placeholder { color: #3a4260; }
+.stake-input:focus {
+  border-color: #e84c6b;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.15), 0 0 0 2px rgba(232,76,107,0.15);
+}
 .quick-stakes {
   display: flex;
   gap: 4px;
@@ -585,23 +628,24 @@ const systemMaxReturn = computed(() => {
 .qs-btn {
   flex: 1;
   min-width: 0;
-  background: #1e2235;
-  border: 1px solid #2e3355;
-  border-radius: 4px;
-  color: #c8cfe0;
+  background: color-mix(in srgb, var(--qs-color) 15%, #12141f);
+  border: 1px solid color-mix(in srgb, var(--qs-color) 40%, transparent);
+  border-radius: 5px;
+  color: var(--qs-color);
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 4px 2px;
   cursor: pointer;
   text-align: center;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: background 0.15s, transform 0.1s;
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 .qs-btn:hover {
-  background: #e84c6b;
-  border-color: #e84c6b;
-  color: #fff;
+  background: color-mix(in srgb, var(--qs-color) 30%, #12141f);
+  transform: translateY(-1px);
 }
+.qs-btn:active { transform: translateY(0); }
 .stake-totals { display: flex; flex-direction: column; gap: 3px; }
 .total-row {
   display: flex; justify-content: space-between;
@@ -635,6 +679,54 @@ const systemMaxReturn = computed(() => {
 }
 .place-bet-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 .place-bet-btn:active { transform: translateY(0); }
+
+/* ── BET SUCCESS TOAST ── */
+.bet-success-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #14281a 0%, #1a3322 100%);
+  border: 1px solid #2a6040;
+  border-left: 4px solid #22c55e;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,197,94,0.1);
+  min-width: 200px;
+  max-width: 260px;
+}
+.bst-icon { font-size: 20px; flex-shrink: 0; }
+.bst-body { flex: 1; }
+.bst-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #4ade80;
+  letter-spacing: 0.3px;
+}
+.bst-id {
+  font-size: 10px;
+  color: #6dbf90;
+  margin-top: 2px;
+}
+.bst-id strong { color: #a3e8c0; font-weight: 700; }
+.bst-close {
+  background: none;
+  border: none;
+  color: #4a7060;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.bst-close:hover { color: #4ade80; }
+.toast-slide-enter-active { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.toast-slide-leave-active { transition: all 0.2s ease-in; }
+.toast-slide-enter-from { opacity: 0; transform: translateY(16px) scale(0.95); }
+.toast-slide-leave-to { opacity: 0; transform: translateY(8px); }
 
 /* Promo banner */
 .promo-banner { margin-top: auto; padding: 8px 6px 6px; }

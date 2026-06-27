@@ -1,4 +1,7 @@
 import { ref } from 'vue'
+import { onAuthStateChanged } from 'firebase/auth'
+import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase'
 import type { BetSlipItem } from './useBetSlip'
 
 export type BetStatus = 'pending' | 'won' | 'lost'
@@ -11,6 +14,7 @@ export interface SelectionResult {
 
 export interface PlacedBet {
   id: string
+  ticketId: string
   timestamp: Date
   stake: number
   potentialReturn: number
@@ -22,75 +26,83 @@ export interface PlacedBet {
   combinedOdds: number
 }
 
-const bets = ref<PlacedBet[]>([
-  {
-    id: '332',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    stake: 5000,
-    potentialReturn: 111240,
-    status: 'pending',
-    type: 'multi',
-    bonusPct: 3,
-    combinedOdds: 21.60,
-    selections: [
-      { key: 'nzl-bel-1', market: '1X2', label: 'New Zealand Win', odds: '12.00', matchName: 'New Zealand vs Belgium' },
-      { key: 'cro-gha-1', market: '1X2', label: 'Croatia Win', odds: '1.80', matchName: 'Croatia vs Ghana' },
-    ],
-    selectionResults: [
-      { key: 'nzl-bel-1', status: 'pending' },
-      { key: 'cro-gha-1', status: 'pending' },
-    ],
-  },
-  {
-    id: '287',
-    timestamp: new Date(Date.now() - 26 * 60 * 60 * 1000),
-    stake: 10000,
-    potentialReturn: 34500,
-    status: 'won',
-    type: 'single',
-    bonusPct: 0,
-    combinedOdds: 3.45,
-    selections: [
-      { key: 'col-por-x', market: '1X2', label: 'Draw', odds: '3.45', matchName: 'Colombia vs Portugal' },
-    ],
-    selectionResults: [
-      { key: 'col-por-x', status: 'won' },
-    ],
-  },
-  {
-    id: '201',
-    timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000),
-    stake: 20000,
-    potentialReturn: 86000,
-    status: 'lost',
-    type: 'multi',
-    bonusPct: 5,
-    combinedOdds: 4.10,
-    selections: [
-      { key: 'egy-iri-2', market: '1X2', label: 'IR Iran Win', odds: '1.50', matchName: 'Egypt vs IR Iran' },
-      { key: 'pan-eng-2', market: '1X2', label: 'England Win', odds: '1.04', matchName: 'Panama vs England' },
-      { key: 'uru-esp-2', market: '1X2', label: 'Spain Win', odds: '1.72', matchName: 'Uruguay vs Spain' },
-    ],
-    selectionResults: [
-      { key: 'egy-iri-2', status: 'won' },
-      { key: 'pan-eng-2', status: 'won' },
-      { key: 'uru-esp-2', status: 'lost' },
-    ],
-  },
-])
+const bets = ref<PlacedBet[]>([])
+let unsubBets: (() => void) | null = null
+
+onAuthStateChanged(auth, (firebaseUser) => {
+  if (unsubBets) { unsubBets(); unsubBets = null }
+  bets.value = []
+  if (firebaseUser) {
+    unsubBets = onSnapshot(
+      query(collection(db, 'bets'), where('userId', '==', firebaseUser.uid)),
+      (snap) => {
+        const list = snap.docs.map(d => {
+          const data = d.data()
+          return {
+            id: d.id,
+            ticketId: data.ticketId || d.id,
+            timestamp: new Date(data.placedAt || data.timestamp),
+            stake: data.stake,
+            potentialReturn: data.potentialReturn,
+            status: data.status,
+            selections: data.selections || [],
+            selectionResults: data.selectionResults || [],
+            type: data.type || 'single',
+            bonusPct: data.bonusPct || 0,
+            combinedOdds: data.combinedOdds,
+          } as PlacedBet
+        })
+        list.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+        bets.value = list
+      }
+    )
+  }
+})
 
 export function useBets() {
-  function addBet(bet: Omit<PlacedBet, 'id' | 'timestamp' | 'status' | 'selectionResults'>): string {
-    const id = String(100 + Math.floor(Math.random() * 900))
+  function addBet(bet: Omit<PlacedBet, 'id' | 'ticketId' | 'timestamp' | 'status' | 'selectionResults'>): string {
+    const user = auth.currentUser
+    const ticketId = 'TK-' + String(100000 + Math.floor(Math.random() * 900000))
     const selectionResults: SelectionResult[] = bet.selections.map(s => ({ key: s.key, status: 'pending' as BetStatus }))
-    bets.value.unshift({
-      ...bet,
-      id,
-      timestamp: new Date(),
+    const now = new Date().toISOString()
+
+    const betData = {
+      userId: user?.uid || 'guest',
+      ticketId,
+      stake: bet.stake,
+      potentialReturn: bet.potentialReturn,
+      potentialWin: bet.potentialReturn,
       status: 'pending',
+      type: bet.type,
+      bonusPct: bet.bonusPct,
+      combinedOdds: bet.combinedOdds,
+      selections: bet.selections,
       selectionResults,
-    })
-    return id
+      placedAt: now,
+      timestamp: now,
+      match: bet.selections[0]?.matchName || 'Unknown',
+      selection: bet.selections.map(s => s.label).join(', '),
+      odds: bet.combinedOdds,
+      sport: 'Soccer',
+    }
+
+    addDoc(collection(db, 'bets'), betData).catch(console.error)
+
+    if (user) {
+      addDoc(collection(db, 'transactions'), {
+        userId: user.uid,
+        type: 'bet',
+        name: `Bet Placed — ${ticketId}`,
+        amount: bet.stake,
+        positive: false,
+        date: now,
+        method: 'Bet',
+        status: 'completed',
+        reference: ticketId,
+      }).catch(console.error)
+    }
+
+    return ticketId
   }
 
   return { bets, addBet }

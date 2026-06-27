@@ -1,4 +1,16 @@
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+} from 'firebase/auth'
+import {
+  collection, doc, getDoc, setDoc, updateDoc, addDoc,
+  onSnapshot, getDocs,
+} from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase'
+
+const ADMIN_EMAIL = 'admin@betwin.ug'
 
 export interface User {
   id: string
@@ -31,12 +43,13 @@ export interface Bet {
 export interface Transaction {
   id: string
   userId: string
-  type: 'deposit' | 'withdrawal'
+  type: 'deposit' | 'withdrawal' | 'bet' | 'win' | 'cashout'
   amount: number
   method: string
   status: 'completed' | 'pending' | 'failed'
   reference: string
   createdAt: string
+  name?: string
 }
 
 export interface Activity {
@@ -49,72 +62,15 @@ export interface Activity {
   createdAt: string
 }
 
-const now = new Date()
-const d = (daysAgo: number, hoursAgo = 0) => {
-  const date = new Date(now)
-  date.setDate(date.getDate() - daysAgo)
-  date.setHours(date.getHours() - hoursAgo)
-  return date.toISOString()
-}
-
-export const users = reactive<User[]>([
-  { id: 'u1', name: 'James Okello', phone: '+256 700 123 456', email: 'james.okello@email.com', walletBalance: 45000, status: 'active', lastVisit: d(0, 1), createdAt: d(120), country: 'Uganda', currency: 'UGX' },
-  { id: 'u2', name: 'Mary Achieng', phone: '+256 752 234 567', email: 'mary.achieng@email.com', walletBalance: 12500, status: 'active', lastVisit: d(0, 3), createdAt: d(90), country: 'Uganda', currency: 'UGX' },
-  { id: 'u3', name: 'Peter Muwanga', phone: '+256 774 345 678', email: 'peter.muwanga@email.com', walletBalance: 78000, status: 'active', lastVisit: d(1), createdAt: d(60), country: 'Uganda', currency: 'UGX' },
-  { id: 'u4', name: 'Grace Namukasa', phone: '+256 703 456 789', email: 'grace.namukasa@email.com', walletBalance: 3200, status: 'suspended', lastVisit: d(5), createdAt: d(200), country: 'Uganda', currency: 'UGX' },
-  { id: 'u5', name: 'David Ssemakula', phone: '+256 781 567 890', email: 'david.ssemakula@email.com', walletBalance: 155000, status: 'active', lastVisit: d(0, 0), createdAt: d(30), country: 'Uganda', currency: 'UGX' },
-  { id: 'u6', name: 'Fatima Nalubega', phone: '+256 755 678 901', email: 'fatima.nalubega@email.com', walletBalance: 0, status: 'banned', lastVisit: d(14), createdAt: d(300), country: 'Uganda', currency: 'UGX' },
-  { id: 'u7', name: 'Samuel Kizito', phone: '+256 712 789 012', email: 'samuel.kizito@email.com', walletBalance: 23000, status: 'active', lastVisit: d(0, 2), createdAt: d(45), country: 'Uganda', currency: 'UGX' },
-  { id: 'u8', name: 'Ruth Atim', phone: '+256 790 890 123', email: 'ruth.atim@email.com', walletBalance: 67500, status: 'active', lastVisit: d(2), createdAt: d(150), country: 'Uganda', currency: 'UGX' },
-])
-
-export const bets = reactive<Bet[]>([
-  { id: 'b1', userId: 'u1', ticketId: 'TK-001234', match: 'New Zealand vs Belgium', selection: 'Belgium Win', odds: 1.17, stake: 10000, potentialWin: 11700, status: 'pending', sport: 'Soccer', placedAt: d(0, 2) },
-  { id: 'b2', userId: 'u1', ticketId: 'TK-001235', match: 'Egypt vs IR Iran', selection: 'Draw', odds: 3.40, stake: 5000, potentialWin: 17000, status: 'won', sport: 'Soccer', placedAt: d(1), settledAt: d(0, 12) },
-  { id: 'b3', userId: 'u2', ticketId: 'TK-001236', match: 'Croatia vs Ghana', selection: 'Croatia Win', odds: 1.80, stake: 20000, potentialWin: 36000, status: 'lost', sport: 'Soccer', placedAt: d(2), settledAt: d(1) },
-  { id: 'b4', userId: 'u3', ticketId: 'TK-001237', match: 'Panama vs England', selection: 'England Win', odds: 1.17, stake: 50000, potentialWin: 58500, status: 'won', sport: 'Soccer', placedAt: d(0, 5), settledAt: d(0, 2) },
-  { id: 'b5', userId: 'u5', ticketId: 'TK-001238', match: 'Colombia vs Portugal', selection: 'Portugal Win', odds: 1.90, stake: 100000, potentialWin: 190000, status: 'pending', sport: 'Soccer', placedAt: d(0, 1) },
-  { id: 'b6', userId: 'u7', ticketId: 'TK-001239', match: 'Algeria vs Austria', selection: 'Algeria Win', odds: 3.90, stake: 8000, potentialWin: 31200, status: 'lost', sport: 'Soccer', placedAt: d(3), settledAt: d(2) },
-  { id: 'b7', userId: 'u8', ticketId: 'TK-001240', match: 'Brazil vs Japan', selection: 'Brazil Win', odds: 1.72, stake: 30000, potentialWin: 51600, status: 'pending', sport: 'Soccer', placedAt: d(0, 0) },
-  { id: 'b8', userId: 'u2', ticketId: 'TK-001241', match: 'Jordan vs Argentina', selection: 'Argentina Win', odds: 1.16, stake: 15000, potentialWin: 17400, status: 'won', sport: 'Soccer', placedAt: d(4), settledAt: d(3) },
-  { id: 'b9', userId: 'u1', ticketId: 'TK-001242', match: 'Congo DR vs Uzbekistan', selection: 'Uzbekistan Win', odds: 2.10, stake: 7000, potentialWin: 14700, status: 'pending', sport: 'Soccer', placedAt: d(0, 3) },
-  { id: 'b10', userId: 'u3', ticketId: 'TK-001243', match: 'South Africa vs Canada', selection: 'Draw', odds: 3.45, stake: 25000, potentialWin: 86250, status: 'lost', sport: 'Soccer', placedAt: d(5), settledAt: d(4) },
-])
-
-export const transactions = reactive<Transaction[]>([
-  { id: 'tx1', userId: 'u1', type: 'deposit', amount: 50000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841234', createdAt: d(0, 2) },
-  { id: 'tx2', userId: 'u1', type: 'withdrawal', amount: 20000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841235', createdAt: d(1) },
-  { id: 'tx3', userId: 'u2', type: 'deposit', amount: 30000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841236', createdAt: d(0, 5) },
-  { id: 'tx4', userId: 'u3', type: 'deposit', amount: 100000, method: 'Bank Transfer', status: 'completed', reference: 'BK-1234567', createdAt: d(0, 1) },
-  { id: 'tx5', userId: 'u5', type: 'deposit', amount: 200000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841238', createdAt: d(0, 0) },
-  { id: 'tx6', userId: 'u5', type: 'withdrawal', amount: 50000, method: 'Mobile Money', status: 'pending', reference: 'MM-7841239', createdAt: d(0, 1) },
-  { id: 'tx7', userId: 'u7', type: 'deposit', amount: 25000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841240', createdAt: d(1) },
-  { id: 'tx8', userId: 'u8', type: 'deposit', amount: 80000, method: 'Bank Transfer', status: 'completed', reference: 'BK-1234568', createdAt: d(2) },
-  { id: 'tx9', userId: 'u8', type: 'withdrawal', amount: 30000, method: 'Mobile Money', status: 'failed', reference: 'MM-7841242', createdAt: d(0, 6) },
-  { id: 'tx10', userId: 'u2', type: 'withdrawal', amount: 10000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841243', createdAt: d(3) },
-  { id: 'tx11', userId: 'u3', type: 'withdrawal', amount: 40000, method: 'Bank Transfer', status: 'completed', reference: 'BK-1234569', createdAt: d(1) },
-  { id: 'tx12', userId: 'u1', type: 'deposit', amount: 15000, method: 'Mobile Money', status: 'completed', reference: 'MM-7841244', createdAt: d(7) },
-])
-
-export const activities = reactive<Activity[]>([
-  { id: 'ac1', userId: 'u1', action: 'Placed Bet', details: 'Placed bet on New Zealand vs Belgium (TK-001234)', page: '/betting', ip: '196.43.12.1', createdAt: d(0, 2) },
-  { id: 'ac2', userId: 'u1', action: 'Deposit', details: 'Deposited UGX 50,000 via Mobile Money', page: '/wallet', ip: '196.43.12.1', createdAt: d(0, 2) },
-  { id: 'ac3', userId: 'u1', action: 'Login', details: 'User logged in successfully', page: '/login', ip: '196.43.12.1', createdAt: d(0, 3) },
-  { id: 'ac4', userId: 'u2', action: 'Login', details: 'User logged in successfully', page: '/login', ip: '41.210.45.22', createdAt: d(0, 3) },
-  { id: 'ac5', userId: 'u2', action: 'Viewed Match', details: 'Viewed Croatia vs Ghana match details', page: '/match/3', ip: '41.210.45.22', createdAt: d(0, 4) },
-  { id: 'ac6', userId: 'u3', action: 'Withdrawal Request', details: 'Requested withdrawal of UGX 40,000 via Bank Transfer', page: '/wallet', ip: '105.17.89.33', createdAt: d(1) },
-  { id: 'ac7', userId: 'u5', action: 'Placed Bet', details: 'Placed bet on Colombia vs Portugal (TK-001238)', page: '/betting', ip: '196.200.34.10', createdAt: d(0, 1) },
-  { id: 'ac8', userId: 'u5', action: 'Deposit', details: 'Deposited UGX 200,000 via Mobile Money', page: '/wallet', ip: '196.200.34.10', createdAt: d(0, 0) },
-  { id: 'ac9', userId: 'u7', action: 'Login', details: 'User logged in successfully', page: '/login', ip: '41.75.120.55', createdAt: d(0, 2) },
-  { id: 'ac10', userId: 'u8', action: 'Viewed Match', details: 'Viewed Brazil vs Japan match details', page: '/match/9', ip: '196.46.78.90', createdAt: d(0, 0) },
-  { id: 'ac11', userId: 'u1', action: 'Viewed Odds', details: 'Clicked on Egypt vs IR Iran odds', page: '/betting', ip: '196.43.12.1', createdAt: d(0, 2) },
-  { id: 'ac12', userId: 'u3', action: 'Won Bet', details: 'Bet TK-001237 won UGX 58,500', page: '/my-bets', ip: '105.17.89.33', createdAt: d(0, 2) },
-])
+export const users = reactive<User[]>([])
+export const bets = reactive<Bet[]>([])
+export const transactions = reactive<Transaction[]>([])
+export const activities = reactive<Activity[]>([])
 
 export const siteSettings = reactive({
   siteName: 'BetWin',
   siteUrl: 'https://betwin.ug',
-  adminEmail: 'admin@betwin.ug',
+  adminEmail: ADMIN_EMAIL,
   adminPassword: 'admin123',
   currency: 'UGX',
   minDeposit: 1000,
@@ -135,20 +91,147 @@ export const siteSettings = reactive({
 export const adminAuth = reactive({
   isLoggedIn: false,
   username: '',
+  loading: false,
 })
 
-export function adminLogin(username: string, password: string): boolean {
-  if (username === 'admin' && password === siteSettings.adminPassword) {
-    adminAuth.isLoggedIn = true
-    adminAuth.username = username
-    return true
+let unsubUsers: (() => void) | null = null
+let unsubBets: (() => void) | null = null
+let unsubTxs: (() => void) | null = null
+let unsubActivities: (() => void) | null = null
+
+async function loadSiteSettings() {
+  try {
+    const snap = await getDoc(doc(db, 'siteSettings', 'main'))
+    if (snap.exists()) {
+      Object.assign(siteSettings, snap.data())
+    } else {
+      await setDoc(doc(db, 'siteSettings', 'main'), { ...siteSettings }).catch(() => {})
+    }
+  } catch {
+    // Use defaults if Firestore not accessible
   }
-  return false
 }
 
-export function adminLogout() {
+function startAdminSubscriptions() {
+  unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
+    users.splice(0)
+    snap.forEach(d => {
+      const data = d.data()
+      users.push({
+        id: d.id,
+        name: data.name || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        walletBalance: data.balance || data.walletBalance || 0,
+        status: data.status || 'active',
+        lastVisit: data.lastVisit || data.createdAt || new Date().toISOString(),
+        createdAt: data.createdAt || new Date().toISOString(),
+        country: data.country || 'Uganda',
+        currency: data.currency || 'UGX',
+      })
+    })
+  })
+
+  unsubBets = onSnapshot(collection(db, 'bets'), (snap) => {
+    bets.splice(0)
+    snap.forEach(d => {
+      const data = d.data()
+      bets.push({
+        id: d.id,
+        userId: data.userId || '',
+        ticketId: data.ticketId || d.id,
+        match: data.match || (data.selections?.[0]?.matchName) || 'Unknown',
+        selection: data.selection || (data.selections?.[0]?.label) || 'Unknown',
+        odds: data.odds || data.combinedOdds || 0,
+        stake: data.stake || 0,
+        potentialWin: data.potentialWin || data.potentialReturn || 0,
+        status: data.status || 'pending',
+        sport: data.sport || 'Soccer',
+        placedAt: data.placedAt || data.timestamp || new Date().toISOString(),
+        settledAt: data.settledAt,
+      })
+    })
+  })
+
+  unsubTxs = onSnapshot(collection(db, 'transactions'), (snap) => {
+    transactions.splice(0)
+    snap.forEach(d => {
+      const data = d.data()
+      transactions.push({
+        id: d.id,
+        userId: data.userId || '',
+        type: data.type || 'deposit',
+        amount: data.amount || 0,
+        method: data.method || '',
+        status: data.status || 'completed',
+        reference: data.reference || d.id,
+        createdAt: data.createdAt || data.date || new Date().toISOString(),
+        name: data.name,
+      })
+    })
+  })
+
+  unsubActivities = onSnapshot(collection(db, 'activities'), (snap) => {
+    activities.splice(0)
+    snap.forEach(d => {
+      const data = d.data()
+      activities.push({
+        id: d.id,
+        userId: data.userId || '',
+        action: data.action || '',
+        details: data.details || '',
+        page: data.page || '/',
+        ip: data.ip || '',
+        createdAt: data.createdAt || new Date().toISOString(),
+      })
+    })
+  })
+}
+
+function stopAdminSubscriptions() {
+  unsubUsers?.(); unsubBets?.(); unsubTxs?.(); unsubActivities?.()
+  unsubUsers = unsubBets = unsubTxs = unsubActivities = null
+}
+
+export async function adminLogin(username: string, password: string): Promise<boolean> {
+  if (username !== 'admin') return false
+
+  adminAuth.loading = true
+  try {
+    // Load siteSettings to get current admin password
+    await loadSiteSettings()
+
+    if (password !== siteSettings.adminPassword) return false
+
+    // Sign into Firebase Auth for Firestore access
+    try {
+      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password)
+    } catch (e: any) {
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password') {
+        try {
+          await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, password)
+        } catch {}
+      }
+    }
+
+    // Reload siteSettings now that we're authenticated
+    await loadSiteSettings()
+
+    adminAuth.isLoggedIn = true
+    adminAuth.username = username
+    startAdminSubscriptions()
+    return true
+  } finally {
+    adminAuth.loading = false
+  }
+}
+
+export async function adminLogout() {
   adminAuth.isLoggedIn = false
   adminAuth.username = ''
+  stopAdminSubscriptions()
+  users.splice(0); bets.splice(0); transactions.splice(0); activities.splice(0)
+  await signOut(auth).catch(() => {})
 }
 
 export function getUserById(id: string): User | undefined {
@@ -167,52 +250,71 @@ export function getUserActivities(userId: string): Activity[] {
   return activities.filter(a => a.userId === userId)
 }
 
-export function adjustWallet(userId: string, amount: number, type: 'add' | 'deduct', method = 'Admin Adjustment'): void {
+export async function adjustWallet(userId: string, amount: number, type: 'add' | 'deduct', method = 'Admin Adjustment'): Promise<void> {
   const user = users.find(u => u.id === userId)
   if (!user) return
-  if (type === 'add') {
-    user.walletBalance += amount
-    transactions.unshift({
-      id: 'tx' + Date.now(),
-      userId,
-      type: 'deposit',
-      amount,
-      method,
-      status: 'completed',
-      reference: 'ADM-' + Date.now(),
-      createdAt: new Date().toISOString(),
-    })
-    activities.unshift({
-      id: 'ac' + Date.now(),
-      userId,
-      action: 'Admin Credit',
-      details: `Admin added UGX ${amount.toLocaleString()} to wallet`,
-      page: '/admin',
-      ip: '127.0.0.1',
-      createdAt: new Date().toISOString(),
-    })
-  } else {
-    user.walletBalance = Math.max(0, user.walletBalance - amount)
-    transactions.unshift({
-      id: 'tx' + Date.now(),
-      userId,
-      type: 'withdrawal',
-      amount,
-      method,
-      status: 'completed',
-      reference: 'ADM-' + Date.now(),
-      createdAt: new Date().toISOString(),
-    })
-    activities.unshift({
-      id: 'ac' + Date.now(),
-      userId,
-      action: 'Admin Deduct',
-      details: `Admin deducted UGX ${amount.toLocaleString()} from wallet`,
-      page: '/admin',
-      ip: '127.0.0.1',
-      createdAt: new Date().toISOString(),
-    })
-  }
+  const delta = type === 'add' ? amount : -amount
+  const newBalance = Math.max(0, user.walletBalance + delta)
+  user.walletBalance = newBalance
+  const now = new Date().toISOString()
+  await Promise.all([
+    updateDoc(doc(db, 'users', userId), { balance: newBalance }),
+    addDoc(collection(db, 'transactions'), {
+      userId, type: type === 'add' ? 'deposit' : 'withdrawal',
+      amount, method, status: 'completed',
+      reference: 'ADM-' + Date.now(), createdAt: now,
+      name: type === 'add' ? `Admin Credit — ${method}` : `Admin Debit — ${method}`,
+      positive: type === 'add', date: now,
+    }),
+    addDoc(collection(db, 'activities'), {
+      userId, action: type === 'add' ? 'Admin Credit' : 'Admin Debit',
+      details: `Admin ${type === 'add' ? 'added' : 'deducted'} UGX ${amount.toLocaleString()} (${method})`,
+      page: '/admin', ip: '127.0.0.1', createdAt: now,
+    }),
+  ])
+}
+
+export async function updateUserStatus(userId: string, status: 'active' | 'suspended' | 'banned'): Promise<void> {
+  const user = users.find(u => u.id === userId)
+  if (!user) return
+  user.status = status
+  await updateDoc(doc(db, 'users', userId), { status })
+}
+
+export async function updateBetStatus(betId: string, status: 'pending' | 'won' | 'lost'): Promise<void> {
+  const bet = bets.find(b => b.id === betId)
+  if (!bet) return
+  bet.status = status
+  const updates: Record<string, string> = { status }
+  if (status !== 'pending') updates.settledAt = new Date().toISOString()
+  await updateDoc(doc(db, 'bets', betId), updates)
+}
+
+export async function updateTransactionStatus(txId: string, status: 'completed' | 'pending' | 'failed'): Promise<void> {
+  const tx = transactions.find(t => t.id === txId)
+  if (!tx) return
+  tx.status = status
+  await updateDoc(doc(db, 'transactions', txId), { status })
+}
+
+export async function saveSiteSettings(updates: Partial<typeof siteSettings>): Promise<void> {
+  Object.assign(siteSettings, updates)
+  await updateDoc(doc(db, 'siteSettings', 'main'), updates)
+}
+
+export async function withdrawSiteBalance(amount: number, method: string): Promise<void> {
+  if (amount <= 0 || amount > siteSettings.siteBalance) return
+  siteSettings.siteBalance = Math.max(0, siteSettings.siteBalance - amount)
+  const now = new Date().toISOString()
+  await Promise.all([
+    updateDoc(doc(db, 'siteSettings', 'main'), { siteBalance: siteSettings.siteBalance }),
+    addDoc(collection(db, 'transactions'), {
+      userId: 'admin', type: 'withdrawal',
+      amount, method, status: 'completed',
+      reference: 'SITE-' + Date.now(), createdAt: now,
+      name: `Site Withdrawal via ${method}`, positive: false, date: now,
+    }),
+  ])
 }
 
 export function formatDate(iso: string): string {
